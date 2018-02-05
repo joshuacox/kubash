@@ -1,0 +1,6 @@
+hosts
+hosts.csv
+masters.list
+nodes.list
+join.sh
+*/packer_cache
