@@ -838,8 +838,8 @@ packer_build  () {
   if [ ! -L build ]; then
     $LN_CMD $KUBASH_BUILDS builds
   fi
-  cd $KUBASH_DIR/pax/$target_os
 
+  cd $KUBASH_DIR/pax/$target_os
   check_cmd packer
   squawk 2 " Executing packer build..."
 
@@ -848,6 +848,7 @@ packer_build  () {
   else
     debug_flag=''
   fi
+  squawk 2 "TMPDIR=$KUBASH_BUILDS_TMP packer build -only=$build_virt $debug_flag $target_build.json"
   TMPDIR=$KUBASH_BUILDS_TMP \
     packer build -only=$build_virt $debug_flag $target_build.json
 
