@@ -1,0 +1,1180 @@
+#!/usr/bin/env bash
+: ${KUBASH_DIR:=$HOME/.kubash}
+: ${KUBASH_BIN:=$KUBASH_DIR/bin}
+: ${KUBASH_HOSTS_CSV:=$KUBASH_DIR/hosts.csv}
+: ${KUBASH_HOSTS:=$KUBASH_DIR/hosts}
+: ${DO_DOTFILES:=false}
+: ${PRINT_HELP:=false}
+: ${DO_INIT:=false}
+: ${RAISON:=false}
+: ${VERBOSITY:=0}
+: ${KVM_IMAGE_DIR:=/var/lib/libvirt/images}
+: ${KUBASH_BUILDS_TMP:=$KVM_IMAGE_DIR/kubashtmp}
+: ${KUBASH_BUILDS:=$KVM_IMAGE_DIR/kubashbuilds}
+: ${KVM_BASE_IMG:=kubash.qcow2}
+: ${KVM_RAM:=4096}
+: ${KVM_CPU:=2}
+: ${KVM_NET:='default'}
+: ${PSEUDO:=sudo}
+: ${K8S_user:=root}
+: ${K8S_NET:=calico}
+: ${K8S_node_port:=22}
+: ${K8S_su_user:=coopadmin}
+: ${my_DOMAIN:=example.com}
+: ${GOPATH:=~/.go}
+: ${KUTIME:="/usr/bin/time -v"}
+: ${PARALLEL_JOBS:=1}
+
+squawk () {
+  # This function simplifies error reporting and verbosity
+  # call it by preceding your message with a verbosity level
+  # e.g. `squawk 3 "This is a squawk"`
+  # if the current verbosity level is greater than or equal 
+  # the number given then this function will echo out your message
+  # and pad it with # to let you now how verbose that message was
+  squawk_lvl=$1
+  squawk=$2
+
+  if [ "$VERBOSITY" -ge "$squawk_lvl" ] ; then
+  count_squawk=0
+    while [ "$count_squawk" -lt "$squawk_lvl" ]; do
+      echo -n "#"
+      count_squawk=`expr $count_squawk + 1`
+    done
+    echo " $squawk"
+  fi
+}
+
+squawk 3 "Kubash, by Josh Cox"
+
+usage () {
+  # Print usage
+  echo 'kubash, by Josh Cox 2018.01.31
+usage: kubash COMMAND
+This script automates the setup and maintenance of a kubernetes cluster
+e.g.
+
+kubash init
+
+commands:
+
+build - build a base image
+
+provision - provision individual nodes
+
+init - initialize the cluster
+
+decommission - tear down the cluster and decommission nodes
+
+show - show the analyzed input of the hosts file
+
+ping - Perform ansible ping to all hosts
+
+auto - Full auto
+
+options:
+
+ -h --help - Print usage
+
+ -c --csv - Set the csv file to be parsed
+
+ -g --grab - Grab the .kube/config from the master
+
+ -d --auto-dotfiles - Perform dotfiles auto configuration
+
+ -w --write-hosts - Write ansible hosts file
+
+ -y --dry - Perform dry run
+
+ -m --masters - Perform initialization of masters
+
+ -n --nodes - Perform initialization of masters
+
+ --parallel # - set the number of parallel jobs for tasks that support it
+'
+}
+
+build_usage () {
+  # Print usage
+  echo '--
+usage: kubash build
+build - build a base image
+
+This script automates the setup and maintenance of a kubernetes cluster
+e.g.
+
+kubash build
+
+options:
+
+ -h --help - Print usage
+ --builder - choose builder (for now only packer)
+'
+}
+
+init_usage () {
+  # Print usage
+  echo '--
+usage: kubash init
+init - init a base image
+
+This script automates the setup and maintenance of a kubernetes cluster
+e.g.
+
+kubash init
+
+options:
+
+ -h --help - Print usage
+'
+}
+
+provision_usage () {
+  # Print usage
+  echo '--
+usage: kubash provision
+provision - provision a base image
+
+This script automates the setup and maintenance of a kubernetes cluster
+e.g.
+
+kubash provision
+
+options:
+
+ -h --help - Print usage
+'
+}
+
+decom_usage () {
+  # Print usage
+  echo '--
+usage: kubash decom
+decommission - decommission a cluster and destroy all VMs
+
+This script automates the setup and maintenance of a kubernetes cluster
+e.g.
+
+kubash decommission
+
+options:
+
+ -h --help - Print usage
+'
+}
+
+# Check if a command exists
+check_cmd () {
+  if ! test_cmd_loc="$(type -p "$1")" || [ -z "$test_cmd_loc" ]; then
+    echo "$1 was not found in your path!"
+    echo "To proceed please install $1 to your path and try again!"
+    exit 1
+  fi
+}
+
+check_cmd mktemp
+TMP=$(mktemp -d --suffix='.kubash.tmp' 2>/dev/null || mktemp -d -t '.kubash.tmp')
+
+chkdir () {
+  if [ ! -w $1 ] ; then
+    sudo mkdir -p $1
+    sudo chown $USER. $1
+  fi
+  if [ ! -w $1 ] ; then
+    errror
+    echo "Cannot write to $1, please check your permissions"
+    exit 2
+  fi
+}
+
+killtmp () {
+  cd
+  rm -Rf $TMP
+}
+
+trap killtmp EXIT
+# these vars are used by the following functions
+LINE_TO_ADD=''
+TARGET_FILE_FOR_ADD=$HOME/.profile
+
+check_if_line_exists()
+{
+  squawk 7 " Checking for '$LINE_TO_ADD'  in $TARGET_FILE_FOR_ADD"
+  grep -qsFx "$LINE_TO_ADD" $TARGET_FILE_FOR_ADD
+}
+
+add_line_to()
+{
+  squawk 5 " Adding '$LINE_TO_ADD'  to $TARGET_FILE_FOR_ADD"
+  TARGET_FILE=$TARGET_FILE_FOR_ADD
+    [ -w "$TARGET_FILE" ] || TARGET_FILE=$TARGET_FILE_FOR_ADD
+    printf "%s\n" "$LINE_TO_ADD" >> "$TARGET_FILE"
+}
+
+rolero () {
+  squawk 2 "rolero"
+  node_name=$1
+  NODE_ROLE=$2
+  result=$(kubectl label --overwrite node $node_name node-role.kubernetes.io/$NODE_ROLE=)
+  squawk 4 "Result = $result"
+}
+
+up () {
+  squawk 0 " up"
+  run_join=$(ssh -n root@$K8S_master_ip 'kubeadm init --pod-network-cidr=192.168.0.0/16' | tee /tmp/rawresults.k8s | grep -- 'kubeadm join --token')
+  echo $run_join > $KUBASH_DIR/join.sh
+  ssh -n coopadmin@$K8S_master_ip 'bin/refresh-kube-config'
+  chkdir .kube
+  ssh -n coopadmin@$K8S_master_ip 'cat .kube/config' > .kube/config
+  sudo chmod 600 .kube/config
+  sudo chown -R coopadmin. .kube/config
+  w8_kubectl
+}
+
+kvm-decommer () {
+  squawk 5 "kvm-decommer"
+  REBASED_NODE=$1
+
+  $PSEUDO virsh destroy $REBASED_NODE
+  $PSEUDO virsh undefine $REBASED_NODE
+
+  # Create VM for node
+  $PSEUDO rm $KVM_IMAGE_DIR/$REBASED_NODE.qcow2
+}
+
+decom_kvm () {
+  squawk 1 "decom_kvm"
+  # Write all hosts to inventory for id
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+      kvm-decommer $K8S_node
+  done < $KUBASH_HOSTS_CSV
+}
+
+kvm-rebaser () {
+  squawk 1 "kvm-rebaser"
+  REBASED_NODE=$1
+
+  # Create VM for node
+  $PSEUDO qemu-img create -f qcow2 -b $KVM_IMAGE_DIR/$KVM_BASE_IMG $KVM_IMAGE_DIR/$REBASED_NODE.qcow2
+
+  $PSEUDO virt-install --connect qemu:///system \
+ 	--import \
+  	--autostart \
+  	--name $REBASED_NODE \
+  	--ram $KVM_RAM \
+  	--vcpus $KVM_CPU \
+  	--os-type=linux \
+  	--noautoconsole \
+  	--accelerate \
+  	--hvm \
+  	--os-variant=virtio26 \
+  	--disk path=$KVM_IMAGE_DIR/$REBASED_NODE.qcow2,format=qcow2,bus=virtio \
+  	--network=$KVM_NET,$KVM_NET_MAC,model=virtio
+}
+
+rebaser () {
+  squawk 1 " rebaser"
+  K8S_role=master
+  rm $KUBASH_DIR/hosts.csv
+  while read -r K8S_node
+  do
+      kvm-rebaser $K8S_node
+      sleep 5
+      K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+      while [[ -z "$K8S_node_ip" ]]; do
+        K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+	sleep 2
+      done
+      echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user" >> $KUBASH_DIR/hosts.csv
+  done < $KUBASH_DIR/masters.list
+  K8S_role=node
+  while read -r K8S_node
+  do
+      kvm-rebaser $K8S_node
+      sleep 5
+      K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+      while [[ -z "$K8S_node_ip" ]]; do
+        K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+	sleep 2
+      done
+      echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user" >> $KUBASH_DIR/hosts.csv
+  done < $KUBASH_DIR/nodes.list
+}
+
+do_net () {
+  squawk 0 " do_net"
+  if [[ $K8S_NET == "calico" ]]; then
+    kubectl apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
+  fi
+}
+
+do_tiller () {
+  squawk 1 " do_tiller"
+  kubectl create serviceaccount tiller --namespace kube-system
+  kubectl create -f $KUBASH_DIR/tiller/rbac-tiller-config.yaml
+  helm init --service-account tiller
+}
+
+mid () {
+  squawk 1 " mid"
+  do_net
+  do_tiller
+}
+
+hosts () {
+  squawk 1 " Make a hosts file for ansible"
+  # Make a fresh hosts file
+  rm -f $KUBASH_HOSTS
+  touch $KUBASH_HOSTS
+  # Write all hosts to inventory for id
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    echo "$K8S_node ansible_ssh_host=$K8S_node_ip ansible_ssh_port=$K8S_node_port ansible_user=$K8S_user" >> $KUBASH_HOSTS
+  done < $KUBASH_HOSTS_CSV
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[kubernetes-kubeminions]' >> $KUBASH_HOSTS
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    if [[ $K8S_role == "node" ]]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    fi
+  done < $KUBASH_HOSTS_CSV
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[kubernetes-kubeminions:vars]' >> $KUBASH_HOSTS
+  echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_HOSTS
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[kubernetes-kubemasters]' >> $KUBASH_HOSTS
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    if [[ $K8S_role == "master" ]]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    fi
+  done < $KUBASH_HOSTS_CSV
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[kubernetes-kubemasters:vars]' >> $KUBASH_HOSTS
+  echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_HOSTS
+}
+
+removestalekeys () {
+  squawk 1 " removestalekeys"
+  node_ip=$1
+  ssh-keygen -f "/home/coopadmin/.ssh/known_hosts" -R "$node_ip"
+}
+
+w8_kubectl () {
+  echo -n "# wait on the K8S cluster to become available"
+  sleep 15
+  # while loop
+  countone_w8_kubectl=1
+  countlimit_w8_kubectl=151
+  # timeout for 15 minutes
+  while [ "$countone_w8_kubectl" -lt "$countlimit_w8_kubectl" ]; do
+    echo -n '.'
+    if [ "$VERBOSITY" -gt "11" ] ; then
+      kubectl get pods -n kube-system | grep kube-apiserver
+    fi
+    result=$(kubectl get pods -n kube-system | grep kube-apiserver |grep Running)
+    squawk 13 "Result is $result"
+    if [[ "$result" ]]; then
+      squawk 15 "Result nailed $result"
+      countone_w8_kubectl=`expr $countlimit_w8_kubectl + 1`
+      break
+    fi
+    countone_w8_kubectl=`expr $countone_w8_kubectl + 1`
+    squawk 19 "$countone_w8_kubectl"
+    sleep 5
+  done
+  echo  "."
+  echo  "kubectl commands are now able to interact with the kubernetes cluster"
+}
+
+w8_node () {
+  node_name=$1
+  echo -n "# wait on the K8S node $node_name to become available"
+  sleep 5
+  # while loop
+  countone_w8_node=1
+  countlimit_w8_node=151
+  # timeout for 15 minutes
+  while [ "$countone_w8_node" -lt "$countlimit_w8_node" ]; do
+    echo -n '.'
+    if [ "$VERBOSITY" -gt "11" ] ; then
+      kubectl get node $node_name
+    fi
+    result=$(kubectl get node $node_name | grep -v NotReady | grep Ready)
+    squawk 13 "Result is $result"
+    if [ "$result" ]; then
+      squawk 15 "Result nailed $result"
+      countone_w8_node=`expr $countlimit_w8_node + 1`
+      break
+    fi
+    countone_w8_node=`expr $countone_w8_node + 1`
+    squawk 19 "$countone_w8_node"
+    sleep 3
+  done
+  echo  "."
+  echo  "kubectl commands are now able to interact with the kubernetes node"
+}
+
+ping () {
+  squawk 1 ' Pinging all hosts using Ansible'
+  ansible -i $KUBASH_HOSTS -m ping all
+}
+
+hostnamero () {
+  my_HOST=$1
+  my_IP=$2
+  my_PORT=$3
+  my_USER=$4
+  squawk 1 " hostnamero my_HOST=$my_HOST my_IP=$my_IP my_PORT=$my_PORT my_USER=$my_USER"
+  result=$(ssh -n -p $my_PORT root@$my_IP "hostname $my_HOST && echo $my_HOST > /etc/hostname && echo \"127.0.1.1 $my_HOST.$my_DOMAIN $my_HOST  \" >> /etc/hosts ")
+  squawk 13 "Result is $result"
+}
+
+chkdir () {
+  if [ ! -w $1 ] ; then
+    sudo mkdir -p $1
+    sudo chown $USER. $1
+  fi
+  if [ ! -w $1 ] ; then
+    errror
+    echo "Cannot write to $1, please check your permissions"
+    exit 2
+  fi
+}
+
+dotfiles_install () {
+  squawk 1 ' Adjusting dotfiles'
+  touch $HOME/.zshrc
+  touch $HOME/.bashrc
+  # make a bin dir in $HOME and add it to path
+  chkdir $KUBASH_BIN
+  LINE_TO_ADD="$(printf "export PATH=%s:\$PATH" $KUBASH_BIN)"
+  TARGET_FILE_FOR_ADD=$HOME/.bashrc
+  check_if_line_exists || add_line_to
+  TARGET_FILE_FOR_ADD=$HOME/.zshrc
+  check_if_line_exists || add_line_to
+
+  LINE_TO_ADD="export GOPATH=$GOPATH"
+  TARGET_FILE_FOR_ADD=$HOME/.bashrc
+  check_if_line_exists || add_line_to
+  TARGET_FILE_FOR_ADD=$HOME/.zshrc
+  check_if_line_exists || add_line_to
+}
+
+linux_install () {
+  squawk 1 " linux_install"
+  cd $TMP
+  dotfiles_install
+}
+
+do_grab () {
+  squawk 1 " do_grab"
+  do_grab_master_count=0
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    if [[ $K8S_role == "master" ]]; then
+      if [ "$do_grab_master_count" -lt "1" ]; then
+        DO_GRAB=false
+        master_grab_kube_config $K8S_node $K8S_node_ip $K8S_su_user $K8S_node_port
+      fi
+      do_grab_master_count=`expr $do_grab_master_count + 1`
+    fi
+  done < $KUBASH_HOSTS_CSV
+}
+
+master_join () {
+  my_node_name=$1
+  my_node_ip=$2
+  my_node_user=$3
+  my_node_port=$4
+  squawk 1 " master_join $my_node_name $my_node_ip $my_node_user $my_node_port"
+  if [ "$DO_MASTER_JOIN" = "true" ] ; then
+    hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
+    squawk 3 " kubadm reset"
+    ssh -n -p $my_node_port $my_node_user@$my_node_ip "hostname; uname -a;kubeadm reset"
+    run_join=$(cat $KUBASH_DIR/join.sh)
+    squawk 1 " run join $run_join"
+    ssh -n -p $my_node_port $my_node_user@$my_node_ip "$run_join"
+    w8_node $my_node_name
+    rolero $my_node_name master
+  fi
+}
+
+master_init_join () {
+  my_master_name=$1
+  my_master_ip=$2
+  my_master_user=$3
+  my_master_port=$4
+  if [[ $K8S_NET == "calico" ]]; then
+    my_KUBE_CIDR="192.168.0.0/16"
+  fi
+  squawk 0 " master_init_join $my_master_name $my_master_ip $my_master_user $my_master_port"
+  if [ "$DO_MASTER_JOIN" = "true" ] ; then
+    my_KUBE_INIT="kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
+    squawk 1 ' hostnamero'
+    hostnamero $my_master_name $my_master_ip $my_master_port $my_master_user
+    squawk 3 ' kubeadm reset'
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip "hostname; uname -a;kubeadm reset"
+    my_grep='kubeadm join --token'
+    run_join=$(ssh -n root@$my_master_ip $my_KUBE_INIT | tee $TMP/rawresults.k8s | grep -- "$my_grep")
+    echo $run_join > $KUBASH_DIR/join.sh
+    DO_GRAB=true
+    master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
+    DO_GRAB=false
+    w8_kubectl
+  fi
+}
+
+master_grab_kube_config () {
+  my_master_name=$1
+  my_master_ip=$2
+  my_master_user=$3
+  my_master_port=$4
+  squawk 1 ' refresh-kube-config'
+  squawk 3 " master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port"
+  if [ "$DO_GRAB" = "true" ] ; then
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip 'bin/refresh-kube-config'
+    chkdir $HOME/.kube
+    squawk 1 ' grab config'
+    rm -f $HOME/.kube/config
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip 'cat .kube/config' > $HOME/.kube/config
+    sudo chmod 600 $HOME/.kube/config
+    sudo chown -R coopadmin. $HOME/.kube/config
+  fi
+}
+
+node_join () {
+  my_node_name=$1
+  my_node_ip=$2
+  my_node_user=$3
+  my_node_port=$4
+  squawk 1 " node_join $my_node_name $my_node_ip $my_node_user $my_node_port"
+  if [ "$DO_NODE_JOIN" = "true" ] ; then
+    hostnamero $my_node_name $my_node_ip $my_node_port
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "hostname; uname -a;kubeadm reset")
+    squawk 13 "Result is $result"
+    run_join=$(cat $KUBASH_DIR/join.sh)
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$run_join")
+    squawk 13 "Result is $result"
+    w8_node $my_node_name
+    rolero $my_node_name node
+  fi
+}
+
+checks () {
+  squawk 10 " checks"
+  # Let's display everything on stderr.
+  exec 1>&2
+  check_cmd git
+  check_cmd ssh
+  check_cmd ansible
+  check_cmd curl
+  check_cmd uname
+  check_cmd expr
+  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+    check_cmd parallel
+  fi
+  check_cmd 'grep'
+  check_cmd 'sed'
+}
+
+do_install () {
+  squawk 1 " do_install"
+  # Let's display everything on stderr.
+  exec 1>&2
+  UNAME=$(uname)
+
+  if [ "$UNAME" = "CYGWIN_NT-10.0" ] ; then
+    PLATFORM="os.cygwin.x86_64"
+    echo "WARNING: Cygwin is not supported at this time!"
+    exit 1
+  fi
+
+  if [ "$UNAME" == "Linux" ] ; then
+    squawk 1 " $UNAME is a Supported OS"
+  elif [ "$UNAME" == "Darwin" -o "$UNAME" == "FreeBSD" ] ; then
+      echo " $UNAME is not a Supported OS"
+      exit 1
+  elif [ "$UNAME" ">" "MINGW" -a "$UNAME" "<" "MINGX" ] ; then
+      echo "# $UNAME is not a Supported OS"
+      exit 1
+  else
+    echo " $UNAME is not a Supported OS"
+    echo "Sorry, this OS is not supported yet via this installer."
+    exit 1
+  fi
+
+  if [ "$UNAME" = "Linux" ] ; then
+    ### Linux ###
+    LINUX_ARCH=$(uname -m)
+    if [ "${LINUX_ARCH}" = "x86_64" ] ; then
+      PLATFORM="os.linux.x86_64"
+    else
+      echo "Unusable architecture: ${LINUX_ARCH}"
+      echo "ReactioNstall only supports x86_64 for now on Linux."
+      exit 1
+    fi
+  fi
+
+  # make reqs
+  if [ "$PLATFORM" = "os.linux.x86_64" ] ; then
+    linux_install
+  fi
+}
+
+initialize () {
+  squawk 1 " initialize"
+  check_csv
+  do_csv
+}
+
+old-initialize () {
+  squawk 0 " old_initialize"
+  do_install
+  removestalekeys $K8S_master_ip
+  removestalekeys $K8S_node1_IP
+  removestalekeys $K8S_node2_IP
+  ping
+  master_join $K8S_MASTER $K8S_master_ip root
+  master_grab_kube_config $K8S_MASTER $K8S_master_ip coopadmin
+  w8_kubectl
+  node_join $K8S_node1 $K8S_node1_IP root
+  node_join $K8S_node2 $K8S_node2_IP root
+  mid
+}
+
+read_csv () {
+  squawk 1 " read_csv"
+  read_master_count=0
+
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    if [[ $K8S_role == "master" ]]; then
+      if [ "$read_master_count" -lt "1" ]; then
+        echo "master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
+      else
+        echo "master_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
+      fi
+      read_master_count=`expr $read_master_count + 1`
+    fi
+  done < $KUBASH_HOSTS_CSV
+
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    if [[ $K8S_role == "node" ]]; then
+      echo "node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
+    fi
+  done < $KUBASH_HOSTS_CSV
+}
+
+check_csv () {
+  squawk 4 " check_csv"
+  if [ ! -e $KUBASH_HOSTS_CSV ]; then
+    echo 'CSV file not found.  You must specify a valid csv file with the --csv option!'
+    exit 1
+  fi
+}
+
+do_masters () {
+  squawk 3 " do_masters"
+  do_master_count=0
+
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    if [[ $K8S_role == "master" ]]; then
+      if [ "$do_master_count" -lt "1" ]; then
+        master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
+      else
+        master_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
+      fi
+      do_master_count=`expr $do_master_count + 1`
+    fi
+  done < $KUBASH_HOSTS_CSV
+}
+
+do_masters_in_parallel () {
+  PARATMP=$(mktemp -d)
+  squawk 3 " do_masters_in_parallel"
+  do_master_count=0
+
+  # We can parallelize the rest, but the first master we will do alone and wait on it
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    if [[ $K8S_role == "master" ]]; then
+      if [ "$do_master_count" -lt "1" ]; then
+        master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
+      else
+        echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master" \
+	      >> $PARATMP/hopper
+      fi
+      do_master_count=`expr $do_master_count + 1`
+    fi
+  done < $KUBASH_HOSTS_CSV
+
+  if [ "$VERBOSITY" -gt "9" ] ; then
+    cat $PARATMP/hopper
+  fi
+  parallel  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  rm -Rf $PARATMP
+}
+
+do_nodes () {
+  squawk 3 " do_nodes"
+  countzero_do_nodes=0
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do 
+    if [[ $K8S_role == "node" ]]; then
+      node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
+    else
+      squawk 11 " K8S_role NOT NODE"
+      squawk 11 " K8S_role $K8S_role $K8S_node_ip $K8S_user $K8S_node_port"
+    fi
+    countzero_do_nodes=`expr $countzero_do_nodes + 1`
+    squawk 11 " count $countzero_do_nodes"
+  done < $KUBASH_HOSTS_CSV
+}
+
+do_nodes_in_parallel () {
+  PARATMP=$(mktemp -d)
+  touch $PARATMP/hopper
+  squawk 3 " do_nodes_in_parallel"
+  countzero_do_nodes=0
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do 
+    if [[ $K8S_role == "node" ]]; then
+      echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role node" \
+	      >> $PARATMP/hopper
+    else
+      squawk 11 " K8S_role NOT NODE"
+      squawk 11 " K8S_role $K8S_role $K8S_node_ip $K8S_user $K8S_node_port"
+    fi
+    countzero_do_nodes=`expr $countzero_do_nodes + 1`
+    squawk 13 " count $countzero_do_nodes"
+  done < $KUBASH_HOSTS_CSV
+
+  if [ "$VERBOSITY" -gt "9" ] ; then
+    cat $PARATMP/hopper
+  fi
+  $KUTIME parallel  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  rm -Rf $PARATMP
+}
+
+do_csv () {
+  squawk 3 " do_csv"
+  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+    do_masters_in_parallel
+    do_nodes_in_parallel
+  else
+    do_masters
+    do_nodes
+  fi
+}
+
+prep () {
+  squawk 5 " prep"
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    preppy $K8S_node $K8S_node_ip $K8S_node_port
+  done < $KUBASH_HOSTS_CSV
+}
+
+preppy () {
+  squawk 7 " preppy"
+  node_name=$1
+  node_ip=$2
+  node_port=$3
+  removestalekeys $node_ip
+  ssh-keyscan -p $node_port $node_ip >> ~/.ssh/known_hosts
+}
+
+do_decom () {
+  read -p "This will destroy all VMs defined in the hosts.csv. Are you sure? [y/N] " -n 1 -r
+  echo    # (optional) move to a new line
+  if [[ $REPLY =~ ^[Yy]$ ]]
+  then
+    decom_kvm
+  fi
+}
+
+do_openebs () {
+	kubectl create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/openebs-operator.yaml
+}
+
+packer_build  () {
+  build_virt=$1
+  target_os=$2
+  target_build=$3
+  chkdir $KUBASH_BUILDS
+  chkdir $KUBASH_BUILDS_TMP
+
+  if [[ $VERBOSITY -gt '1' ]]; then
+    MV_CMD='mv -iv'
+    LN_CMD='ln -sv'
+  else
+    MV_CMD='mv -i'
+    LN_CMD='ln -s'
+  fi
+
+# pax/ubuntu/builds/ubuntu-16.04.libvirt.box:
+  cd $KUBASH_DIR/pax
+  if [ ! -L build ]; then
+    $LN_CMD $KUBASH_BUILDS builds
+  fi
+  cd $KUBASH_DIR/pax/$target_os
+
+  check_cmd packer
+  squawk 2 " Executing packer build..."
+
+  if [[ $debug == "true" ]]; then
+    debug_flag='-debug -on-error=ask'
+  else
+    debug_flag=''
+  fi
+  TMPDIR=$KUBASH_BUILDS_TMP \
+    packer build -only=$build_virt $debug_flag $target_build.json
+
+  if [[ $VERBOSITY -gt '1' ]]; then
+    MV_CMD='mv -iv'
+  else
+    MV_CMD='mv -i'
+  fi
+
+  $PSEUDO $MV_CMD \
+    $KUBASH_BUILDS/packer-$target_build-$build_virt/$target_build \
+    $KVM_IMAGE_DIR/$KVM_BASE_IMG
+  rmdir $KUBASH_BUILDS/packer-$target_build-$build_virt
+}
+
+main () {
+  # Let's display everything on stderr.
+  exec 1>&2
+
+  # If cmd empty print usage
+  if [[ -z "$1" ]]; then
+    squawk 5 "No Args found printing usage"
+    usage
+    exit 1
+  fi
+
+  squawk 5 'parse opts'
+
+  # Execute getopt on the arguments passed to this program, identified by the special character $@
+  SHORT_OPTS="c:hdwgyvnmo"
+  LONG_OPTS="csv:,help,auto-dotfiles,write-hosts,kvm-decommission,grab,dry,verbose,verbosity:,masters,nodes,openebs,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  PARSED_OPTIONS=$(getopt -n "$0" -o "$SHORT_OPTS" --long "$LONG_OPTS" -- "$@")
+
+  #Bad arguments, something has gone wrong with the getopt command.
+  if [ $? -ne 0 ];
+  then
+    exit 1
+  fi
+
+  # A little magic, necessary when using getopt.
+  eval set -- "$PARSED_OPTIONS"
+
+  squawk 5 'loop through opts'
+
+  opt_loop_count=1
+  while true; do
+    squawk 15 "$opt_loop_count $@"
+    opt_loop_count=`expr $opt_loop_count + 1`
+    case "$1" in
+      -h|--help)
+        PRINT_HELP=true
+        shift;;
+      --debug)
+        debug=true
+        shift;;
+      -c|--csv)
+        KUBASH_HOSTS_CSV="$2"
+        RAISON=true
+        shift 2 ;;
+      --parallel)
+        PARALLEL_JOBS="$2"
+        shift 2 ;;
+      --node-join-name)
+        node_join_name="$2"
+        shift 2 ;;
+      --node-join-user)
+        node_join_user="$2"
+        shift 2 ;;
+      --node-join-ip)
+        node_join_ip="$2"
+        shift 2 ;;
+      --node-join-port)
+        node_join_port="$2"
+        shift 2 ;;
+      --node-join-role)
+        node_join_role="$2"
+        shift 2 ;;
+      -m|--masters)
+        RAISON=true
+        DO_CSV=true
+        DO_NET=true
+        DO_PING=true
+        DO_PREP=true
+        DO_GRAB=true
+        DO_HOSTS=true
+        DO_TILLER=true
+        DO_INSTALL=true
+        DO_MASTER_JOIN=true
+        shift;;
+      -n|--nodes)
+        RAISON=true
+        DO_CSV=true
+        DO_PING=true
+        DO_PREP=true
+        DO_HOSTS=true
+        DO_NODE_JOIN=true
+        shift;;
+      -y|--dry)
+        RAISON=true
+        DO_PREP=true
+        DO_HOSTS=true
+        DO_PING=true
+        DO_CSV=true
+        VERBOSITY=`expr $VERBOSITY + 1`
+        shift;;
+      -w|--write-hosts)
+        DO_HOSTS=true
+        RAISON=true
+        shift;;
+      -o|--openebs)
+        DO_OPENEBS=true
+        RAISON=true
+        shift;;
+      -v|--verbose)
+        VERBOSITY=`expr $VERBOSITY + 1`
+        shift;;
+      --verbosity)
+        VERBOSITY=`expr $VERBOSITY + $2`
+        squawk 2 " verbosity is now $VERBOSITY"
+        shift 2 ;;
+      --builder)
+        builder=$2
+        shift 2 ;;
+      -g|--grab)
+        DO_GRAB=true
+        RAISON=true
+        shift;;
+      -d|--auto-dotfiles)
+        dotfiles_install
+        shift;;
+      --)
+        shift
+        break;;
+    esac
+  done
+
+    squawk 7 "Check args"
+
+  if [ $# -gt 1 ]; then
+    usage
+    exit 1
+  fi
+
+  if [ $# -eq 1 ]; then
+    RAISON=$1
+    squawk 5 "Raison set to $RAISON"
+  fi
+
+  if [[ $VERBOSITY -gt '5' ]]; then
+    PARALLEL="parallel"
+  else
+    PARALLEL="parallel --citation"
+  fi
+  checks
+
+  if [ $RAISON = "false" -o "$RAISON" = "help" ]; then
+    usage
+    exit 1
+  fi
+
+  if [[ $RAISON == "auto" ]]; then
+        DO_CSV=true
+        DO_KVM=true
+        DO_NET=true
+        DO_PING=true
+        DO_PREP=true
+        DO_GRAB=true
+        DO_HOSTS=true
+        DO_TILLER=true
+        DO_INSTALL=true
+        DO_DOTFILES=true
+        DO_NODE_JOIN=true
+        DO_MASTER_JOIN=true
+  fi
+
+  if [[ $RAISON == "show" ]]; then
+      DO_SHOW=true
+      VERBOSITY=`expr $VERBOSITY + 1`
+  fi
+
+  if [[ $RAISON == "ping" ]]; then
+      DO_PREP=true
+      DO_HOSTS=true
+      DO_PING=true
+  fi
+
+  if [[ $RAISON == "provision" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      provision_usage
+      exit 1
+    fi
+    rebaser
+  fi
+
+  if [[ $RAISON == "decommission" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      decom_usage
+      exit 1
+    fi
+    do_decom
+  fi
+
+  if [[ $RAISON == "init" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      init_usage
+      exit 1
+    fi
+        DO_CSV=true
+        DO_NET=true
+        DO_PING=true
+        DO_PREP=true
+        DO_GRAB=true
+        DO_HOSTS=true
+        DO_TILLER=true
+        DO_INSTALL=true
+        DO_DOTFILES=true
+        DO_NODE_JOIN=true
+        DO_MASTER_JOIN=true
+  fi
+
+  if [[ $RAISON == "build" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      build_usage
+      exit 1
+    fi
+    if [[ -z "$builder" ]]; then
+      builder='packer'
+    fi
+    if [[ -z "$target_build" ]]; then
+      target_build=ubuntu-16.04-amd64
+    fi
+    if [[ -z "$target_os" ]]; then
+      target_os=ubuntu
+    fi
+    if [[ -z "$build_virt" ]]; then
+      build_virt=qemu
+    fi
+    if [[ $builder == "packer" ]]; then
+      packer_build $build_virt $target_os $target_build
+    elif [[ $builder == "veewee" ]]; then
+      squawk 2 " Executing vee wee build..."
+      # veewee_build 
+      echo 'VeeWee support not built yet :('
+      exit 1
+    else
+      echo 'builder not recognized'
+      exit 1
+    fi
+    exit 0
+  fi
+
+  if [[ $RAISON == "node_join" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      node_usage
+      exit 1
+    fi
+    if [[ -z "$node_join_name" ]]; then
+      echo 'you must specify the --node-join-name option'
+      exit 1
+    fi
+    if [[ -z "$node_join_ip" ]]; then
+      echo 'you must specify the --node-join-ip option'
+      exit 1
+    fi
+    if [[ -z "$node_join_user" ]]; then
+      echo 'you must specify the --node-join-user option'
+      exit 1
+    fi
+    if [[ -z "$node_join_port" ]]; then
+      echo 'you must specify the --node-join-port option'
+      exit 1
+    fi
+    if [[ -z "$node_join_role" ]]; then
+      echo 'you must specify the --node-join-role option'
+      exit 1
+    fi
+    if [[ $node_join_role == "node" ]]; then
+      squawk 2 " Executing node join..."
+      DO_NODE_JOIN=true
+      node_join $node_join_name $node_join_ip $node_join_user $node_join_port
+    elif [[ $node_join_role == "master" ]]; then
+      squawk 2 " Executing master join..."
+      DO_MASTER_JOIN=true
+      master_join $node_join_name $node_join_ip $node_join_user $node_join_port
+    fi
+    exit 0
+  fi
+
+  if [[ $PRINT_HELP == "true" ]]; then
+    usage
+    exit 1
+  fi
+
+  if [[ $DO_HOSTS == "true" ]]; then
+    hosts
+  fi
+
+  if [[ $DO_PREP == "true" ]]; then
+    prep
+  fi
+
+  if [[ $DO_PING == "true" ]]; then
+    ping
+  fi
+
+  if [[ $DO_SHOW == "true" ]]; then
+    read_csv
+  fi
+
+  if [[ $DO_INSTALL == "true" ]]; then
+    do_install
+  fi
+
+  if [[ $DO_CSV == "true" ]]; then
+    initialize
+  fi
+
+  if [[ $DO_GRAB == "true" ]]; then
+    do_grab
+  fi
+
+  if [[ $DO_NET == "true" ]]; then
+    do_net
+  fi
+
+  if [[ $DO_TILLER == "true" ]]; then
+    do_tiller
+  fi
+
+  if [[ $DO_OPENEBS == "true" ]]; then
+    do_openebs
+  fi
+
+  exit 0
+  # End main block
+}
+
+main "$@"
