@@ -296,7 +296,7 @@
         "../_common/minimize.sh"
       ],
       "type": "shell"
-    }
+    },
     {
       "environment_vars": [
         "HOME_DIR=/home/vagrant",
