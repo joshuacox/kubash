@@ -172,6 +172,14 @@ check_cmd () {
   fi
 }
 
+# Check if a file exists and is writable
+check_file () {
+  if [ -w "$1" ]; then
+    echo "$1 was not writable!"
+    exit 1
+  fi
+}
+
 check_cmd mktemp
 TMP=$(mktemp -d --suffix='.kubash.tmp' 2>/dev/null || mktemp -d -t '.kubash.tmp')
 
@@ -276,7 +284,7 @@ kvm-rebaser () {
 rebaser () {
   squawk 1 " rebaser"
   K8S_role=master
-  rm $KUBASH_DIR/hosts.csv
+  rm -f $KUBASH_DIR/hosts.csv
   while read -r K8S_node
   do
       kvm-rebaser $K8S_node
