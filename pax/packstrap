@@ -27,16 +27,17 @@ echo -n 'IP address = '
 echo -n 'SSH '
 grep Port /etc/ssh/sshd_config 
 EOF
+
 chmod +x /usr/local/bin/get-ip-address
 
 cat << EOF > /etc/network/if-up.d/show-ip-address
 #!/bin/sh
-if [ "$METHOD" = loopback ]; then
+if [ "\$METHOD" = loopback ]; then
     exit 0
 fi
 
 # Only run from ifup.
-if [ "$MODE" != start ]; then
+if [ "\$MODE" != start ]; then
     exit 0
 fi
 
@@ -44,6 +45,7 @@ cp /etc/issue-standard /etc/issue
 /usr/local/bin/get-ip-address >> /etc/issue
 echo "" >> /etc/issue
 EOF
+
 chmod +x /etc/network/if-up.d/show-ip-address
 
 rm -Rf $TMP
