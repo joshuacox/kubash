@@ -23,8 +23,6 @@ useradd $K8S_SU_USER
 sudo gpasswd -a $K8S_SU_USER docker
 sudo gpasswd -a $K8S_SU_USER sudo
 mkdir -p /home/$K8S_SU_USER
-chown -R $K8S_SU_USER. /home/$K8S_SU_USER
-chown -R $K8S_SU_USER. $TMP
 chmod 777 $TMP
 sudo mkdir -p /home/coopadmin/.ssh
 sudo chmod 700 /home/coopadmin/.ssh
@@ -32,6 +30,8 @@ sudo cp $TMP/keys /home/coopadmin/.ssh/authorized_keys
 sudo chmod 600 $TMP/keys /home/coopadmin/.ssh/authorized_keys
 sudo -u $K8S_SU_USER ls -lh $TMP
 sudo -u $K8S_SU_USER $TMP/keyer
+chown -R $K8S_SU_USER. /home/$K8S_SU_USER
+chown -R $K8S_SU_USER. $TMP
 
 cat << EOF > /usr/local/bin/get-ip-address
 #!/bin/bash
