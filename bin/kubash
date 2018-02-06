@@ -392,6 +392,7 @@ provisioner () {
           K8S_node_ip=$(ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null")
   	sleep 2
         done
+        fi
       fi
       squawk 5 "adding to hosts.csv"
       squawk 6 "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user"
