@@ -1141,18 +1141,9 @@ main () {
   fi
 
   if [[ $RAISON == "auto" ]]; then
-        DO_CSV=true
-        DO_KVM=true
-        DO_NET=true
-        DO_PING=true
-        DO_PREP=true
-        DO_GRAB=true
-        DO_HOSTS=true
-        DO_TILLER=true
-        DO_INSTALL=true
-        DO_DOTFILES=true
-        DO_NODE_JOIN=true
-        DO_MASTER_JOIN=true
+	kubash provision
+	kubash ping
+	kubash init
   elif [[ $RAISON == "show" ]]; then
       DO_SHOW=true
       VERBOSITY=`expr $VERBOSITY + 1`
