@@ -350,7 +350,7 @@ kvm-provisioner () {
   	--hvm \
   	--os-variant=virtio26 \
   	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
-  	--network=$K8S_network,$K8S_mac,model=virtio"
+  	--network=$K8S_network,mac=$K8S_mac,model=virtio"
 
   if [ "$K8S_provisionerHost" = "localhost" ]; then
     squawk 5 "$qemucmd2run"
