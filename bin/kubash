@@ -397,6 +397,7 @@ provisioner () {
       squawk 5 "adding to hosts.csv"
       squawk 6 "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user"
       echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user" >> $KUBASH_DIR/hosts.csv
+      K8S_node_ip=''
   done <<< "$slurpy"
 }
 
