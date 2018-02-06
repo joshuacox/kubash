@@ -524,6 +524,15 @@ w8_node () {
 }
 
 ping () {
+  squawk 1 ' Pinging all hosts using ssh'
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    ssh -p $K8S_node_port $K8S_user@$K8S_node_ip 'echo pong'
+    ssh -p $K8S_node_port $K8S_su_user@$K8S_node_ip 'echo pong'
+  done < $KUBASH_HOSTS_CSV
+}
+
+ansible-ping () {
   squawk 1 ' Pinging all hosts using Ansible'
   ansible -i $KUBASH_HOSTS -m ping all
 }
@@ -1134,6 +1143,12 @@ main () {
       DO_PING=true
   fi
 
+  if [[ $RAISON == "aping" ]]; then
+      DO_PREP=true
+      DO_HOSTS=true
+      DO_APING=true
+  fi
+
   if [[ $RAISON == "rebaser" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
       provision_usage
@@ -1259,6 +1274,10 @@ main () {
 
   if [[ $DO_PING == "true" ]]; then
     ping
+  fi
+
+  if [[ $DO_APING == "true" ]]; then
+    ansible-ping
   fi
 
   if [[ $DO_SHOW == "true" ]]; then
