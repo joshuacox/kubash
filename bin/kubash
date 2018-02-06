@@ -343,7 +343,9 @@ kvm-provisioner () {
   	--network=$K8S_network,$K8S_mac,model=virtio"
 
   if [ "$K8S_provisionerHost" = "localhost" ]; then
+    squawk 5 "$qemucmd2run"
     $qemucmd2run
+    squawk 5 "$virshcmd2run"
     $virshcmd2run
   else
     squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $qemucmd2run"
