@@ -346,7 +346,9 @@ kvm-provisioner () {
     $qemucmd2run
     $virshcmd2run
   else
+    squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $qemucmd2run"
     ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$qemucmd2run"
+    squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
     ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
   fi
 }
