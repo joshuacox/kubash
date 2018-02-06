@@ -82,6 +82,7 @@ example:
 	cp -iv hosts.csv.example hosts.csv
 	cp -iv masters.list.example masters.list
 	cp -iv nodes.list.example nodes.list
+	cp -iv provision.list.example provision.list
 
 pax/ubuntu/builds/ubuntu-16.04.libvirt.box:
 	TMPDIR=/tiamat/tmp packer build -only=qemu kubash-ubuntu-16.04-amd64.json
