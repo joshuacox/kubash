@@ -1069,7 +1069,6 @@ main () {
         DO_CSV=true
         DO_NET=true
         DO_PING=true
-        DO_PREP=true
         DO_GRAB=true
         DO_HOSTS=true
         DO_TILLER=true
@@ -1080,13 +1079,11 @@ main () {
         RAISON=true
         DO_CSV=true
         DO_PING=true
-        DO_PREP=true
         DO_HOSTS=true
         DO_NODE_JOIN=true
         shift;;
       -y|--dry)
         RAISON=true
-        DO_PREP=true
         DO_HOSTS=true
         DO_PING=true
         DO_CSV=true
@@ -1160,49 +1157,37 @@ main () {
         DO_DOTFILES=true
         DO_NODE_JOIN=true
         DO_MASTER_JOIN=true
-  fi
-
-  if [[ $RAISON == "show" ]]; then
+  elif [[ $RAISON == "show" ]]; then
       DO_SHOW=true
       VERBOSITY=`expr $VERBOSITY + 1`
-  fi
-
-  if [[ $RAISON == "ping" ]]; then
+  elif [[ $RAISON == "ping" ]]; then
       DO_PING=true
-  fi
-
-  if [[ $RAISON == "aping" ]]; then
+  elif [[ $RAISON == "aping" ]]; then
       DO_HOSTS=true
       DO_APING=true
-  fi
-
-  if [[ $RAISON == "rebaser" ]]; then
+  elif [[ $RAISON == "prep" ]]; then
+    prep
+  elif [[ $RAISON == "rebaser" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
       provision_usage
       exit 1
     fi
     rebaser
     prep
-  fi
-
-  if [[ $RAISON == "provision" ]]; then
+  elif [[ $RAISON == "provision" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
       provision_usage
       exit 1
     fi
     provisioner
     prep
-  fi
-
-  if [[ $RAISON == "decommission" ]]; then
+  elif [[ $RAISON == "decommission" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
       decom_usage
       exit 1
     fi
     do_decom
-  fi
-
-  if [[ $RAISON == "init" ]]; then
+  elif [[ $RAISON == "init" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
       init_usage
       exit 1
@@ -1210,7 +1195,6 @@ main () {
         DO_CSV=true
         DO_NET=true
         DO_PING=true
-        DO_PREP=true
         DO_GRAB=true
         DO_HOSTS=true
         DO_TILLER=true
@@ -1218,9 +1202,7 @@ main () {
         DO_DOTFILES=true
         DO_NODE_JOIN=true
         DO_MASTER_JOIN=true
-  fi
-
-  if [[ $RAISON == "build" ]]; then
+  elif [[ $RAISON == "build" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
       build_usage
       exit 1
@@ -1249,9 +1231,7 @@ main () {
       exit 1
     fi
     exit 0
-  fi
-
-  if [[ $RAISON == "node_join" ]]; then
+  elif [[ $RAISON == "node_join" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
       node_usage
       exit 1
@@ -1286,6 +1266,11 @@ main () {
       master_join $node_join_name $node_join_ip $node_join_user $node_join_port
     fi
     exit 0
+  elif [[ $RAISON == "true" ]]; then
+	  squawk 8 'passthru'
+  else
+    usage
+    exit 1
   fi
 
   if [[ $PRINT_HELP == "true" ]]; then
