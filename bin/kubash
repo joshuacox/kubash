@@ -326,11 +326,9 @@ kvm-provisioner () {
   K8S_provisionerBasePath=$10
 
   # Create VM for node
-  cmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_node.qcow2"
+  qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_node.qcow2"
 
-  ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$cmd2run"
-
-  cmd2run="$PSEUDO virt-install --connect qemu:///system \
+  virshcmd2run="$PSEUDO virt-install --connect qemu:///system \
  	--import \
   	--autostart \
   	--name $K8S_node \
@@ -344,7 +342,13 @@ kvm-provisioner () {
   	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
   	--network=$K8S_network,$K8S_mac,model=virtio"
 
-  ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$cmd2run"
+  if [ "$K8S_provisionerHost" = "localhost" ]; then
+    $qemucmd2run
+    $virshcmd2run
+  else
+    ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$qemucmd2run"
+    ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+  fi
 }
 
 provisioner () {
