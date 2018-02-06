@@ -1169,6 +1169,7 @@ main () {
       exit 1
     fi
     rebaser
+    sleep 10
     prep
   elif [[ $RAISON == "provision" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
@@ -1176,6 +1177,7 @@ main () {
       exit 1
     fi
     provisioner
+    sleep 10
     prep
   elif [[ $RAISON == "decommission" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
