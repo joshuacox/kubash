@@ -358,7 +358,7 @@ provisioner () {
   slurpy="$(grep -v '^#' $KUBASH_DIR/provision.list)"
   rm -f $KUBASH_DIR/hosts.csv
 #name,role,cpuCount,Memory,network,provisionerHost,provisionerUser,provisionerPort,provisionerBasePath
-  while read -r K8S_node  K8S_role K8S_cpuCount K8S_Memory K8S_network K8S_mac K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath
+  while IFS="," read -r K8S_node  K8S_role K8S_cpuCount K8S_Memory K8S_network K8S_mac K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath
   do
       squawk 4 "kvm-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath"
       kvm-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath
