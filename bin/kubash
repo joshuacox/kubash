@@ -527,8 +527,9 @@ ping () {
   squawk 1 ' Pinging all hosts using ssh'
   while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
   do
-    ssh -p $K8S_node_port $K8S_user@$K8S_node_ip 'echo pong'
-    ssh -p $K8S_node_port $K8S_su_user@$K8S_node_ip 'echo pong'
+    squawk 5 "$K8S_node_ip"
+    ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip 'echo pong'
+    ssh -n -p $K8S_node_port $K8S_su_user@$K8S_node_ip 'echo pong'
   done < $KUBASH_HOSTS_CSV
 }
 
