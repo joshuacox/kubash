@@ -8,7 +8,7 @@ cd $TMP
 # Keyer
 curl -o $TMP/keyer $KEYER
 chmod 555 $TMP/keyer
-bash $TMP/keyer
+sudo $TMP/keyer
 
 useradd $K8S_SU_USER
 mkdir -p /home/$K8S_SU_USER
@@ -16,7 +16,7 @@ chown -R $K8S_SU_USER. /home/$K8S_SU_USER
 chown -R $K8S_SU_USER. $TMP
 chmod 777 $TMP
 sudo -u $K8S_SU_USER ls -lh $TMP
-sudo -u $K8S_SU_USER bash $TMP/keyer
+sudo -u $K8S_SU_USER $TMP/keyer
 
 cat << EOF > /usr/local/bin/get-ip-address
 #!/bin/bash
