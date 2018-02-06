@@ -547,7 +547,7 @@ ping_in_parallel () {
   if [ "$VERBOSITY" -gt "9" ] ; then
     cat $PARATMP/hopper
   fi
-  parallel  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
   rm -Rf $PARATMP
 }
 
@@ -870,7 +870,7 @@ do_masters_in_parallel () {
   if [ "$VERBOSITY" -gt "9" ] ; then
     cat $PARATMP/hopper
   fi
-  parallel  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
   rm -Rf $PARATMP
 }
 
@@ -911,7 +911,7 @@ do_nodes_in_parallel () {
   if [ "$VERBOSITY" -gt "9" ] ; then
     cat $PARATMP/hopper
   fi
-  $KUTIME parallel  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
   rm -Rf $PARATMP
 }
 
@@ -1136,7 +1136,7 @@ main () {
     squawk 5 "Raison set to $RAISON"
   fi
 
-  if [ "$PARALLEL_CITATION" = "true" ]; then
+  if [[ "$PARALLEL_CITATION" == "true" ]]; then
     PARALLEL="parallel --citation"
   else
     PARALLEL="parallel"
