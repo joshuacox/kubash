@@ -170,6 +170,9 @@
       "boot_wait": "10s",
       "disk_size": "{{user `disk_size`}}",
       "headless": "{{ user `headless` }}",
+      "format": "qcow2",
+      "accelerator": "kvm",
+      "disk_interface": "virtio",
       "http_directory": "http",
       "iso_checksum": "{{user `iso_checksum`}}",
       "iso_checksum_type": "{{user `iso_checksum_type`}}",
@@ -210,8 +213,26 @@
         "../_common/virtualbox.sh",
         "../_common/vmware.sh",
         "../_common/parallels.sh",
+        "../packstrap",
         "scripts/cleanup.sh",
         "../_common/minimize.sh"
+      ],
+      "type": "shell"
+    },
+    {
+      "environment_vars": [
+        "HOME_DIR=/home/vagrant",
+        "http_proxy={{user `http_proxy`}}",
+        "https_proxy={{user `https_proxy`}}",
+        "K8S_SU_USER=coopadmin",
+        "KEYER=https://raw.githubusercontent.com/WebHostingCoopTeam/keys/master/myaddus.sh",
+        "no_proxy={{user `no_proxy`}}"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
+      "expect_disconnect": true,
+      "scripts": [
+        "../keyer",
+        "../removeswap"
       ],
       "type": "shell"
     }
@@ -222,7 +243,7 @@
     "cpus": "1",
     "disk_size": "65536",
     "git_revision": "__unknown_git_revision__",
-    "headless": "",
+    "headless": "true",
     "http_proxy": "{{env `http_proxy`}}",
     "https_proxy": "{{env `https_proxy`}}",
     "iso_checksum": "83480be837710a76fd4e75a6573ca110e06f5a7589d2d3852bdb0f45749800b3",
