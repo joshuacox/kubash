@@ -24,6 +24,7 @@
 : ${GOPATH:=~/.go}
 : ${KUTIME:="/usr/bin/time -v"}
 : ${PARALLEL_JOBS:=1}
+: ${PARALLEL_CITATION:=false}
 
 squawk () {
   # This function simplifies error reporting and verbosity
@@ -1017,7 +1018,7 @@ main () {
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
   SHORT_OPTS="c:hdwgyvnmo"
-  LONG_OPTS="csv:,help,auto-dotfiles,write-hosts,kvm-decommission,grab,dry,verbose,verbosity:,masters,nodes,openebs,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  LONG_OPTS="citation,csv:,help,auto-dotfiles,write-hosts,kvm-decommission,grab,dry,verbose,verbosity:,masters,nodes,openebs,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
   PARSED_OPTIONS=$(getopt -n "$0" -o "$SHORT_OPTS" --long "$LONG_OPTS" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
@@ -1111,6 +1112,9 @@ main () {
         DO_GRAB=true
         RAISON=true
         shift;;
+      --citation)
+        PARALLEL_CITATION=true
+        shift;;
       -d|--auto-dotfiles)
         dotfiles_install
         shift;;
@@ -1132,10 +1136,10 @@ main () {
     squawk 5 "Raison set to $RAISON"
   fi
 
-  if [[ $VERBOSITY -gt '5' ]]; then
-    PARALLEL="parallel"
-  else
+  if [ "$PARALLEL_CITATION" = "true" ]; then
     PARALLEL="parallel --citation"
+  else
+    PARALLEL="parallel"
   fi
   checks
 
