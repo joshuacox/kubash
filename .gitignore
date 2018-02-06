@@ -2,5 +2,6 @@ hosts
 hosts.csv
 masters.list
 nodes.list
+provision.list
 join.sh
 */packer_cache
