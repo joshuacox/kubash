@@ -1,2 +1,22 @@
-#!/bin/sh -eux
+#!/bin/bash -eux
+: ${K8S_SU_USER:=coopadmin}
+: ${KEYER:=https://raw.githubusercontent.com/WebHostingCoopTeam/keys/master/myaddus.sh}
+
 curl https://raw.githubusercontent.com/joshuacox/roustabout/master/KubadmNstall|bash
+
+TMP=$(mktemp -d)
+cd $TMP
+
+curl -o $TMP/keyer $KEYER
+chmod 555 $TMP/keyer
+bash $TMP/keyer
+
+useradd $K8S_SU_USER
+mkdir -p /home/$K8S_SU_USER
+chown -R $K8S_SU_USER. /home/$K8S_SU_USER
+chown -R $K8S_SU_USER. $TMP
+chmod 777 $TMP
+sudo -u $K8S_SU_USER ls -lh $TMP
+sudo -u $K8S_SU_USER bash $TMP/keyer
+
+rm -Rf $TMP

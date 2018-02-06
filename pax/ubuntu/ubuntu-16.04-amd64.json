@@ -296,23 +296,6 @@
         "../_common/minimize.sh"
       ],
       "type": "shell"
-    },
-    {
-      "environment_vars": [
-        "HOME_DIR=/home/vagrant",
-        "http_proxy={{user `http_proxy`}}",
-        "https_proxy={{user `https_proxy`}}",
-        "K8S_SU_USER=coopadmin",
-        "KEYER=https://raw.githubusercontent.com/WebHostingCoopTeam/keys/master/myaddus.sh",
-        "no_proxy={{user `no_proxy`}}"
-      ],
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
-      "expect_disconnect": true,
-      "scripts": [
-        "../keyer",
-        "../removeswap"
-      ],
-      "type": "shell"
     }
   ],
   "variables": {
