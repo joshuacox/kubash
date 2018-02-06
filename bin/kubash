@@ -524,6 +524,7 @@ w8_node () {
 }
 
 ping_in_parallel () {
+  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   squawk 2 ' Pinging all hosts using ssh'
   while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
   do
