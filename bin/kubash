@@ -1137,7 +1137,7 @@ main () {
   fi
 
   if [[ "$PARALLEL_CITATION" == "true" ]]; then
-    PARALLEL="parallel --citation"
+    PARALLEL="parallel"
   else
     PARALLEL="parallel"
   fi
