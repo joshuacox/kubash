@@ -530,9 +530,10 @@ ping_in_parallel () {
   do
     squawk 1 "$K8S_node_ip"
     squawk 3 "$K8S_user"
-    echo "ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip 'echo pong'"
+    MY_ECHO="echo '$K8S_su_user pong'" 
+    squawk 5 "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_node_ip \"$MY_ECHO\""
 	      >> $PARATMP/hopper
-    MY_ECHO="echo '$K8S_su_user pong'" echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_node_ip \"$MY_ECHO\""\
+    echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_node_ip \"$MY_ECHO\""\
 	      >> $PARATMP/hopper
   done < $KUBASH_HOSTS_CSV
 
