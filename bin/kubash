@@ -783,19 +783,31 @@ check_csv () {
   fi
 }
 
-do_masters () {
+do_init_master () {
   squawk 3 " do_masters"
   do_master_count=0
 
   while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
   do
-    if [[ $K8S_role == "master" ]]; then
+    if [[ $K8S_role == "init_master" ]]; then
       if [ "$do_master_count" -lt "1" ]; then
         master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
       else
-        master_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
+	echo 'There should only be one init master! Skipping this master'
+        echo "master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
       fi
       do_master_count=`expr $do_master_count + 1`
+    fi
+  done < $KUBASH_HOSTS_CSV
+}
+
+do_masters () {
+  squawk 3 " do_masters"
+
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    if [[ $K8S_role == "master" ]]; then
+      kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master
     fi
   done < $KUBASH_HOSTS_CSV
 }
@@ -809,13 +821,8 @@ do_masters_in_parallel () {
   while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
   do
     if [[ $K8S_role == "master" ]]; then
-      if [ "$do_master_count" -lt "1" ]; then
-        master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
-      else
-        echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master" \
+      echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master" \
 	      >> $PARATMP/hopper
-      fi
-      do_master_count=`expr $do_master_count + 1`
     fi
   done < $KUBASH_HOSTS_CSV
 
@@ -869,6 +876,7 @@ do_nodes_in_parallel () {
 
 do_csv () {
   squawk 3 " do_csv"
+  do_init_master
   if [ "$PARALLEL_JOBS" -gt "1" ] ; then
     do_masters_in_parallel
     do_nodes_in_parallel
