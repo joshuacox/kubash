@@ -377,13 +377,22 @@ provisioner () {
       kvm-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath
       sleep 5
       squawk 4 "provisioned"
-      K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-      while [[ -z "$K8S_node_ip" ]]; do
-        squawk 7 "checking for IP address"
-        squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
-        K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-	sleep 2
-      done
+      if [ "$K8S_provisionerHost" = "localhost" ]; then
+        while [[ -z "$K8S_node_ip" ]]; do
+          squawk 7 "checking for IP address"
+          squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
+          K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+  	sleep 2
+        done
+      else
+        if [ "$K8S_provisionerHost" = "localhost" ]; then
+        while [[ -z "$K8S_node_ip" ]]; do
+          squawk 7 "checking for IP address"
+          squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
+          K8S_node_ip=$(ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null")
+  	sleep 2
+        done
+      fi
       squawk 5 "adding to hosts.csv"
       squawk 6 "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user"
       echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user" >> $KUBASH_DIR/hosts.csv
