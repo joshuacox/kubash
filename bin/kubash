@@ -322,7 +322,7 @@ kvm-provisioner () {
   K8S_provisionerHost=$7
   K8S_provisionerUser=$8
   K8S_provisionerPort=$9
-  K8S_provisionerBasePath=$(10)
+  K8S_provisionerBasePath=${10}
   
   squawk 7 "K8S_node=$1
   K8S_role=$2
@@ -333,7 +333,7 @@ kvm-provisioner () {
   K8S_provisionerHost=$7
   K8S_provisionerUser=$8
   K8S_provisionerPort=$9
-  K8S_provisionerBasePath=$(10)"
+  K8S_provisionerBasePath=${10}"
 
   # Create VM for node
   qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_node.qcow2"
