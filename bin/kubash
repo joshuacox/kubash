@@ -254,7 +254,7 @@ kvm-decommer () {
 decom_kvm () {
   squawk 1 "decom_kvm"
   # Write all hosts to inventory for id
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
       kvm-decommer $K8S_node
   done < $KUBASH_HOSTS_CSV
@@ -397,7 +397,7 @@ provisioner () {
       fi
       squawk 5 "adding to hosts.csv"
       squawk 6 "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user"
-      echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user" >> $KUBASH_DIR/hosts.csv
+      echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort" >> $KUBASH_DIR/hosts.csv
       K8S_node_ip=''
   done <<< "$slurpy"
 }
@@ -428,7 +428,7 @@ hosts () {
   rm -f $KUBASH_HOSTS
   touch $KUBASH_HOSTS
   # Write all hosts to inventory for id
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     echo "$K8S_node ansible_ssh_host=$K8S_node_ip ansible_ssh_port=$K8S_node_port ansible_user=$K8S_user" >> $KUBASH_HOSTS
   done < $KUBASH_HOSTS_CSV
@@ -436,7 +436,7 @@ hosts () {
   echo '' >> $KUBASH_HOSTS
 
   echo '[kubernetes-kubeminions]' >> $KUBASH_HOSTS
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     if [[ $K8S_role == "node" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
@@ -451,7 +451,7 @@ hosts () {
   echo '' >> $KUBASH_HOSTS
 
   echo '[kubernetes-kubemasters]' >> $KUBASH_HOSTS
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     if [[ $K8S_role == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
@@ -528,7 +528,7 @@ w8_node () {
 ping_in_parallel () {
   PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   squawk 2 ' Pinging all hosts using ssh'
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     squawk 1 "$K8S_node_ip"
     squawk 3 "$K8S_user"
@@ -553,7 +553,7 @@ ping_in_parallel () {
 
 ping () {
   squawk 2 ' Pinging all hosts using ssh'
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     squawk 1 "$K8S_node_ip"
     squawk 3 "$K8S_user"
@@ -618,7 +618,7 @@ linux_install () {
 do_grab () {
   squawk 1 " do_grab"
   do_grab_master_count=0
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     if [[ $K8S_role == "master" ]]; then
       if [ "$do_grab_master_count" -lt "1" ]; then
@@ -796,7 +796,7 @@ read_csv () {
   squawk 1 " read_csv"
   read_master_count=0
 
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     if [[ $K8S_role == "master" ]]; then
       if [ "$read_master_count" -lt "1" ]; then
@@ -808,7 +808,7 @@ read_csv () {
     fi
   done < $KUBASH_HOSTS_CSV
 
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     if [[ $K8S_role == "node" ]]; then
       echo "node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
@@ -828,7 +828,7 @@ do_init_master () {
   squawk 3 " do_masters"
   do_master_count=0
 
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     if [[ $K8S_role == "init_master" ]]; then
       if [ "$do_master_count" -lt "1" ]; then
@@ -845,7 +845,7 @@ do_init_master () {
 do_masters () {
   squawk 3 " do_masters"
 
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     if [[ $K8S_role == "master" ]]; then
       kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master
@@ -859,7 +859,7 @@ do_masters_in_parallel () {
   do_master_count=0
 
   # We can parallelize the rest, but the first master we will do alone and wait on it
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     if [[ $K8S_role == "master" ]]; then
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master" \
@@ -877,7 +877,7 @@ do_masters_in_parallel () {
 do_nodes () {
   squawk 3 " do_nodes"
   countzero_do_nodes=0
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do 
     if [[ $K8S_role == "node" ]]; then
       node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
@@ -895,7 +895,7 @@ do_nodes_in_parallel () {
   touch $PARATMP/hopper
   squawk 3 " do_nodes_in_parallel"
   countzero_do_nodes=0
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do 
     if [[ $K8S_role == "node" ]]; then
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role node" \
@@ -929,7 +929,7 @@ do_csv () {
 
 prep () {
   squawk 5 " prep"
-  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort
   do
     preppy $K8S_node $K8S_node_ip $K8S_node_port
   done < $KUBASH_HOSTS_CSV
