@@ -278,7 +278,7 @@ kvm-rebaser () {
   	--hvm \
   	--os-variant=virtio26 \
   	--disk path=$KVM_IMAGE_DIR/$REBASED_NODE.qcow2,format=qcow2,bus=virtio \
-  	--network=$KVM_NET,$KVM_NET_MAC,model=virtio
+  	--network=$KVM_NET,mac=$KVM_NET_MAC,model=virtio
 }
 
 rebaser () {
