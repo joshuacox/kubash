@@ -410,6 +410,7 @@ do_net () {
 }
 
 do_tiller () {
+  w8_kubedns
   squawk 1 " do_tiller"
   kubectl create serviceaccount tiller --namespace kube-system
   kubectl create -f $KUBASH_DIR/tiller/rbac-tiller-config.yaml
@@ -468,6 +469,31 @@ removestalekeys () {
   squawk 1 " removestalekeys"
   node_ip=$1
   ssh-keygen -f "/home/coopadmin/.ssh/known_hosts" -R "$node_ip"
+}
+
+w8_kubedns () {
+  echo -n "wait on Kube-DNS to become available"
+  sleep 1
+  
+  # while loop
+  countone=1
+  # timeout for 15 minutes
+  while [ $countone -lt 151 ]
+  do
+    echo -n '.'
+    RESULT=$(kubectl get po --namespace kube-system |grep kube-dns|grep Running)
+    if [ "$RESULT" ]; then
+        sleep 3
+        echo '.'
+        echo "$RESULT"
+        break
+    fi
+    countone=`expr $countone + 1`
+    sleep 3
+  done
+  
+  echo "Kube-DNS is now up and running"
+  sleep 1
 }
 
 w8_kubectl () {
