@@ -1168,13 +1168,10 @@ main () {
   fi
 
   if [[ $RAISON == "ping" ]]; then
-      DO_PREP=true
-      DO_HOSTS=true
       DO_PING=true
   fi
 
   if [[ $RAISON == "aping" ]]; then
-      DO_PREP=true
       DO_HOSTS=true
       DO_APING=true
   fi
@@ -1185,6 +1182,7 @@ main () {
       exit 1
     fi
     rebaser
+    prep
   fi
 
   if [[ $RAISON == "provision" ]]; then
@@ -1193,6 +1191,7 @@ main () {
       exit 1
     fi
     provisioner
+    prep
   fi
 
   if [[ $RAISON == "decommission" ]]; then
