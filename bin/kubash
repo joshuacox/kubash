@@ -366,7 +366,7 @@ provisioner () {
 	sleep 2
       done
       echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user" >> $KUBASH_DIR/hosts.csv
-  done < $slurpy
+  done < "$slurpy"
 }
 
 do_net () {
