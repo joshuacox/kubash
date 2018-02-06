@@ -523,6 +523,25 @@ w8_node () {
   echo  "kubectl commands are now able to interact with the kubernetes node"
 }
 
+ping_in_parallel () {
+  squawk 2 ' Pinging all hosts using ssh'
+  while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
+  do
+    squawk 1 "$K8S_node_ip"
+    squawk 3 "$K8S_user"
+    echo "ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip 'echo pong'"
+	      >> $PARATMP/hopper
+    MY_ECHO="echo '$K8S_su_user pong'" echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_node_ip \"$MY_ECHO\""\
+	      >> $PARATMP/hopper
+  done < $KUBASH_HOSTS_CSV
+
+  if [ "$VERBOSITY" -gt "9" ] ; then
+    cat $PARATMP/hopper
+  fi
+  parallel  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  rm -Rf $PARATMP
+}
+
 ping () {
   squawk 2 ' Pinging all hosts using ssh'
   while IFS="," read -r K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user
@@ -1276,7 +1295,11 @@ main () {
   fi
 
   if [[ $DO_PING == "true" ]]; then
-    ping
+    if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+      ping_in_parallel
+    else
+      ping
+    fi
   fi
 
   if [[ $DO_APING == "true" ]]; then
