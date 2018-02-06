@@ -1,2 +1,2 @@
-#!/bin/bash -eux
+#!/bin/sh -eux
 curl https://raw.githubusercontent.com/joshuacox/roustabout/master/KubadmNstall|bash

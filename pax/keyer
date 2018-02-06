@@ -1,4 +1,4 @@
-#!/bin/bash -eux
+#!/bin/sh -eux
 : ${K8S_SU_USER:=coopadmin}
 : ${KEYER:=https://raw.githubusercontent.com/WebHostingCoopTeam/keys/master/myaddus.sh}
 : ${KEYS:=https://raw.githubusercontent.com/WebHostingCoopTeam/keys/master/keys}
