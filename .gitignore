@@ -7,3 +7,6 @@ join.sh
 */packer_cache
 libexec
 share
+.minikube.made
+*.rn
+*.ns
