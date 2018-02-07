@@ -306,57 +306,6 @@ decom_kvm () {
   done < $KUBASH_HOSTS_CSV
 }
 
-kvm-rebaser () {
-  squawk 1 "kvm-rebaser"
-  REBASED_NODE=$1
-
-  # Create VM for node
-  $PSEUDO qemu-img create -f qcow2 -b $KVM_IMAGE_DIR/$KVM_BASE_IMG $KVM_IMAGE_DIR/$REBASED_NODE.qcow2
-
-  $PSEUDO virt-install --connect qemu:///system \
- 	--import \
-  	--autostart \
-  	--name $REBASED_NODE \
-  	--ram $KVM_RAM \
-  	--vcpus $KVM_CPU \
-  	--os-type=linux \
-  	--noautoconsole \
-  	--accelerate \
-  	--hvm \
-  	--os-variant=virtio26 \
-  	--disk path=$KVM_IMAGE_DIR/$REBASED_NODE.qcow2,format=qcow2,bus=virtio \
-  	--network=$KVM_NET,mac=$KVM_NET_MAC,model=virtio
-}
-
-rebaser () {
-  squawk 1 " rebaser"
-  K8S_role=master
-  rm -f $KUBASH_DIR/hosts.csv
-  while read -r K8S_node
-  do
-      kvm-rebaser $K8S_node
-      sleep 5
-      K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-      while [[ -z "$K8S_node_ip" ]]; do
-        K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-	sleep 2
-      done
-      echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user" >> $KUBASH_DIR/hosts.csv
-  done < $KUBASH_DIR/masters.list
-  K8S_role=node
-  while read -r K8S_node
-  do
-      kvm-rebaser $K8S_node
-      sleep 5
-      K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-      while [[ -z "$K8S_node_ip" ]]; do
-        K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-	sleep 2
-      done
-      echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user" >> $KUBASH_DIR/hosts.csv
-  done < $KUBASH_DIR/nodes.list
-}
-
 vbox-provisioner () {
   squawk 1 "vbox-provisioner"
   
@@ -1325,14 +1274,6 @@ main () {
       DO_HOSTS=true
       DO_APING=true
   elif [[ $RAISON == "prep" ]]; then
-    prep
-  elif [[ $RAISON == "rebaser" ]]; then
-    if [[ $print_help == "true" ]]; then
-      provision_usage
-      exit 1
-    fi
-    rebaser
-    sleep 10
     prep
   elif [[ $RAISON == "provision" ]]; then
     if [[ $print_help == "true" ]]; then
