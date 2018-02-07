@@ -162,10 +162,10 @@
       "environment_vars": [
         "HOME_DIR=/home/vagrant",
         "KEYS_TO_ADD={{user `keys_to_add`}}",
+        "KEYS_URL={{user `keys_url`}}",
         "http_proxy={{user `http_proxy`}}",
         "https_proxy={{user `https_proxy`}}",
         "K8S_SU_USER=coopadmin",
-        "KEYER=https://raw.githubusercontent.com/WebHostingCoopTeam/keys/master/myaddus.sh",
         "no_proxy={{user `no_proxy`}}"
       ],
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E sh -eux '{{.Path}}'",
@@ -182,6 +182,7 @@
     "box_basename": "fedora-27",
     "build_timestamp": "{{isotime \"20060102150405\"}}",
     "keys_to_add": "{{ env `KEYS_TO_ADD`}}",
+    "keys_url": "{{ env `KEYS_URL`}}",
     "cpus": "1",
     "disk_size": "65536",
     "git_revision": "__unknown_git_revision__",

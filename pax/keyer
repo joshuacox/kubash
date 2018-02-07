@@ -1,23 +1,21 @@
 #!/bin/sh -eux
 : ${K8S_SU_USER:=coopadmin}
-: ${KEYER:=https://raw.githubusercontent.com/WebHostingCoopTeam/keys/master/myaddus.sh}
-: ${KEYS:=https://raw.githubusercontent.com/WebHostingCoopTeam/keys/master/keys}
 
 TMP=$(mktemp -d)
 cd $TMP
 
 # Keyer
-curl -o $TMP/keys  $KEYS
+touch $TMP/keys
+if [ ! -z  $KEYS_URL ]; then
+  curl --silent -L $KEYS_URL  >> $TMP/keys 
+fi
 if [ ! -z  $KEYS_TO_ADD ]; then
   echo $KEYS_TO_ADD >>  $TMP/keys
 fi
-curl -o $TMP/keyer $KEYER
 sudo mkdir -p /root/.ssh
 sudo chmod 700 /root/.ssh
 sudo cp $TMP/keys /root/.ssh/authorized_keys
 sudo chmod 600 $TMP/keys /root/.ssh/authorized_keys
-chmod 555 $TMP/keyer
-sudo $TMP/keyer
 
 sudo ls -lh /root/.ssh
 sudo cat /root/.ssh/authorized_keys
@@ -32,7 +30,6 @@ sudo chmod 700 /home/coopadmin/.ssh
 sudo cp $TMP/keys /home/coopadmin/.ssh/authorized_keys
 sudo chmod 600 $TMP/keys /home/coopadmin/.ssh/authorized_keys
 sudo -u $K8S_SU_USER ls -lh $TMP
-sudo -u $K8S_SU_USER $TMP/keyer
 chown -R $K8S_SU_USER. /home/$K8S_SU_USER
 chown -R $K8S_SU_USER. $TMP
 
