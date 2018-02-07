@@ -1111,6 +1111,11 @@ packer_build  () {
   rmdir $KUBASH_BUILDS/packer-$target_build-$build_virt
 }
 
+activate_monitoring () {
+  # Prometheus
+  helm install stable/prometheus
+}
+
 main () {
   # Let's display everything on stderr.
   exec 1>&2
@@ -1273,6 +1278,12 @@ main () {
     fi
       DO_HOSTS=true
       DO_APING=true
+  elif [[ $RAISON == "monitoring" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+      activate_monitoring
   elif [[ $RAISON == "prep" ]]; then
     prep
   elif [[ $RAISON == "provision" ]]; then
