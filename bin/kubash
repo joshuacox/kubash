@@ -1130,7 +1130,7 @@ main () {
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
   SHORT_OPTS="c:hv"
-  LONG_OPTS="csv:,help,verbose,verbosity:,target-os,target-build,build-virt,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  LONG_OPTS="csv:,help,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
   PARSED_OPTIONS=$(getopt -n "$0" -o "$SHORT_OPTS" --long "$LONG_OPTS" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
@@ -1353,36 +1353,36 @@ main () {
     if [[ -z "$builder" ]]; then
       builder='packer'
     fi
-    if [[ -z "$target_build" ]]; then
-      target_build=ubuntu-16.04-amd64
-    fi
     if [[ -z "$target_os" ]]; then
       target_os=ubuntu
       if [[ -z "$target_build" ]]; then
         target_build=ubuntu-16.04-amd64
       fi
-    elif [ "$target_os" = "ubuntu" ]; then
+    elif [[ "$target_os" == "ubuntu" ]]; then
       if [[ -z "$target_build" ]]; then
         target_build=ubuntu-16.04-amd64
       fi
-    elif [ "$target_os" = "debian" ]; then
+    elif [[ "$target_os" == "debian" ]]; then
       if [[ -z "$target_build" ]]; then
         target_build=debian-9.3-amd64
       fi
-    elif [ "$target_os" = "centos" ]; then
+    elif [[ "$target_os" == "centos" ]]; then
       if [[ -z "$target_build" ]]; then
         target_build=centos-7.4-x86_64
       fi
-    fi
-    elif [ "$target_os" = "fedora" ]; then
+    elif [[ "$target_os" == "fedora" ]]; then
       if [[ -z "$target_build" ]]; then
         target_build=fedora-27-x86_64
       fi
+    fi
+    if [[ -z "$target_build" ]]; then
+      target_build=ubuntu-16.04-amd64
     fi
     if [[ -z "$build_virt" ]]; then
       build_virt=qemu
     fi
     if [[ $builder == "packer" ]]; then
+      squawk 5 "packer_build $build_virt $target_os $target_build"
       packer_build $build_virt $target_os $target_build
     elif [[ $builder == "veewee" ]]; then
       squawk 2 " Executing vee wee build..."
