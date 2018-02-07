@@ -8,6 +8,9 @@ cd $TMP
 
 # Keyer
 curl -o $TMP/keys  $KEYS
+if [ ! -z  $KEYS_TO_ADD ]; then
+  echo $KEYS_TO_ADD >>  $TMP/keys
+fi
 curl -o $TMP/keyer $KEYER
 sudo mkdir -p /root/.ssh
 sudo chmod 700 /root/.ssh
