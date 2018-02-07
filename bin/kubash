@@ -1456,6 +1456,7 @@ main () {
     horizontal_rule
     echo "Command \"$RAISON\" unknown!!! printing usage."
     horizontal_rule
+    sleep 2
     usage
     exit 1
   fi
