@@ -101,6 +101,12 @@ And you can also add a debug flag:
 kubash --debug --verbosity 100 init
 ```
 
+### Detailed documentation on the commands
+
+[build](./docs/build.md)
+
+try `kubash COMMAND --help`
+
 ### [GNU Parallel](https://www.gnu.org/software/parallel/)
 
 This project takes advantage of [GNU Parallel](https://www.gnu.org/software/parallel/) gnu parallel and so should you, for more info see:
