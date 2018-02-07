@@ -41,3 +41,4 @@ script:
   - bash scripts/dotfiles
   - /usr/bin/time -v make -e linuxreqs
   - /bin/bash -l -c "/usr/bin/time -v make -e ci"
+  - kubash openebs
