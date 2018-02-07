@@ -75,7 +75,7 @@ $(KUBASH_BIN):
 	mkdir -p $(KUBASH_BIN)
 
 minikube: $(KUBASH_BIN)
-	@scripts/r8snstaller minikube
+	@scripts/kubashnstaller minikube
 
 $(KUBASH_BIN)/minikube:
 	@echo 'Installing minikube'
