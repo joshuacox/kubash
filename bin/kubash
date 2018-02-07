@@ -238,7 +238,6 @@ chkdir () {
     sudo chown $USER. $1
   fi
   if [ ! -w $1 ] ; then
-    errror
     echo "Cannot write to $1, please check your permissions"
     exit 2
   fi
@@ -695,7 +694,6 @@ chkdir () {
     sudo chown $USER. $1
   fi
   if [ ! -w $1 ] ; then
-    errror
     echo "Cannot write to $1, please check your permissions"
     exit 2
   fi
