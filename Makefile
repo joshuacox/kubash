@@ -146,7 +146,11 @@ $(KUBASH_BIN)/bats:
 	&& sudo ./install.sh /usr/local
 	rm -Rf $(TMP)
 
-ci: autopilot extended_tests monitoring
+ci: chown autopilot extended_tests monitoring
+
+chown:
+	sudo chown -R $(USER) /usr/local
+	sudo chown -R $(USER) /etc/kubernetes
 
 autopilot: reqs .minikube.made
 	@echo 'Autopilot engaged'
