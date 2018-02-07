@@ -1013,8 +1013,10 @@ packer_build  () {
     PACKER_LOG=1
   else
     debug_flag=''
+    PACKER_LOG=0
   fi
   squawk 2 "TMPDIR=$KUBASH_BUILDS_TMP packer build -only=$build_virt $debug_flag $target_build.json"
+  PACKER_LOG=$PACKER_LOG \
   TMPDIR=$KUBASH_BUILDS_TMP \
     packer build -only=$build_virt $debug_flag $target_build.json
 
