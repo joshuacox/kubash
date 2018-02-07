@@ -50,6 +50,10 @@ squawk () {
   fi
 }
 
+horizontal_rule () {
+  printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+}
+
 squawk 3 "Kubash, by Josh Cox"
 
 usage () {
@@ -1438,9 +1442,9 @@ main () {
   elif [[ $RAISON == "true" ]]; then
 	  squawk 8 'passthru'
   else
-    echo '********************************************'
-    echo "Command \"$RAISON\" unknown printing usage!!!"
-    echo '********************************************'
+    horizontal_rule
+    echo "Command \"$RAISON\" unknown!!! printing usage."
+    horizontal_rule
     usage
     exit 1
   fi
