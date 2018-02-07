@@ -84,3 +84,16 @@ example:
 
 pax/ubuntu/builds/ubuntu-16.04.libvirt.box:
 	TMPDIR=/tiamat/tmp packer build -only=qemu kubash-ubuntu-16.04-amd64.json
+
+bats: $(KUBASH_BIN)
+	@scripts/kubashnstaller bats
+
+$(KUBASH_BIN)/bats:
+	$(eval TMP := $(shell mktemp -d --suffix=BATSTMP))
+	cd $(TMP) \
+	&& git clone --depth=1 https://github.com/sstephenson/bats.git
+	ls -lh $(TMP)
+	ls -lh $(TMP)/bats
+	cd $(TMP)/bats \
+	&& ./install.sh $(KUBASH_DIR)
+	rm -Rf $(TMP)

@@ -3,3 +3,4 @@ kubectl
 kubeadm
 kubelet
 packer
+bats
