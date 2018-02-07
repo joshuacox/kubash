@@ -6,11 +6,11 @@ cd $TMP
 
 # Keyer
 touch $TMP/keys
-if [ ! -z  $KEYS_URL ]; then
-  curl --silent -L $KEYS_URL  >> $TMP/keys 
+if [ ! -z  "$KEYS_URL" ]; then
+  curl --silent -L "$KEYS_URL"  >> $TMP/keys 
 fi
-if [ ! -z  $KEYS_TO_ADD ]; then
-  echo $KEYS_TO_ADD >>  $TMP/keys
+if [ ! -z  "$KEYS_TO_ADD" ]; then
+  echo "$KEYS_TO_ADD" >>  $TMP/keys
 fi
 sudo mkdir -p /root/.ssh
 sudo chmod 700 /root/.ssh
