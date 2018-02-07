@@ -77,25 +77,53 @@ ping - Perform ansible ping to all hosts
 
 auto - Full auto
 
+masters - Perform initialization of masters
+
+nodes - Perform initialization of nodes
+
+dotfiles - Perform dotfiles auto configuration
+
+grab - Grab the .kube/config from the master
+
+hosts - Write ansible hosts file
+
+dry - Perform dry run
+
 options:
 
  -h --help - Print usage
 
- -c --csv - Set the csv file to be parsed
+ -c --csv FILE - Set the csv file to be parsed
 
- -g --grab - Grab the .kube/config from the master
+ --parallel NUMBER_OF_THREADS - set the number of parallel jobs for tasks that support it
 
- -d --auto-dotfiles - Perform dotfiles auto configuration
+ -v --verbose - Increase the verbosity (can set multiple times to incrementally increase e.g. `-vvvv`
 
- -w --write-hosts - Write ansible hosts file
+ --verbosity NUMBER - or you can set the verbosity directly
 
- -y --dry - Perform dry run
+ --debug - adds the debug flag
+'
+}
 
- -m --masters - Perform initialization of masters
+node_usage () {
+  # Print usage
+  echo '--
+usage: kubash node_join
+build - build a base image
 
- -n --nodes - Perform initialization of masters
+This command joins a node to the cluster
+e.g.
 
- --parallel # - set the number of parallel jobs for tasks that support it
+kubash node_join
+
+options:
+
+ -h --help - Print usage
+ --node-join-name - set node name
+ --node-join-user - set node user
+ --node-join-ip   - set node ip
+ --node-join-port - set node port
+ --node-join-role - set node role
 '
 }
 
@@ -1134,8 +1162,8 @@ main () {
   squawk 5 'parse opts'
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
-  SHORT_OPTS="c:hdwgyvnmo"
-  LONG_OPTS="csv:,help,auto-dotfiles,write-hosts,kvm-decommission,grab,dry,verbose,verbosity:,masters,nodes,openebs,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  SHORT_OPTS="c:hv"
+  LONG_OPTS="csv:,help,verbose,verbosity:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
   PARSED_OPTIONS=$(getopt -n "$0" -o "$SHORT_OPTS" --long "$LONG_OPTS" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
@@ -1182,39 +1210,6 @@ main () {
       --node-join-role)
         node_join_role="$2"
         shift 2 ;;
-      -m|--masters)
-        RAISON=true
-        DO_CSV=true
-        DO_NET=true
-        DO_PING=true
-        DO_GRAB=true
-        DO_HOSTS=true
-        DO_TILLER=true
-        DO_INSTALL=true
-        DO_MASTER_JOIN=true
-        shift;;
-      -n|--nodes)
-        RAISON=true
-        DO_CSV=true
-        DO_PING=true
-        DO_HOSTS=true
-        DO_NODE_JOIN=true
-        shift;;
-      -y|--dry)
-        RAISON=true
-        DO_HOSTS=true
-        DO_PING=true
-        DO_CSV=true
-        VERBOSITY=`expr $VERBOSITY + 1`
-        shift;;
-      -w|--write-hosts)
-        DO_HOSTS=true
-        RAISON=true
-        shift;;
-      -o|--openebs)
-        DO_OPENEBS=true
-        RAISON=true
-        shift;;
       -v|--verbose)
         VERBOSITY=`expr $VERBOSITY + 1`
         shift;;
@@ -1225,13 +1220,6 @@ main () {
       --builder)
         builder=$2
         shift 2 ;;
-      -g|--grab)
-        DO_GRAB=true
-        RAISON=true
-        shift;;
-      -d|--auto-dotfiles)
-        dotfiles_install
-        shift;;
       --)
         shift
         break;;
@@ -1258,15 +1246,68 @@ main () {
   fi
 
   if [[ $RAISON == "auto" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
+	squawk 1 "Full auto engaged"
 	kubash provision
 	kubash ping
 	kubash init
+	squawk 1 "Full auto finished"
+      exit
+  elif [[ $RAISON == "grab" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
+        DO_GRAB=true
+  elif [[ $RAISON == "openebs" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
+        DO_OPENEBS=true
+  elif [[ $RAISON == "dry" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
+        DO_HOSTS=true
+        DO_PING=true
+        DO_CSV=true
+        VERBOSITY=`expr $VERBOSITY + 1`
+  elif [[ $RAISON == "hosts" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
+        DO_HOSTS=true
+  elif [[ $RAISON == "dotfiles" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
+        dotfiles_install
+        DO_GRAB=true
   elif [[ $RAISON == "show" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
       DO_SHOW=true
       VERBOSITY=`expr $VERBOSITY + 1`
   elif [[ $RAISON == "ping" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
       DO_PING=true
   elif [[ $RAISON == "aping" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      usage
+      exit 1
+    fi
       DO_HOSTS=true
       DO_APING=true
   elif [[ $RAISON == "prep" ]]; then
@@ -1293,6 +1334,28 @@ main () {
       exit 1
     fi
     do_decom
+  elif [[ $RAISON == "masters" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      init_usage
+      exit 1
+    fi
+        DO_CSV=true
+        DO_NET=true
+        DO_PING=true
+        DO_GRAB=true
+        DO_HOSTS=true
+        DO_TILLER=true
+        DO_INSTALL=true
+        DO_MASTER_JOIN=true
+  elif [[ $RAISON == "nodes" ]]; then
+    if [[ $PRINT_HELP == "true" ]]; then
+      init_usage
+      exit 1
+    fi
+        DO_CSV=true
+        DO_PING=true
+        DO_HOSTS=true
+        DO_NODE_JOIN=true
   elif [[ $RAISON == "init" ]]; then
     if [[ $PRINT_HELP == "true" ]]; then
       init_usage
