@@ -10,3 +10,5 @@ share
 .minikube.made
 *.rn
 *.ns
+node_modules
+package-lock.json
