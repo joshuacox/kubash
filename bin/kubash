@@ -466,6 +466,13 @@ mid () {
 }
 
 hosts () {
+	#intermediary compatibility layer
+	echo 'warning hosts function deprecated use write_ansible_hosts instead'
+	sleep 4
+	write_ansible_hosts
+}
+
+write_ansible_hosts () {
   squawk 1 " Make a hosts file for ansible"
   # Make a fresh hosts file
   rm -f $KUBASH_HOSTS
@@ -1480,7 +1487,7 @@ main () {
   fi
 
   if [[ $DO_HOSTS == "true" ]]; then
-    hosts
+    write_ansible_hosts
   fi
 
   if [[ $DO_PREP == "true" ]]; then
