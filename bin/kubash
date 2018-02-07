@@ -57,6 +57,7 @@ horizontal_rule () {
 squawk 3 "Kubash, by Josh Cox"
 
 usage () {
+  horizontal_rule
   # Print usage
   echo 'kubash, by Josh Cox 2018.01.31
 usage: kubash COMMAND
@@ -64,7 +65,9 @@ This script automates the setup and maintenance of a kubernetes cluster
 e.g.
 
 kubash init
-
+'
+  horizontal_rule
+echo '
 commands:
 
 build - build a base image
@@ -93,6 +96,9 @@ hosts - Write ansible hosts file
 
 dry - Perform dry run
 
+'
+  horizontal_rule
+echo '
 options:
 
  -h --help - Print usage
@@ -110,6 +116,7 @@ options:
 }
 
 node_usage () {
+  horizontal_rule
   # Print usage
   echo '--
 usage: kubash node_join
@@ -132,6 +139,7 @@ options:
 }
 
 build_usage () {
+  horizontal_rule
   # Print usage
   echo '--
 usage: kubash build
@@ -150,6 +158,7 @@ options:
 }
 
 init_usage () {
+  horizontal_rule
   # Print usage
   echo '--
 usage: kubash init
@@ -167,6 +176,7 @@ options:
 }
 
 provision_usage () {
+  horizontal_rule
   # Print usage
   echo '--
 usage: kubash provision
@@ -184,6 +194,7 @@ options:
 }
 
 decom_usage () {
+  horizontal_rule
   # Print usage
   echo '--
 usage: kubash decom
