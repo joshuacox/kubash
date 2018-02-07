@@ -36,3 +36,5 @@ before_install:
 
 script:
   - bats .tests.bats
+  - /usr/bin/time -v make -e linuxreqs
+  - /bin/bash -l -c "/usr/bin/time -v make -e ci"
