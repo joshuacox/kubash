@@ -40,6 +40,7 @@ script:
   - bash scripts/dotfiles
   - /usr/bin/time -v make -e linuxreqs
   - sudo chown -R $USER /usr/local
+  - sudo chown -R $USER /etc/kubernetes
   - /bin/bash -l -c "/usr/bin/time -v make -e ci"
   - kubash openebs
   - bats .ci/tests.bats
