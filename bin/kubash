@@ -1077,7 +1077,6 @@ packer_build  () {
     LN_CMD='ln -s'
   fi
 
-# pax/ubuntu/builds/ubuntu-16.04.libvirt.box:
   cd $KUBASH_DIR/pax
   if [ ! -L build ]; then
     $LN_CMD $KUBASH_BUILDS builds
@@ -1359,6 +1358,26 @@ main () {
     fi
     if [[ -z "$target_os" ]]; then
       target_os=ubuntu
+      if [[ -z "$target_build" ]]; then
+        target_build=ubuntu-16.04-amd64
+      fi
+    elif [ "$target_os" = "ubuntu" ]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=ubuntu-16.04-amd64
+      fi
+    elif [ "$target_os" = "debian" ]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=debian-9.3-amd64
+      fi
+    elif [ "$target_os" = "centos" ]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=centos-7.4-x86_64
+      fi
+    fi
+    elif [ "$target_os" = "fedora" ]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=fedora-27-x86_64
+      fi
     fi
     if [[ -z "$build_virt" ]]; then
       build_virt=qemu
