@@ -407,7 +407,10 @@ provisioner () {
   squawk 1 " provisioner"
   slurpy="$(grep -v '^#' $KUBASH_DIR/provision.list)"
   squawk 8 "$slurpy"
-  rm -f $KUBASH_DIR/hosts.csv
+  if [ -e "$KUBASH_DIR/hosts.csv" ]; then
+    echo "$KUBASH_DIR/hosts.csv exists! Destroy existing cluster and remove before proceeding!"
+    exit 1
+  fi
   while IFS="," read -r $provision_csv_list
   do
       squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath"
@@ -475,8 +478,12 @@ hosts () {
 write_ansible_hosts () {
   squawk 1 " Make a hosts file for ansible"
   # Make a fresh hosts file
-  rm -f $KUBASH_HOSTS
-  touch $KUBASH_HOSTS
+  if [ -e "$KUBASH_HOSTS" ]; then
+    echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
+    exit 1
+  else
+    touch $KUBASH_HOSTS
+  fi
   # Write all hosts to inventory for id
   while IFS="," read -r $hosts_csv_columns
   do
