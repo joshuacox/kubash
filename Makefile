@@ -74,6 +74,18 @@ $(KUBASH_BIN)/kubectl:
 $(KUBASH_BIN):
 	mkdir -p $(KUBASH_BIN)
 
+minikube: $(KUBASH_BIN)
+	@scripts/r8snstaller minikube
+
+$(KUBASH_BIN)/minikube:
+	@echo 'Installing minikube'
+	$(eval TMP := $(shell mktemp -d --suffix=MINIKUBETMP))
+	mkdir $(HOME)/.kube || true
+	touch $(HOME)/.kube/config
+	cd $(TMP) \
+	&& curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube $(KUBASH_BIN)/
+	rmdir $(TMP)
+
 vanity:
 	curl -i https://git.io -F "url=https://raw.githubusercontent.com/joshuacox/kubash/master/bootstrap" -F "code=kubash"
 
