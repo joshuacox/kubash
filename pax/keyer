@@ -8,9 +8,13 @@ cd $TMP
 touch $TMP/keys
 if [ ! -z  "$KEYS_URL" ]; then
   curl --silent -L "$KEYS_URL"  >> $TMP/keys 
+else
+  echo 'no KEYS_URL given'
 fi
 if [ ! -z  "$KEYS_TO_ADD" ]; then
   echo "$KEYS_TO_ADD" >>  $TMP/keys
+else
+  echo 'no KEYS_TO_ADD given'
 fi
 sudo mkdir -p /root/.ssh
 sudo chmod 700 /root/.ssh
