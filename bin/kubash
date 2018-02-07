@@ -152,7 +152,9 @@ kubash build
 options:
 
  -h --help - Print usage
- --builder - choose builder (for now only packer)
+ --builder - choose builder (packer,coreos)
+ --target-os - choose target-os (debian,ubuntu,centos,fedora,coreos)
+ --target-build - choose target-build
 '
 }
 
@@ -1062,6 +1064,30 @@ do_openebs () {
 	kubectl create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/openebs-operator.yaml
 }
 
+coreos_build  () {
+  build_virt=$1
+  target_os=$2
+  CHANNEL=$3
+  chkdir $KUBASH_BUILDS
+  chkdir $KUBASH_BUILDS_TMP
+
+  cd $KUBASH_BUILDS_TMP
+  wget -c https://$(CHANNEL).release.core-os.net/amd64-usr/current/coreos_production_qemu_image.img.bz2{,.sig}
+  gpg --verify coreos_production_qemu_image.img.bz2.sig
+  rm coreos_production_qemu_image.img.bz2.sig
+  bunzip2 coreos_production_qemu_image.img.bz2
+
+  if [[ $VERBOSITY -gt '1' ]]; then
+    MV_CMD='mv -iv'
+  else
+    MV_CMD='mv -i'
+  fi
+
+  $PSEUDO $MV_CMD \
+    $KUBASH_BUILDS_TMP/coreos_production_qemu_image.img \
+    $KVM_IMAGE_DIR/$target_os-$KVM_BASE_IMG
+}
+
 packer_build  () {
   build_virt=$1
   target_os=$2
@@ -1374,6 +1400,11 @@ main () {
       if [[ -z "$target_build" ]]; then
         target_build=fedora-27-x86_64
       fi
+    elif [[ "$target_os" == "coreos" ]]; then
+      if [[ -z "$target_build" ]]; then
+	      squawk 5 "Setting coreos channel to stable"
+        target_build=stable
+      fi
     fi
     if [[ -z "$target_build" ]]; then
       target_build=ubuntu-16.04-amd64
@@ -1384,6 +1415,9 @@ main () {
     if [[ $builder == "packer" ]]; then
       squawk 5 "packer_build $build_virt $target_os $target_build"
       packer_build $build_virt $target_os $target_build
+    elif [[ $builder == "coreos" ]]; then
+      squawk 5 "coreos_build $build_virt $target_os $target_build"
+      coreos_build $build_virt $target_os $target_build
     elif [[ $builder == "veewee" ]]; then
       squawk 2 " Executing vee wee build..."
       # veewee_build 
