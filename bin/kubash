@@ -1131,7 +1131,7 @@ main () {
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
   SHORT_OPTS="c:hv"
-  LONG_OPTS="csv:,help,verbose,verbosity:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  LONG_OPTS="csv:,help,verbose,verbosity:,target-os,target-build,build-virt,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
   PARSED_OPTIONS=$(getopt -n "$0" -o "$SHORT_OPTS" --long "$LONG_OPTS" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
@@ -1177,6 +1177,15 @@ main () {
         shift 2 ;;
       --node-join-role)
         node_join_role="$2"
+        shift 2 ;;
+      --target-os)
+	target_os="$2"
+        shift 2 ;;
+      --target-build)
+	target_build="$2"
+        shift 2 ;;
+      --build-virt)
+	build_virt="$2"
         shift 2 ;;
       -v|--verbose)
         VERBOSITY=`expr $VERBOSITY + 1`
