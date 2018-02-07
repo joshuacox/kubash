@@ -232,3 +232,10 @@ prometheus: .prometheus.rn view-monitoring
 	kubectl create ns monitoring
 	date -I > .monitoring.ns
 
+tests:
+	@echo 'These are the bats tests'
+	bats .ci/tests.bats
+
+fail_tests:
+	@echo 'These are tests which fail and can be considered future fixes'
+	bats .ci/fails.bats
