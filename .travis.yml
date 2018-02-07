@@ -1,0 +1,34 @@
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+      services:
+      - docker
+      cache:
+        directories:
+        - $HOME/.minikube
+        - $HOME/.kubash
+        - .git
+        - /usr/local
+      env:
+        - MINIKUBE_MEMORY=7777
+        - MINIKUBE_CPU=4
+        - MINIKUBE_DRIVER=none
+
+language: bash
+
+addons:
+  apt:
+    packages:
+      - curl
+      - socat
+      - time
+      - devscripts
+
+before_install:
+  - curl -sL git.io/kubash | bash
+  - cd $HOME/.kubash; make bats
+
+script:
+  - bats .tests.bats

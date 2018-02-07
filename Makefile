@@ -95,5 +95,5 @@ $(KUBASH_BIN)/bats:
 	ls -lh $(TMP)
 	ls -lh $(TMP)/bats
 	cd $(TMP)/bats \
-	&& ./install.sh $(KUBASH_DIR)
+	&& sudo ./install.sh /usr/local
 	rm -Rf $(TMP)
