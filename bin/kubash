@@ -600,6 +600,31 @@ w8_node () {
   echo  "kubectl commands are now able to interact with the kubernetes node"
 }
 
+remove_vagrant_user () {
+  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  squawk 2 ' Remove vagrant user from all hosts using ssh'
+  while IFS="," read -r $hosts_csv_columns
+  do
+    squawk 1 "$K8S_node_ip"
+    squawk 3 "$K8S_user"
+    REMMY="userdel -f vagrant && rm -Rf /home/vagrant"
+    squawk 5 "ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip \"$REMMY\""
+	      >> $PARATMP/hopper
+    echo "ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip \"$REMMY\""\
+	      >> $PARATMP/hopper
+  done < $KUBASH_HOSTS_CSV
+
+  if [ "$VERBOSITY" -gt "9" ] ; then
+    cat $PARATMP/hopper
+  fi
+  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
+}
+
 ping_in_parallel () {
   PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   squawk 2 ' Pinging all hosts using ssh'
@@ -622,7 +647,11 @@ ping_in_parallel () {
   if [ "$VERBOSITY" -gt "9" ] ; then
     cat $PARATMP/hopper
   fi
-  $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
   rm -Rf $PARATMP
 }
 
@@ -946,7 +975,11 @@ do_masters_in_parallel () {
   if [ "$VERBOSITY" -gt "9" ] ; then
     cat $PARATMP/hopper
   fi
-  $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
   rm -Rf $PARATMP
 }
 
@@ -987,7 +1020,11 @@ do_nodes_in_parallel () {
   if [ "$VERBOSITY" -gt "9" ] ; then
     cat $PARATMP/hopper
   fi
-  $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
   rm -Rf $PARATMP
 }
 
@@ -1009,6 +1046,7 @@ prep () {
   do
     preppy $K8S_node $K8S_node_ip $K8S_node_port
   done < $KUBASH_HOSTS_CSV
+  remove_vagrant_user
 }
 
 preppy () {
