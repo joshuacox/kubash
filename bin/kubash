@@ -1010,6 +1010,7 @@ packer_build  () {
 
   if [[ $debug == "true" ]]; then
     debug_flag='-debug -on-error=ask'
+    PACKER_LOG=1
   else
     debug_flag=''
   fi
