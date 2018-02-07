@@ -40,5 +40,6 @@ script:
   - bats .tests.bats
   - bash scripts/dotfiles
   - /usr/bin/time -v make -e linuxreqs
+  - sudo chown -R $USER /usr/local
   - /bin/bash -l -c "/usr/bin/time -v make -e ci"
   - kubash openebs
