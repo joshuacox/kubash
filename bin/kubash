@@ -81,7 +81,7 @@ show - show the analyzed input of the hosts file
 
 ping - Perform ansible ping to all hosts
 
-auto - Full auto
+auto - Full auto will provision and initialize all hosts
 
 masters - Perform initialization of masters
 

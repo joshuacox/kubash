@@ -16,20 +16,15 @@ curl -L git.io/kubash|bash
 
 This script automates the setup and maintenance of a kubernetes cluster
 
-i.e.
 ```
 kubash COMMAND
-```
-
-
-e.g.
-```
-kubash init
 ```
 
 ### Commands:
 
 ```
+commands:
+
 build - build a base image
 
 provision - provision individual nodes
@@ -42,8 +37,19 @@ show - show the analyzed input of the hosts file
 
 ping - Perform ansible ping to all hosts
 
-auto - Full auto
+auto - Full auto will provision and initialize all hosts
 
+masters - Perform initialization of masters
+
+nodes - Perform initialization of nodes
+
+dotfiles - Perform dotfiles auto configuration
+
+grab - Grab the .kube/config from the master
+
+hosts - Write ansible hosts file
+
+dry - Perform dry run
 ```
 
 ### Options
@@ -55,21 +61,15 @@ options:
 
  -h --help - Print usage
 
- -c --csv - Set the csv file to be parsed
+ -c --csv FILE - Set the csv file to be parsed
 
- -g --grab - Grab the .kube/config from the master
+ --parallel NUMBER_OF_THREADS - set the number of parallel jobs for tasks that support it
 
- -d --auto-dotfiles - Perform dotfiles auto configuration
+ -v --verbose - Increase the verbosity (can set multiple times to incrementally increase e.g. `-vvvv`
 
- -w --write-hosts - Write ansible hosts file
+ --verbosity NUMBER - or you can set the verbosity directly
 
- -y --dry - Perform dry run
-
- -m --masters - Perform initialization of masters
-
- -n --nodes - Perform initialization of masters
-
- --parallel # - set the number of parallel jobs for tasks that support it
+ --debug - adds the debug flag
 ```
 
 There is an example csv file in this repo which shows how to compose this file
