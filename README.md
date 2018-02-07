@@ -74,6 +74,33 @@ options:
 
 There is an example csv file in this repo which shows how to compose this file
 
+### Debugging
+
+First start by adding a few -vvv to the command to bump up the verbosity e.g.
+
+```
+kubash -vvvvv init
+```
+
+or
+
+```
+kubash --verbosity 22 init
+```
+
+Alternatively there is an environment variable `VERBOSITY`
+
+```
+export VERBOSITY=25
+kubash init
+```
+
+And you can also add a debug flag:
+
+```
+kubash --debug --verbosity 100 init
+```
+
 ### [GNU Parallel](https://www.gnu.org/software/parallel/)
 
 This project takes advantage of [GNU Parallel](https://www.gnu.org/software/parallel/) gnu parallel and so should you, for more info see:
