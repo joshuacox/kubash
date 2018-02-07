@@ -3,10 +3,6 @@
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${KUBASH_HOSTS_CSV:=$KUBASH_DIR/hosts.csv}
 : ${KUBASH_HOSTS:=$KUBASH_DIR/hosts}
-: ${DO_DOTFILES:=false}
-: ${PRINT_HELP:=false}
-: ${DO_INIT:=false}
-: ${RAISON:=false}
 : ${VERBOSITY:=0}
 : ${KVM_IMAGE_DIR:=/var/lib/libvirt/images}
 : ${KUBASH_BUILDS_TMP:=$KVM_IMAGE_DIR/kubashtmp}
@@ -25,6 +21,9 @@
 : ${KUTIME:="/usr/bin/time -v"}
 : ${PARALLEL_JOBS:=1}
 : ${PARALLEL:="parallel"}
+
+# Rasion d'etre
+RAISON=false
 
 # prep the columns strings for csv input
 hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
@@ -1198,7 +1197,7 @@ main () {
     opt_loop_count=`expr $opt_loop_count + 1`
     case "$1" in
       -h|--help)
-        PRINT_HELP=true
+        print_help=true
         shift;;
       --debug)
         debug=true
@@ -1261,7 +1260,7 @@ main () {
   fi
 
   if [[ $RAISON == "auto" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
@@ -1272,19 +1271,19 @@ main () {
 	squawk 1 "Full auto finished"
       exit
   elif [[ $RAISON == "grab" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
         DO_GRAB=true
   elif [[ $RAISON == "openebs" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
         DO_OPENEBS=true
   elif [[ $RAISON == "dry" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
@@ -1293,33 +1292,33 @@ main () {
         DO_CSV=true
         VERBOSITY=`expr $VERBOSITY + 1`
   elif [[ $RAISON == "hosts" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
         DO_HOSTS=true
   elif [[ $RAISON == "dotfiles" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
         dotfiles_install
         DO_GRAB=true
   elif [[ $RAISON == "show" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
       DO_SHOW=true
       VERBOSITY=`expr $VERBOSITY + 1`
   elif [[ $RAISON == "ping" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
       DO_PING=true
   elif [[ $RAISON == "aping" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
@@ -1328,7 +1327,7 @@ main () {
   elif [[ $RAISON == "prep" ]]; then
     prep
   elif [[ $RAISON == "rebaser" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       provision_usage
       exit 1
     fi
@@ -1336,7 +1335,7 @@ main () {
     sleep 10
     prep
   elif [[ $RAISON == "provision" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       provision_usage
       exit 1
     fi
@@ -1344,13 +1343,13 @@ main () {
     sleep 10
     prep
   elif [[ $RAISON == "decommission" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       decom_usage
       exit 1
     fi
     do_decom
   elif [[ $RAISON == "masters" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       init_usage
       exit 1
     fi
@@ -1363,7 +1362,7 @@ main () {
         DO_INSTALL=true
         DO_MASTER_JOIN=true
   elif [[ $RAISON == "nodes" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       init_usage
       exit 1
     fi
@@ -1372,7 +1371,7 @@ main () {
         DO_HOSTS=true
         DO_NODE_JOIN=true
   elif [[ $RAISON == "init" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       init_usage
       exit 1
     fi
@@ -1383,11 +1382,11 @@ main () {
         DO_HOSTS=true
         DO_TILLER=true
         DO_INSTALL=true
-        DO_DOTFILES=true
+        do_dotfiles=true
         DO_NODE_JOIN=true
         DO_MASTER_JOIN=true
   elif [[ $RAISON == "build" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       build_usage
       exit 1
     fi
@@ -1416,7 +1415,7 @@ main () {
     fi
     exit 0
   elif [[ $RAISON == "node_join" ]]; then
-    if [[ $PRINT_HELP == "true" ]]; then
+    if [[ $print_help == "true" ]]; then
       node_usage
       exit 1
     fi
@@ -1461,7 +1460,7 @@ main () {
     exit 1
   fi
 
-  if [[ $PRINT_HELP == "true" ]]; then
+  if [[ $print_help == "true" ]]; then
     usage
     exit 1
   fi
