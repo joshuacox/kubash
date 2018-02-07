@@ -43,4 +43,4 @@ script:
   - sudo chown -R $USER /etc/kubernetes
   - /bin/bash -l -c "/usr/bin/time -v make -e ci"
   - /bin/bash -l -c "bin/kubash openebs"
-  - bats .ci/tests.bats
+  - bats .tests.bats
