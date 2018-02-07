@@ -1,2 +1,2 @@
 #!/bin/sh -eux
-curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RPMKubadmNstall|bash
+curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
