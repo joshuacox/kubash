@@ -44,7 +44,7 @@ $(eval HELM_INSTALL_DIR := "$(KUBASH_BIN)")
 
 reqs: linuxreqs
 
-linuxreqs: $(KUBASH_BIN) kubectl helm
+linuxreqs: $(KUBASH_BIN) kubectl helm minikube
 
 helm: $(KUBASH_BIN)
 	@scripts/kubashnstaller helm
