@@ -1287,6 +1287,9 @@ main () {
   elif [[ $RAISON == "true" ]]; then
 	  squawk 8 'passthru'
   else
+    echo '*********************************'
+    echo 'Command unknown printing usage!!!'
+    echo '*********************************'
     usage
     exit 1
   fi
