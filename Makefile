@@ -150,6 +150,9 @@ ci: chown autopilot extended_tests monitoring
 
 chown:
 	sudo chown -R $(USER) /usr/local
+	sudo mkdir -p /etc/kubernetes
+	sudo chown -R $(USER) /etc/kubernetes
+	sudo mkdir -p /etc/kubernetes
 	sudo chown -R $(USER) /etc/kubernetes
 
 autopilot: reqs .minikube.made

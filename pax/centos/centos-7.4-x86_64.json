@@ -156,6 +156,7 @@
   "post-processors": [
     {
       "output": "../builds/{{user `box_basename`}}.{{.Provider}}.box",
+      "except": ["qemu"],
       "type": "vagrant"
     }
   ],

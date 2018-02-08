@@ -38,6 +38,7 @@ before_install:
 
 script:
   - bash scripts/dotfiles
+  - bash scripts/chkdirs
   - /usr/bin/time -v make -e linuxreqs
   - sudo chown -R $USER /usr/local
   - sudo mkdir -p /etc/kubernetes
