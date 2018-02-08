@@ -408,8 +408,9 @@ provisioner () {
   squawk 8 "$slurpy"
   if [ -e "$KUBASH_DIR/hosts.csv" ]; then
     echo "$KUBASH_DIR/hosts.csv exists! Destroy existing cluster and remove before proceeding!"
-    exit 1
+    rm -i hosts.csv
   fi
+  touch hosts.csv
   while IFS="," read -r $provision_csv_list
   do
       squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath"
@@ -479,7 +480,8 @@ write_ansible_hosts () {
   # Make a fresh hosts file
   if [ -e "$KUBASH_HOSTS" ]; then
     echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
-    exit 1
+    rm -i $KUBASH_HOSTS
+    touch $KUBASH_HOSTS
   else
     touch $KUBASH_HOSTS
   fi
@@ -1379,11 +1381,16 @@ main () {
         DO_PING=true
         DO_GRAB=true
         DO_HOSTS=true
-        DO_TILLER=true
         DO_INSTALL=true
         do_dotfiles=true
         DO_NODE_JOIN=true
         DO_MASTER_JOIN=true
+  elif [[ $RAISON == "tiller" ]]; then
+    if [[ $print_help == "true" ]]; then
+      init_usage
+      exit 1
+    fi
+        DO_TILLER=true
   elif [[ $RAISON == "build" ]]; then
     if [[ $print_help == "true" ]]; then
       build_usage
@@ -1415,7 +1422,7 @@ main () {
       fi
     elif [[ "$target_os" == "coreos" ]]; then
       if [[ -z "$target_build" ]]; then
-	      squawk 5 "Setting coreos channel to stable"
+	squawk 5 "Setting coreos channel to stable"
         target_build=stable
       fi
     fi
