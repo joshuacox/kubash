@@ -407,6 +407,7 @@ provisioner () {
   slurpy="$(grep -v '^#' $KUBASH_DIR/provision.list)"
   squawk 8 "$slurpy"
   if [ -e "$KUBASH_DIR/hosts.csv" ]; then
+    horizontal_rule
     echo "$KUBASH_DIR/hosts.csv exists! Destroy existing cluster and remove before proceeding!"
     rm -i hosts.csv
   fi
@@ -479,6 +480,7 @@ write_ansible_hosts () {
   squawk 1 " Make a hosts file for ansible"
   # Make a fresh hosts file
   if [ -e "$KUBASH_HOSTS" ]; then
+    horizontal_rule
     echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
     rm -i $KUBASH_HOSTS
     touch $KUBASH_HOSTS
