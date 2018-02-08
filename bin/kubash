@@ -25,6 +25,9 @@
 # Rasion d'etre
 RAISON=false
 
+# global vars
+ANSWER_YES=no
+
 # prep the columns strings for csv input
 hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
 provision_csv_list="K8S_node  K8S_role K8S_cpuCount K8S_Memory K8S_network K8S_mac K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
@@ -423,7 +426,11 @@ provisioner () {
   if [ -e "$KUBASH_DIR/hosts.csv" ]; then
     horizontal_rule
     echo "$KUBASH_DIR/hosts.csv exists! Destroy existing cluster and remove before proceeding!"
-    rm -i hosts.csv
+    if [ "$ANSWER_YES" = "yes" ]; then
+      rm hosts.csv
+    else
+      rm -i hosts.csv
+    fi
   fi
   touch hosts.csv
   while IFS="," read -r $provision_csv_list
@@ -496,7 +503,11 @@ write_ansible_hosts () {
   if [ -e "$KUBASH_HOSTS" ]; then
     horizontal_rule
     echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
-    rm -i $KUBASH_HOSTS
+    if [ "$ANSWER_YES" = "yes" ]; then
+      rm $KUBASH_HOSTS
+    else
+      rm -i $KUBASH_HOSTS
+    fi
     touch $KUBASH_HOSTS
   else
     touch $KUBASH_HOSTS
@@ -1107,9 +1118,17 @@ coreos_build  () {
   bunzip2 coreos_production_qemu_image.img.bz2
 
   if [[ $VERBOSITY -gt '1' ]]; then
-    MV_CMD='mv -iv'
+    if [ "$ANSWER_YES" = "yes" ]; then
+      MV_CMD='mv -v'
+    else
+      MV_CMD='mv -iv'
+    fi
   else
-    MV_CMD='mv -i'
+    if [ "$ANSWER_YES" = "yes" ]; then
+      MV_CMD='mv'
+    else
+      MV_CMD='mv -i'
+    fi
   fi
 
   $PSEUDO $MV_CMD \
@@ -1125,11 +1144,22 @@ packer_build  () {
   chkdir $KUBASH_BUILDS_TMP
 
   if [[ $VERBOSITY -gt '1' ]]; then
-    MV_CMD='mv -iv'
     LN_CMD='ln -sv'
   else
-    MV_CMD='mv -i'
     LN_CMD='ln -s'
+  fi
+  if [[ $VERBOSITY -gt '1' ]]; then
+    if [ "$ANSWER_YES" = "yes" ]; then
+      MV_CMD='mv -v'
+    else
+      MV_CMD='mv -iv'
+    fi
+  else
+    if [ "$ANSWER_YES" = "yes" ]; then
+      MV_CMD='mv'
+    else
+      MV_CMD='mv -i'
+    fi
   fi
 
   cd $KUBASH_DIR/pax
@@ -1154,9 +1184,17 @@ packer_build  () {
     packer build -only=$build_virt $debug_flag $target_build.json
 
   if [[ $VERBOSITY -gt '1' ]]; then
-    MV_CMD='mv -iv'
+    if [ "$ANSWER_YES" = "yes" ]; then
+      MV_CMD='mv -v'
+    else
+      MV_CMD='mv -iv'
+    fi
   else
-    MV_CMD='mv -i'
+    if [ "$ANSWER_YES" = "yes" ]; then
+      MV_CMD='mv'
+    else
+      MV_CMD='mv -i'
+    fi
   fi
 
   $PSEUDO $MV_CMD \
@@ -1186,8 +1224,8 @@ main () {
   squawk 5 'parse opts'
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
-  SHORT_OPTS="c:hv"
-  LONG_OPTS="csv:,help,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  SHORT_OPTS="c:hvy"
+  LONG_OPTS="csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
   PARSED_OPTIONS=$(getopt -n "$0" -o "$SHORT_OPTS" --long "$LONG_OPTS" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
@@ -1211,6 +1249,9 @@ main () {
         shift;;
       --debug)
         debug=true
+        shift;;
+      -y|--yes)
+	ANSWER_YES=yes
         shift;;
       -c|--csv)
         KUBASH_HOSTS_CSV="$2"
