@@ -267,6 +267,20 @@ add_line_to()
     printf "%s\n" "$LINE_TO_ADD" >> "$TARGET_FILE"
 }
 
+genmac () {
+  # Generate a mac address
+  hexchars="0123456789ABCDEF"
+  : ${DEFAULT_MAC_ADDRESS_BLOCK:=52:54:00}
+  
+  if [ ! -z "$1" ]; then
+  	DEFAULT_MAC_ADDRESS_BLOCK=$1
+  fi
+  
+  end=$( for i in {1..6} ; do echo -n ${hexchars:$(( $RANDOM % 16 )):1} ; done | sed -e 's/\(..\)/:\1/g' )
+  
+  echo "$DEFAULT_MAC_ADDRESS_BLOCK$end" >&3
+}
+
 rolero () {
   squawk 2 "rolero"
   node_name=$1
@@ -825,8 +839,6 @@ node_join () {
 
 checks () {
   squawk 10 " checks"
-  # Let's display everything on stderr.
-  exec 1>&2
   check_cmd git
   check_cmd ssh
   check_cmd ansible
@@ -842,8 +854,6 @@ checks () {
 
 do_install () {
   squawk 1 " do_install"
-  # Let's display everything on stderr.
-  exec 1>&2
   UNAME=$(uname)
 
   if [ "$UNAME" = "CYGWIN_NT-10.0" ] ; then
@@ -1159,6 +1169,8 @@ activate_monitoring () {
 }
 
 main () {
+  # save original io
+  exec 3>&1 4>&2
   # Let's display everything on stderr.
   exec 1>&2
 
@@ -1287,6 +1299,8 @@ main () {
       exit 1
     fi
         DO_OPENEBS=true
+  elif [[ $RAISON == "genmac" ]]; then
+    genmac
   elif [[ $RAISON == "dry" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
