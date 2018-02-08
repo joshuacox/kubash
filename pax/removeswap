@@ -8,3 +8,4 @@ commenter () {
 
 commenter '/dev/mapper/vagrant--vg-swap_1' /etc/fstab
 commenter '/dev/fd0' /etc/fstab
+commenter '/dev/mapper/debian--9--vg-swap_1' /etc/fstab
