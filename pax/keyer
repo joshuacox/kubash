@@ -22,7 +22,7 @@ sudo cp $TMP/keys /root/.ssh/authorized_keys
 sudo chmod 600 $TMP/keys /root/.ssh/authorized_keys
 
 sudo ls -lh /root/.ssh
-sudo cat /root/.ssh/authorized_keys
+#sudo cat /root/.ssh/authorized_keys
 
 useradd $K8S_SU_USER
 sudo gpasswd -a $K8S_SU_USER docker
