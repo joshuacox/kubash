@@ -18,7 +18,7 @@
 
 `--target-os centos` This will build centos images
 
-`--target-os coreos` This will build coreos images
+`--target-os coreos` This will build coreos images (* no packer build for this)
 
 ### Target build
 
