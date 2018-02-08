@@ -784,12 +784,14 @@ master_init_join () {
   fi
   squawk 0 " master_init_join $my_master_name $my_master_ip $my_master_user $my_master_port"
   if [ "$DO_MASTER_JOIN" = "true" ] ; then
-    my_KUBE_INIT="kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
     squawk 1 ' hostnamero'
     hostnamero $my_master_name $my_master_ip $my_master_port $my_master_user
     squawk 3 ' kubeadm reset'
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "hostname; uname -a;kubeadm reset"
     my_grep='kubeadm join --token'
+    squawk 3 ' kubeadm join'
+    my_KUBE_INIT="kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
+    squawk 5 "$my_KUBE_INIT"
     run_join=$(ssh -n root@$my_master_ip $my_KUBE_INIT | tee $TMP/rawresults.k8s | grep -- "$my_grep")
     echo $run_join > $KUBASH_DIR/join.sh
     DO_GRAB=true
