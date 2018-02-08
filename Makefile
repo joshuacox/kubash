@@ -146,7 +146,9 @@ $(KUBASH_BIN)/bats:
 	&& sudo ./install.sh /usr/local
 	rm -Rf $(TMP)
 
-ci: chown autopilot extended_tests monitoring
+ci: chown autopilot 
+	
+ci-next: extended_tests monitoring
 
 chown:
 	sudo chown -R $(USER) /usr/local
