@@ -1,11 +1,6 @@
 #!/usr/bin/env bats
 
-@test "checkbashisms kubash" {
-  result="$(checkbashisms -xnp ./bin/kubash)"
-  [ -z "$result" ]
-}
-
-@test "checkbashisms bootstrap" {
-  result="$(checkbashisms -xnp ./bootstrap)"
-  [ -z "$result" ]
+@test "addition using bc" {
+  result="$(echo 2+2 | bc)"
+  [ "$result" -eq 4 ]
 }
