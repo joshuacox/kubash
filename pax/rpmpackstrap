@@ -10,9 +10,11 @@ enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-PaaS
 EOF
 
-INSTALL_PKGS='epel-release ansible socat centos-release-openshift-origin python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients kexec-tools sos psacct isci-initiator-utils'
+PRE_INSTALL_PKGS='epel-release centos-release-openshift-origin'
+INSTALL_PKGS='ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients kexec-tools sos psacct isci-initiator-utils'
 
 yum update
+yum install -y $PRE_INSTALL_PKGS
 yum install -y $INSTALL_PKGS
 
 pip install --upgrade pip
