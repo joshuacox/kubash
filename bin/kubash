@@ -37,6 +37,7 @@ DO_PREP=no
 # prep the columns strings for csv input
 hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
 provision_csv_list="K8S_node  K8S_role K8S_cpuCount K8S_Memory K8S_network K8S_mac K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
+uniq_hosts_list_columns="K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
 
 squawk () {
   # This function simplifies error reporting and verbosity
@@ -475,8 +476,20 @@ provisioner () {
   done <<< "$slurpy"
 }
 
+copy_image_to_all_provisioning_hosts () {
+  squawk 0 "copy_image_to_all_provisioning_hosts"
+  uniq_hosts="$(grep -v '^#' provision.list|cut -d, -f7,8,9,10,11,12|sort|uniq)"
+  squawk 8 "$uniq_hosts"
+  #"K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
+  while IFS="," read -r $uniq_hosts_list_columns
+  do
+    rsync -ave "ssh -p $K8S_provisionerPort" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost 
+  done <<< "$uniq_hosts"
+}
+
 do_net () {
   squawk 0 " do_net"
+  slurpy="$(grep -v '^#' $KUBASH_DIR/provision.list)"
   if [[ $K8S_NET == "calico" ]]; then
     kubectl apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
   fi
