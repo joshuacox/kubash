@@ -913,19 +913,16 @@ initialize () {
   do_csv
 }
 
-old-initialize () {
-  squawk 0 " old_initialize"
-  do_install
-  removestalekeys $K8S_master_ip
-  removestalekeys $K8S_node1_IP
-  removestalekeys $K8S_node2_IP
-  ping
-  master_join $K8S_MASTER $K8S_master_ip root
-  master_grab_kube_config $K8S_MASTER $K8S_master_ip coopadmin
-  w8_kubectl
-  node_join $K8S_node1 $K8S_node1_IP root
-  node_join $K8S_node2 $K8S_node2_IP root
-  mid
+kubespray_initialize () {
+  squawk 1 "kubespray initialize"
+  check_csv
+  write_ansible_hosts
+}
+
+openshift_initialize () {
+  squawk 1 "openshift initialize"
+  check_csv
+  write_ansible_hosts
 }
 
 read_csv () {
