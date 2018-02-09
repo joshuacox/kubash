@@ -81,6 +81,7 @@ priority=2'
 
 yum clean all
 yum update
+yum repolist enabled
 yum install -y yum-utils
 
 cd $TMP
