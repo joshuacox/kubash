@@ -105,6 +105,7 @@ hosts - Write ansible hosts file
 
 dry - Perform dry run
 
+copy - copy the built images to the provisioning hosts
 '
   horizontal_rule
 echo '
@@ -1540,6 +1541,12 @@ main () {
       exit 1
     fi
         DO_TILLER=true
+  elif [[ $RAISON == "copy" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    copy_image_to_all_provisioning_hosts
   elif [[ $RAISON == "build" ]]; then
     if [[ $print_help == "true" ]]; then
       build_usage

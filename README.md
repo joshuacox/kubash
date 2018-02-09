@@ -57,6 +57,8 @@ grab - Grab the .kube/config from the master
 hosts - Write ansible hosts file
 
 dry - Perform dry run
+
+copy - copy the built images to the provisioning hosts
 ```
 
 ### Options
