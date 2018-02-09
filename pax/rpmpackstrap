@@ -2,8 +2,8 @@
 
 curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
 
-yum install centos-release-openshift-origin
-yum install wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients
+yum install -y centos-release-openshift-origin
+yum install -y wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients
 
 #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
 sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
