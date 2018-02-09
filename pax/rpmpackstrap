@@ -10,6 +10,8 @@ enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-PaaS
 EOF
 
+yum install -y socat
+
 curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
 
 yum install -y centos-release-openshift-origin
