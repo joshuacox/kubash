@@ -21,6 +21,8 @@
 : ${KUTIME:="/usr/bin/time -v"}
 : ${PARALLEL_JOBS:=1}
 : ${PARALLEL:="parallel"}
+: ${OPENSHIFT_REGION:=lab}
+: ${OPENSHIFT_ZONE:=baremetal}
 
 # Rasion d'etre
 RAISON=false
@@ -490,16 +492,10 @@ mid () {
   do_tiller
 }
 
-hosts () {
-	#intermediary compatibility layer
-	echo 'warning hosts function deprecated use write_ansible_hosts instead'
-	sleep 4
-	write_ansible_hosts
-}
-
 write_ansible_hosts () {
   squawk 1 " Make a hosts file for ansible"
   # Make a fresh hosts file
+  slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   if [ -e "$KUBASH_HOSTS" ]; then
     horizontal_rule
     echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
@@ -516,17 +512,17 @@ write_ansible_hosts () {
   while IFS="," read -r $hosts_csv_columns
   do
     echo "$K8S_node ansible_ssh_host=$K8S_node_ip ansible_ssh_port=$K8S_node_port ansible_user=$K8S_user" >> $KUBASH_HOSTS
-  done < $KUBASH_HOSTS_CSV
+  done <<< "$slurpy"
 
   echo '' >> $KUBASH_HOSTS
 
   echo '[kubernetes-kubeminions]' >> $KUBASH_HOSTS
   while IFS="," read -r $hosts_csv_columns
   do
-    if [[ $K8S_role == "node" ]]; then
+    if [ "$K8S_role" = "node" ]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
     fi
-  done < $KUBASH_HOSTS_CSV
+  done <<< "$slurpy"
 
   echo '' >> $KUBASH_HOSTS
 
@@ -538,15 +534,68 @@ write_ansible_hosts () {
   echo '[kubernetes-kubemasters]' >> $KUBASH_HOSTS
   while IFS="," read -r $hosts_csv_columns
   do
-    if [[ $K8S_role == "master" ]]; then
+    if [ "$K8S_role" = "master" ]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
     fi
-  done < $KUBASH_HOSTS_CSV
+  done <<< "$slurpy"
 
   echo '' >> $KUBASH_HOSTS
 
   echo '[kubernetes-kubemasters:vars]' >> $KUBASH_HOSTS
   echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_HOSTS
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[OSEv3:children]' >> $KUBASH_HOSTS
+  echo 'masters' >> $KUBASH_HOSTS
+  echo 'nodes' >> $KUBASH_HOSTS
+  echo 'etcd' >> $KUBASH_HOSTS
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[OSEv3:vars]
+openshift_deployment_type=origin
+deployment_type=origin
+openshift_release=v3.7
+openshift_release=v3.7
+openshift_pkg_version=-3.7.0
+debug_level=2
+openshift_disable_check=disk_availability,memory_availability,docker_storage,docker_image_availability
+openshift_master_default_subdomain=apps.cbqa.in
+osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[masters]'  >> $KUBASH_HOSTS
+  while IFS="," read -r $hosts_csv_columns
+  do
+    if [ "$K8S_role" = "master" ]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[etcd]'  >> $KUBASH_HOSTS
+  while IFS="," read -r $hosts_csv_columns
+  do
+    if [ "$K8S_role" = "etcd" ]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    elif [ "$K8S_role" = "master" ]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_HOSTS
+
+  openshift_labels="openshift_node_labels=\"{'region': '$OPENSHIFT_REGION', 'zone': '$OPENSHIFT_ZONE'}\" openshift_schedulable=true"
+  echo '[nodes]'  >> $KUBASH_HOSTS
+  while IFS="," read -r $hosts_csv_columns
+  do
+    if [ "$K8S_role" = "node" ]; then
+      echo "$K8S_node $openshift_labels" >> $KUBASH_HOSTS
+    fi
+  done <<< "$slurpy"
 }
 
 removestalekeys () {
@@ -758,7 +807,7 @@ do_grab () {
   do_grab_master_count=0
   while IFS="," read -r $hosts_csv_columns
   do
-    if [[ $K8S_role == "init_master" ]]; then
+    if [ "$K8S_role" = "init_master" ]; then
       if [ "$do_grab_master_count" -lt "1" ]; then
         master_grab_kube_config $K8S_node $K8S_node_ip $K8S_su_user $K8S_node_port
       fi
@@ -790,7 +839,7 @@ master_init_join () {
   my_master_ip=$2
   my_master_user=$3
   my_master_port=$4
-  if [[ $K8S_NET == "calico" ]]; then
+  if [ "$K8S_NET" = "calico" ]; then
     my_KUBE_CIDR="192.168.0.0/16"
   fi
   squawk 0 " master_init_join $my_master_name $my_master_ip $my_master_user $my_master_port"
@@ -875,9 +924,9 @@ do_install () {
     exit 1
   fi
 
-  if [ "$UNAME" == "Linux" ] ; then
+  if [ "$UNAME" = "Linux" ] ; then
     squawk 1 " $UNAME is a Supported OS"
-  elif [ "$UNAME" == "Darwin" -o "$UNAME" == "FreeBSD" ] ; then
+  elif [ "$UNAME" = "Darwin" -o "$UNAME" = "FreeBSD" ] ; then
       echo " $UNAME is not a Supported OS"
       exit 1
   elif [ "$UNAME" ">" "MINGW" -a "$UNAME" "<" "MINGX" ] ; then
@@ -917,12 +966,18 @@ kubespray_initialize () {
   squawk 1 "kubespray initialize"
   check_csv
   write_ansible_hosts
+  ansible-playbook \
+    -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/kubespray/cluster.yml
 }
 
 openshift_initialize () {
   squawk 1 "openshift initialize"
   check_csv
   write_ansible_hosts
+  ansible-playbook \
+    -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/openshift-ansible/playbooks/deploy_cluster.yml
 }
 
 read_csv () {
@@ -932,7 +987,7 @@ read_csv () {
   while IFS="," read -r $hosts_csv_columns
   do
     squawk 5 "$K8S_node $K8S_user $K8S_node_ip $K8S_node_port $K8S_role $K8S_su_user $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
-    if [[ $K8S_role == "master" ]]; then
+    if [ "$K8S_role" = "master" ]; then
       if [ "$read_master_count" -lt "1" ]; then
         echo "master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
       else
@@ -944,7 +999,7 @@ read_csv () {
 
   while IFS="," read -r $hosts_csv_columns
   do
-    if [[ $K8S_role == "node" ]]; then
+    if [ "$K8S_role" = "node" ]; then
       echo "node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
     fi
   done < $KUBASH_HOSTS_CSV
@@ -981,7 +1036,7 @@ do_masters () {
 
   while IFS="," read -r $hosts_csv_columns
   do
-    if [[ $K8S_role == "master" ]]; then
+    if [ "$K8S_role" = "master" ]; then
       kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master
     fi
   done < $KUBASH_HOSTS_CSV
@@ -995,7 +1050,7 @@ do_masters_in_parallel () {
   # We can parallelize the rest, but the first master we will do alone and wait on it
   while IFS="," read -r $hosts_csv_columns
   do
-    if [[ $K8S_role == "master" ]]; then
+    if [ "$K8S_role" = "master" ]; then
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master" \
 	      >> $PARATMP/hopper
     fi
@@ -1017,7 +1072,7 @@ do_nodes () {
   countzero_do_nodes=0
   while IFS="," read -r $hosts_csv_columns
   do 
-    if [[ $K8S_role == "node" ]]; then
+    if [ "$K8S_role" = "node" ]; then
       node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
     else
       squawk 11 " K8S_role NOT NODE"
@@ -1035,7 +1090,7 @@ do_nodes_in_parallel () {
   countzero_do_nodes=0
   while IFS="," read -r $hosts_csv_columns
   do 
-    if [[ $K8S_role == "node" ]]; then
+    if [ "$K8S_role" = "node" ]; then
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role node" \
 	      >> $PARATMP/hopper
     else
@@ -1168,7 +1223,7 @@ packer_build  () {
   check_cmd packer
   squawk 2 " Executing packer build..."
 
-  if [[ $debug == "true" ]]; then
+  if [ "$debug" = "true" ]; then
     debug_flag='-debug -on-error=ask'
     PACKER_LOG=1
   else
@@ -1221,9 +1276,9 @@ main () {
   squawk 5 'parse opts'
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
-  SHORT_OPTS="c:hvy"
-  LONG_OPTS="csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
-  PARSED_OPTIONS=$(getopt -n "$0" -o "$SHORT_OPTS" --long "$LONG_OPTS" -- "$@")
+  short_opts="c:hvy"
+  long_opts="initializer:,csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  PARSED_OPTIONS=$(getopt -n "$0" -o "$short_opts" --long "$long_opts" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
   if [ $? -ne 0 ];
@@ -1253,6 +1308,9 @@ main () {
       -c|--csv)
         KUBASH_HOSTS_CSV="$2"
         RAISON=true
+        shift 2 ;;
+      --initializer)
+        initializer="$2"
         shift 2 ;;
       --parallel)
         PARALLEL_JOBS="$2"
@@ -1432,15 +1490,24 @@ main () {
       init_usage
       exit 1
     fi
-        DO_CSV=true
-        DO_NET=true
-        DO_PING=true
-        DO_GRAB=true
-        DO_HOSTS=true
-        DO_INSTALL=true
-        do_dotfiles=true
-        DO_NODE_JOIN=true
-        DO_MASTER_JOIN=true
+    if [ -z "$initializer" ]; then
+      initializer=kubeadm
+      DO_CSV=true
+      DO_NET=true
+      DO_PING=true
+      DO_GRAB=true
+      DO_HOSTS=true
+      DO_INSTALL=true
+      do_dotfiles=true
+      DO_NODE_JOIN=true
+      DO_MASTER_JOIN=true
+    elif [ "$initializer" = "kubespray" ]; then
+      kubespray_initialize
+      exit 0
+    elif [ "$initializer" = "openshift" ]; then
+      openshift_initialize
+      exit 0
+    fi
   elif [[ $RAISON == "tiller" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage

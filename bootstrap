@@ -93,6 +93,7 @@ main () {
   $KUBASH_BIN/kubash --auto-dotfiles
   check_install helm
   check_install packer
+  check_install oc
   #check_install crictl
   echo 'logout and log back in, or source your RC files'
 }
