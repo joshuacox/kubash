@@ -19,7 +19,6 @@ rpm -ivh epel-release-latest-7.noarch.rpm
 rm -v epel-release-latest-7.noarch.rpm
 
 yum update
-yum install -y yum-utils
 yum clean all
 
 yum repolist enabled
@@ -28,6 +27,7 @@ yum-config-manager -enable extras
 yum-config-manager -enable updates
 yum-config-manager -enable epel
 yum repolist enabled
+# yum install -y yum-utils
 
 yum --enablerepo=extras install -y $PRE_INSTALL_PKGS
 yum --enablerepo=extras,epel install -y $INSTALL_PKGS
