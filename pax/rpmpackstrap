@@ -3,13 +3,19 @@ TMP=$(mktemp -d)
 PRE_INSTALL_PKGS='epel-release centos-release-openshift-origin'
 INSTALL_PKGS='ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients kexec-tools sos psacct isci-initiator-utils'
 
+cd $TMP
+wget -cq https://github.com/joshuacox/kubash/raw/centos/pax/centos7-yum.repos.d.tgz
+cd /etc
+tar zxvpf $TMP/centos7-yum.repos.d.tgz
+rm -v $TMP/centos7-yum.repos.d.tgz
+
 yum clean all
 yum update
 yum repolist enabled
 yum install -y yum-utils
 
 cd $TMP
-wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+wget -cq http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 rpm -ivh epel-release-latest-7.noarch.rpm
 rm -v epel-release-latest-7.noarch.rpm
 
