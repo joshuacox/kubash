@@ -11,6 +11,7 @@ rm -v $TMP/centos7-yum.repos.d.tgz
 
 yum clean all
 yum update
+curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
 yum repolist enabled
 yum install -y yum-utils
 
@@ -33,7 +34,6 @@ yum --enablerepo=extras,epel install -y $INSTALL_PKGS
 
 pip install --upgrade pip
 
-curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
 
 #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
 sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
