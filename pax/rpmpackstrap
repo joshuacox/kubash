@@ -1,4 +1,7 @@
 #!/bin/sh -eux
+TMP=$(mktemp -d)
+PRE_INSTALL_PKGS='epel-release centos-release-openshift-origin'
+INSTALL_PKGS='ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients kexec-tools sos psacct isci-initiator-utils'
 
 cat << EOF > /etc/yum.repos.d/CentOS-Base.repo
 #openshift
@@ -10,8 +13,10 @@ enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-PaaS
 EOF
 
-PRE_INSTALL_PKGS='epel-release centos-release-openshift-origin'
-INSTALL_PKGS='ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients kexec-tools sos psacct isci-initiator-utils'
+cd $TMP
+wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+rpm -ivh epel-release-latest-7.noarch.rpm
+rm -v epel-release-latest-7.noarch.rpm
 
 yum update
 yum install -y $PRE_INSTALL_PKGS
@@ -21,10 +26,13 @@ pip install --upgrade pip
 
 curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
 
-
 #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
 sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
-	+  /etc/sysconfig/docker
+  /etc/sysconfig/docker
 systemctl is-active docker
 systemctl enable docker
 systemctl start docker
+
+# remove temp
+cd
+rm -Rf $TMP
