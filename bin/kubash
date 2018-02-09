@@ -23,12 +23,16 @@
 : ${PARALLEL:="parallel"}
 : ${OPENSHIFT_REGION:=lab}
 : ${OPENSHIFT_ZONE:=baremetal}
+#set -eu
 
 # Rasion d'etre
 RAISON=false
 
 # global vars
 ANSWER_YES=no
+print_help=no
+DO_HOSTS=no
+DO_PREP=no
 
 # prep the columns strings for csv input
 hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
@@ -1421,7 +1425,8 @@ main () {
       usage
       exit 1
     fi
-        DO_HOSTS=true
+    write_ansible_hosts
+    exit 0
   elif [[ $RAISON == "dotfiles" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
