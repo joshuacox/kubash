@@ -938,6 +938,7 @@ checks () {
   squawk 10 " checks"
   check_cmd git
   check_cmd ssh
+  check_cmd rsync
   check_cmd ansible
   check_cmd curl
   check_cmd uname
