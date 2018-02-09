@@ -1,5 +1,15 @@
 #!/bin/sh -eux
 
+cat << EOF > /etc/yum.repos.d/CentOS-Base.repo
+#openshift
+[openshift]
+name=CentOS-OpenShift
+baseurl=http://mirror.centos.org/centos/7/paas/x86_64/openshift-origin/
+gpgcheck=1
+enabled=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-PaaS
+EOF
+
 curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
 
 yum install -y centos-release-openshift-origin
