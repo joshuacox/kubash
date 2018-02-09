@@ -27,6 +27,7 @@ ls -lh /root/.ssh
 useradd $K8S_SU_USER
 groupadd -r docker
 gpasswd -a $K8S_SU_USER docker
+groupadd -r sudo
 gpasswd -a $K8S_SU_USER sudo
 mkdir -p /home/$K8S_SU_USER
 chmod 777 $TMP
