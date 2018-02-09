@@ -481,11 +481,28 @@ copy_image_to_all_provisioning_hosts () {
   squawk 0 "copy_image_to_all_provisioning_hosts"
   uniq_hosts="$(grep -v '^#' provision.list|cut -d, -f7,8,9,10,11,12|sort|uniq)"
   squawk 8 "$uniq_hosts"
+  PARATMP=$(mktemp -d)
+  touch $PARATMP/hopper
   #"K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
   while IFS="," read -r $uniq_hosts_list_columns
   do
-    rsync -ave "ssh -p $K8S_provisionerPort" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost 
+    if [ "$K8S_provisionerHost" = 'localhost' ]; then
+      squawk 8 "localhost already done"
+    else
+      squawk 7 "rsync -ave \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost"
+      echo "rsync -ave \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost" >> $PARATMP/hopper
+    fi
   done <<< "$uniq_hosts"
+
+  if [ "$VERBOSITY" -gt "9" ] ; then
+    cat $PARATMP/hopper
+  fi
+  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
 }
 
 do_net () {
