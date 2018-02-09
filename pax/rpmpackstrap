@@ -10,12 +10,15 @@ enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-PaaS
 EOF
 
-yum install -y socat
+INSTALL_PKGS='epel-release ansible socat centos-release-openshift-origin python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients kexec-tools sos psacct isci-initiator-utils'
+
+yum update
+yum install -y $INSTALL_PKGS
+
+pip install --upgrade pip
 
 curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
 
-yum install -y centos-release-openshift-origin
-yum install -y wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients
 
 #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
 sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
