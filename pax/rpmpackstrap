@@ -1,24 +1,20 @@
 #!/bin/sh -eux
 TMP=$(mktemp -d)
 PRE_INSTALL_PKGS='epel-release centos-release-openshift-origin'
-INSTALL_PKGS='ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients kexec-tools sos psacct isci-initiator-utils'
+INSTALL_PKGS='docker ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion origin-clients kexec-tools sos psacct isci-initiator-utils'
 
 cd $TMP
 wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum install -y epel-release-latest-7.noarch.rpm
 
 yum clean all
-yum update
-curl https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
+yum update -y
 yum repolist enabled
-
-yum update
 
 yum install -y $PRE_INSTALL_PKGS
 yum install -y $INSTALL_PKGS
 
-pip install --upgrade pip
-
+#pip install --upgrade pip
 
 #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
 sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \

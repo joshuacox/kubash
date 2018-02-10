@@ -1590,6 +1590,10 @@ main () {
       if [[ -z "$target_build" ]]; then
         target_build=centos-7.4-x86_64
       fi
+    elif [[ "$target_os" == "openshift" ]]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=openshift-7.4-x86_64
+      fi
     elif [[ "$target_os" == "fedora" ]]; then
       if [[ -z "$target_build" ]]; then
         target_build=fedora-27-x86_64

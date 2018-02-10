@@ -30,6 +30,8 @@ export KEYS_URL='https://raw.githubusercontent.com/myorg/keys/master/keys'
 
 `--target-os centos` This will build centos images
 
+`--target-os openshift` This will build openshift images
+
 `--target-os coreos` This will build coreos images (* no packer build for this)
 
 ### Target build
