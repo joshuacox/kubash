@@ -19,7 +19,6 @@ yum install -y $INSTALL_PKGS
 #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
 sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
   /etc/sysconfig/docker
-systemctl is-active docker
 systemctl enable docker
 systemctl start docker
 
