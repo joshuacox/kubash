@@ -606,6 +606,8 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
   do
     if [ "$K8S_role" = "master" ]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
+    elif [ "$K8S_role" = "init_master" ]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
     fi
   done <<< "$slurpy"
 
