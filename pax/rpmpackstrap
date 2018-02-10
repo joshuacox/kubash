@@ -15,9 +15,14 @@ yum install -y $PRE_INSTALL_PKGS
 yum install -y $INSTALL_PKGS
 
 if [ "$OPENSHIFT_INSTALL" = "true" ]
-yum install -y centos-release-openshift-origin origin-clients
+  # leaving clean for now, let ansible initialize
+  #yum install -y centos-release-openshift-origin origin-clients
+  echo 'Sticking to default centos'
+elif [ "$KUBESPRAY_INSTALL" = "true" ]
+  # leaving clean for now, let ansible initialize
+  echo 'Sticking to default centos'
 else
-curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
+  curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
 fi
 
 #pip install --upgrade pip
