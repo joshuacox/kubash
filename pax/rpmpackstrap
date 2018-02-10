@@ -14,11 +14,11 @@ yum repolist enabled
 yum install -y $PRE_INSTALL_PKGS
 yum install -y $INSTALL_PKGS
 
-if [ "$OPENSHIFT_INSTALL" = "true" ]
+if [ "$KUBEADM_INSTALL" = "openshift" ]
   # leaving clean for now, let ansible initialize
   #yum install -y centos-release-openshift-origin origin-clients
   echo 'Sticking to default centos'
-elif [ "$KUBESPRAY_INSTALL" = "true" ]
+elif [ "$KUBEADM_INSTALL" = "kubespray" ]
   # leaving clean for now, let ansible initialize
   echo 'Sticking to default centos'
 else
