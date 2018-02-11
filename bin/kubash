@@ -1017,6 +1017,9 @@ openshift_initialize () {
   write_ansible_hosts
   ansible-playbook \
     -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/openshift-ansible/playbooks/prerequisites.yml
+  ansible-playbook \
+    -i $KUBASH_DIR/gen/hosts \
     $KUBASH_DIR/submodules/openshift-ansible/playbooks/deploy_cluster.yml
 }
 
