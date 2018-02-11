@@ -1007,7 +1007,11 @@ initialize () {
 kubespray_initialize () {
   squawk 1 "kubespray initialize"
   check_csv
-  write_ansible_hosts
+  if [ -e "$KUBASH_HOSTS" ]
+    squawk 1 'Hosts file found, not overwriting'
+  else
+    write_ansible_hosts
+  if
   ansible-playbook \
     -i $KUBASH_DIR/gen/hosts \
     $KUBASH_DIR/submodules/kubespray/cluster.yml
