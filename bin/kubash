@@ -1007,7 +1007,7 @@ initialize () {
 kubespray_initialize () {
   squawk 1 "kubespray initialize"
   check_csv
-  if [ -e "$KUBASH_HOSTS" ]
+  if [ -e "$KUBASH_HOSTS" ]; then
     squawk 1 'Hosts file found, not overwriting'
   else
     write_ansible_hosts
