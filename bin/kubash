@@ -1611,6 +1611,18 @@ main () {
       exit 1
     fi
     copy_image_to_all_provisioning_hosts
+  elif [[ $RAISON == "build-all" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    squawk 1 'Building all targets'
+    kubash build --target-os ubuntu
+    kubash build --target-os debian
+    kubash build --target-os centos
+    kubash build --target-os coreos
+    kubash build --target-os fedora
+    squawk 1 'Done Building all targets'
   elif [[ $RAISON == "build" ]]; then
     if [[ $print_help == "true" ]]; then
       build_usage
