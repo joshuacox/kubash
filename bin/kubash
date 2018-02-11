@@ -530,7 +530,11 @@ mid () {
 }
 
 write_ansible_hosts () {
-  squawk 1 " Make a hosts file for ansible"
+  write_ansible_kubespray_hosts
+}
+
+write_ansible_openshift_hosts () {
+  squawk 1 " Make a hosts file for openshift ansible"
   # Make a fresh hosts file
   slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   if [ -e "$KUBASH_HOSTS" ]; then
@@ -552,37 +556,6 @@ write_ansible_hosts () {
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_HOSTS
-
-  echo '[kubernetes-kubeminions]' >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
-  do
-    if [ "$K8S_role" = "node" ]; then
-      echo "$K8S_node" >> $KUBASH_HOSTS
-    fi
-  done <<< "$slurpy"
-
-  echo '' >> $KUBASH_HOSTS
-
-  echo '[kubernetes-kubeminions:vars]' >> $KUBASH_HOSTS
-  echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_HOSTS
-
-  echo '' >> $KUBASH_HOSTS
-
-  echo '[kubernetes-kubemasters]' >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
-  do
-    if [ "$K8S_role" = "master" ]; then
-      echo "$K8S_node" >> $KUBASH_HOSTS
-    fi
-  done <<< "$slurpy"
-
-  echo '' >> $KUBASH_HOSTS
-
-  echo '[kubernetes-kubemasters:vars]' >> $KUBASH_HOSTS
-  echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_HOSTS
-
-  echo '' >> $KUBASH_HOSTS
-
   echo '[OSEv3:children]' >> $KUBASH_HOSTS
   echo 'masters' >> $KUBASH_HOSTS
   echo 'nodes' >> $KUBASH_HOSTS
@@ -637,6 +610,61 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
       echo "$K8S_node $openshift_labels" >> $KUBASH_HOSTS
     fi
   done <<< "$slurpy"
+}
+
+write_ansible_kubespray_hosts () {
+  squawk 1 " Make a hosts file for ansible"
+  # Make a fresh hosts file
+  slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+  if [ -e "$KUBASH_HOSTS" ]; then
+    horizontal_rule
+    echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
+    if [ "$ANSWER_YES" = "yes" ]; then
+      rm $KUBASH_HOSTS
+    else
+      rm -i $KUBASH_HOSTS
+    fi
+    touch $KUBASH_HOSTS
+  else
+    touch $KUBASH_HOSTS
+  fi
+  # Write all hosts to inventory for id
+  while IFS="," read -r $hosts_csv_columns
+  do
+    echo "$K8S_node ansible_ssh_host=$K8S_node_ip ansible_ssh_port=$K8S_node_port ansible_user=$K8S_user" >> $KUBASH_HOSTS
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[kubernetes-kubeminions]' >> $KUBASH_HOSTS
+  while IFS="," read -r $hosts_csv_columns
+  do
+    if [ "$K8S_role" = "node" ]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[kubernetes-kubeminions:vars]' >> $KUBASH_HOSTS
+  echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_HOSTS
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[kubernetes-kubemasters]' >> $KUBASH_HOSTS
+  while IFS="," read -r $hosts_csv_columns
+  do
+    if [ "$K8S_role" = "master" ]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    elif [ "$K8S_role" = "init_master" ]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[kubernetes-kubemasters:vars]' >> $KUBASH_HOSTS
+  echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_HOSTS
 }
 
 removestalekeys () {
@@ -1010,7 +1038,7 @@ kubespray_initialize () {
   if [ -e "$KUBASH_HOSTS" ]; then
     squawk 1 'Hosts file found, not overwriting'
   else
-    write_ansible_hosts
+    write_ansible_kubespray_hosts
   fi
   ansible-playbook \
     -i $KUBASH_DIR/gen/hosts \
@@ -1023,7 +1051,7 @@ openshift_initialize () {
   if [ -e "$KUBASH_HOSTS" ]; then
     squawk 1 'Hosts file found, not overwriting'
   else
-    write_ansible_hosts
+    write_ansible_openshift_hosts
   fi
   ansible-playbook \
     -i $KUBASH_DIR/gen/hosts \
