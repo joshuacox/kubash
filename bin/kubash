@@ -1020,7 +1020,11 @@ kubespray_initialize () {
 openshift_initialize () {
   squawk 1 "openshift initialize"
   check_csv
-  write_ansible_hosts
+  if [ -e "$KUBASH_HOSTS" ]; then
+    squawk 1 'Hosts file found, not overwriting'
+  else
+    write_ansible_hosts
+  fi
   ansible-playbook \
     -i $KUBASH_DIR/gen/hosts \
     $KUBASH_DIR/submodules/openshift-ansible/playbooks/prerequisites.yml
