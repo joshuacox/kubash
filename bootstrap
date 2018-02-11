@@ -90,7 +90,7 @@ main () {
     cd $KUBASH_DIR
     git pull
   fi
-  $KUBASH_BIN/kubash --auto-dotfiles
+  $KUBASH_BIN/kubash dotfiles
   check_install helm
   check_install packer
   check_install oc

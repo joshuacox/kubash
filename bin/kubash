@@ -1473,8 +1473,9 @@ main () {
       usage
       exit 1
     fi
+	squawk 5 'Adjusting dotfiles'
         dotfiles_install
-        DO_GRAB=true
+	exit 0
   elif [[ $RAISON == "show" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
