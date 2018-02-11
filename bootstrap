@@ -90,6 +90,8 @@ main () {
     cd $KUBASH_DIR
     git pull
   fi
+  cd $KUBASH_DIR
+  git submodule update --init
   $KUBASH_BIN/kubash dotfiles
   check_install helm
   check_install packer
