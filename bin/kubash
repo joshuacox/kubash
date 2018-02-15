@@ -16,6 +16,7 @@
 : ${K8S_NET:=calico}
 : ${K8S_node_port:=22}
 : ${K8S_su_user:=coopadmin}
+: ${K8S_networkDiscovery:=virsh}
 : ${my_DOMAIN:=example.com}
 : ${GOPATH:=~/.go}
 : ${KUTIME:="/usr/bin/time -v"}
@@ -24,6 +25,7 @@
 : ${OPENSHIFT_REGION:=lab}
 : ${OPENSHIFT_ZONE:=baremetal}
 : ${MASTERS_AS_ETCD='false'}
+: ${BROADCAST_TO_NETWORK:='10.0.23.0/24'}
 
 #set -eu
 
@@ -455,22 +457,30 @@ provisioner () {
       fi
       sleep 5
       squawk 4 "provisioned"
-      if [ "$K8S_provisionerHost" = "localhost" ]; then
-        while [[ -z "$K8S_node_ip" ]]; do
-          squawk 7 "checking for IP address"
-          squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
-          K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-  	sleep 2
-        done
-      else
+      if [ "$K8S_networkDiscovery" = "virsh" ]; then
         if [ "$K8S_provisionerHost" = "localhost" ]; then
-        while [[ -z "$K8S_node_ip" ]]; do
-          squawk 7 "checking for IP address"
-          squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
-          K8S_node_ip=$(ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null")
-  	sleep 2
-        done
+          while [[ -z "$K8S_node_ip" ]]; do
+            squawk 7 "checking for IP address"
+            squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
+            K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+    	sleep 2
+          done
+        else
+          while [[ -z "$K8S_node_ip" ]]; do
+            squawk 7 "checking for IP address"
+            squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
+            K8S_node_ip=$(ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null")
+    	sleep 2
+          done
         fi
+      if [ "$K8S_networkDiscovery" = "arp" ]; then
+          while [[ -z "$K8S_node_ip" ]]; do
+	      squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
+	      sudo nmap -p 22 $BROADCAST_TO_NETWORK
+	      squawk 1 'arp -n|grep $K8S_mac|awk  "{print $1}"'
+	      K8S_node_ip=$(arp -n|grep $K8S_mac|awk '{print $1}')
+    	    sleep 8
+          done
       fi
       squawk 5 "adding to $KUBASH_HOSTS_CSV"
       squawk 6 "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user"
@@ -975,6 +985,7 @@ checks () {
   check_cmd rsync
   check_cmd ansible
   check_cmd curl
+  check_cmd nmap
   check_cmd uname
   check_cmd expr
   if [ "$PARALLEL_JOBS" -gt "1" ] ; then
