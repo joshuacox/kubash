@@ -491,8 +491,8 @@ copy_image_to_all_provisioning_hosts () {
     if [ "$K8S_provisionerHost" = 'localhost' ]; then
       squawk 8 "localhost already done"
     else
-      squawk 7 "rsync -ave \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost"
-      echo "rsync -ave \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost" >> $PARATMP/hopper
+      squawk 7 "rsync -ave \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
+      echo "rsync -ave \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
     fi
   done <<< "$uniq_hosts"
 
