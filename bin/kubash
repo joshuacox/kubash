@@ -476,7 +476,7 @@ provisioner () {
       elif [ "$K8S_networkDiscovery" = "arp" ]; then
           while [[ -z "$K8S_node_ip" ]]; do
 	      squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
-	      sudo nmap -p 22 $BROADCAST_TO_NETWORK 2>/dev/null
+	      NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
 	      squawk 1 'arp -n|grep $K8S_mac|awk  "{print $1}"'
 	      K8S_node_ip=$(arp -n|grep $K8S_mac|awk '{print $1}')
     	    sleep 8
