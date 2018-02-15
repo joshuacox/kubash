@@ -473,7 +473,7 @@ provisioner () {
     	sleep 2
           done
         fi
-      if [ "$K8S_networkDiscovery" = "arp" ]; then
+      elif [ "$K8S_networkDiscovery" = "arp" ]; then
           while [[ -z "$K8S_node_ip" ]]; do
 	      squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
 	      sudo nmap -p 22 $BROADCAST_TO_NETWORK
