@@ -1668,6 +1668,8 @@ main () {
         target_build=fedora-27-x86_64
       fi
     elif [[ "$target_os" == "coreos" ]]; then
+      #override packer atm
+      builder=coreos
       if [[ $builder == "packer" ]]; then
         echo 'packer not supported for coreos at this time'
         exit 1
