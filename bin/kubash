@@ -541,6 +541,25 @@ do_nginx_ingress () {
   helm install stable/nginx-ingress --name $INGRESS_NAME --set rbac.create=true
 }
 
+demo () {
+   cd $KUBASH_DIR/submodules/openebs/k8s/demo/crunchy-postgres
+   bash run.sh
+   cd $KUBASH_DIR/submodules/openebs/k8s/demo/rabbitmq
+   bash run.sh
+   cd $KUBASH_DIR/submodules/openebs/k8s/demo/percona
+   kubectl apply -f \
+     demo-percona-mysql-pvc.yaml
+   cd $KUBASH_DIR/submodules/openebs/k8s/demo/jupyter
+   kubectl apply -f \
+     demo-jupyter-openebs.yaml
+   cd $KUBASH_DIR/submodules/openebs/k8s/demo/mongodb
+   kubectl apply -f \
+     mongo-statefulset.yml
+   cd $KUBASH_DIR/submodules/openebs/k8s/demo/jenkins
+   kubectl apply -f \
+     jenkins.yml
+}
+
 do_net () {
   squawk 0 " do_net"
   slurpy="$(grep -v '^#' $KUBASH_DIR/provision.list)"
@@ -1589,6 +1608,12 @@ main () {
       exit 1
     fi
     do_decom
+  elif [[ $RAISON == "demo" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    demo
   elif [[ $RAISON == "ingress" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
