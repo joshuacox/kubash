@@ -4,3 +4,7 @@
 [submodule "submodules/kubespray"]
 	path = submodules/kubespray
 	url = https://github.com/kubernetes-incubator/kubespray.git
+[submodule "submodules/openebs"]
+	path = submodules/openebs
+	url = https://github.com/openebs/openebs.git
+	branch = master
