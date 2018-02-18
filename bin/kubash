@@ -327,12 +327,30 @@ kvm-decommer () {
   $PSEUDO rm $KVM_IMAGE_DIR/$REBASED_NODE.qcow2
 }
 
+kvm-decommer-remote () {
+  squawk 5 "kvm-decommer"
+  REBASED_NODE=$1
+  THRU_USER=$2
+  THRU_HOST=$3
+  THRU_PORT=$4
+ssh $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO virsh destroy $REBASED_NODE"
+ssh $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO virsh undefine $REBASED_NODE"
+
+  # Create VM for node
+ssh $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO rm $KVM_IMAGE_DIR/$REBASED_NODE.qcow2"
+}
+
 decom_kvm () {
   squawk 1 "decom_kvm"
   # Write all hosts to inventory for id
+  #hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
   while IFS="," read -r $hosts_csv_columns
   do
+  if [ "$K8S_provisionerHost" = "localhost" ]; then
       kvm-decommer $K8S_node
+  else
+      kvm-decommer-remote $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort
+  fi
   done < $KUBASH_HOSTS_CSV
 }
 
