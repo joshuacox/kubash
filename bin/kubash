@@ -3,6 +3,7 @@
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${KUBASH_HOSTS_CSV:=$KUBASH_DIR/gen/hosts.csv}
 : ${KUBASH_HOSTS:=$KUBASH_DIR/gen/hosts}
+: ${KUBASH_INGRESS_NAME:='kubash-ingress'}
 : ${VERBOSITY:=0}
 : ${KVM_IMAGE_DIR:=/var/lib/libvirt/images}
 : ${KUBASH_BUILDS_TMP:=$KVM_IMAGE_DIR/kubashtmp}
@@ -24,7 +25,7 @@
 : ${PARALLEL:="parallel"}
 : ${OPENSHIFT_REGION:=lab}
 : ${OPENSHIFT_ZONE:=baremetal}
-: ${MASTERS_AS_ETCD='false'}
+: ${MASTERS_AS_ETCD:='false'}
 : ${BROADCAST_TO_NETWORK:='10.0.23.0/24'}
 
 #set -eu
@@ -533,6 +534,11 @@ copy_image_to_all_provisioning_hosts () {
     bash $PARATMP/hopper
   fi
   rm -Rf $PARATMP
+}
+
+do_nginx_ingress () {
+  INGRESS_NAME=$1
+  helm install stable/nginx-ingress --name $INGRESS_NAME --set rbac.create=true
 }
 
 do_net () {
@@ -1583,6 +1589,12 @@ main () {
       exit 1
     fi
     do_decom
+  elif [[ $RAISON == "ingress" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    do_nginx_ingress $KUBASH_INGRESS_NAME
   elif [[ $RAISON == "masters" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage
