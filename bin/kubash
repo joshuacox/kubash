@@ -57,9 +57,9 @@ squawk () {
   squawk_lvl=$1
   squawk=$2
 
-  if [ "$VERBOSITY" -ge "$squawk_lvl" ] ; then
+  if [[ "$VERBOSITY" -ge "$squawk_lvl" ]] ; then
   count_squawk=0
-    while [ "$count_squawk" -lt "$squawk_lvl" ]; do
+    while [[ "$count_squawk" -lt "$squawk_lvl" ]]; do
       echo -n "#"
       count_squawk=`expr $count_squawk + 1`
     done
@@ -130,6 +130,8 @@ options:
  --verbosity NUMBER - or you can set the verbosity directly
 
  --debug - adds the debug flag
+
+ -n --clustername - use a particular cluster by name
 '
 }
 
@@ -153,6 +155,7 @@ options:
  --node-join-ip   - set node ip
  --node-join-port - set node port
  --node-join-role - set node role
+ -n --clustername - use a particular cluster by name
 '
 }
 
@@ -188,8 +191,8 @@ This initializes the cluster
 options:
 
  -h --help - Print usage
-
  --initializer - Choose the initialization method (kubeadm,kubespray,openshift)
+ -n --clustername - use a particular cluster by name
 '
 }
 
@@ -205,6 +208,7 @@ This provisions the base VMs
 options:
 
  -h --help - Print usage
+ -n --clustername - use a particular cluster by name
 '
 }
 
@@ -223,12 +227,13 @@ kubash decommission
 options:
 
  -h --help - Print usage
+ -n --clustername - use a particular cluster by name
 '
 }
 
 # Check if a command exists
 check_cmd () {
-  if ! test_cmd_loc="$(type -p "$1")" || [ -z "$test_cmd_loc" ]; then
+  if ! test_cmd_loc="$(type -p "$1")" || [[ -z "$test_cmd_loc" ]]; then
     echo "$1 was not found in your path!"
     echo "To proceed please install $1 to your path and try again!"
     exit 1
@@ -237,7 +242,7 @@ check_cmd () {
 
 # Check if a file exists and is writable
 check_file () {
-  if [ -w "$1" ]; then
+  if [[ -w "$1" ]]; then
     echo "$1 was not writable!"
     exit 1
   fi
@@ -247,11 +252,11 @@ check_cmd mktemp
 TMP=$(mktemp -d --suffix='.kubash.tmp' 2>/dev/null || mktemp -d -t '.kubash.tmp')
 
 chkdir () {
-  if [ ! -w $1 ] ; then
+  if [[ ! -w "$1" ]] ; then
     sudo mkdir -p $1
     sudo chown $USER $1
   fi
-  if [ ! -w $1 ] ; then
+  if [[ ! -w "$1" ]] ; then
     echo "Cannot write to $1, please check your permissions"
     exit 2
   fi
@@ -277,7 +282,7 @@ add_line_to()
 {
   squawk 5 " Adding '$LINE_TO_ADD'  to $TARGET_FILE_FOR_ADD"
   TARGET_FILE=$TARGET_FILE_FOR_ADD
-    [ -w "$TARGET_FILE" ] || TARGET_FILE=$TARGET_FILE_FOR_ADD
+    [[ -w "$TARGET_FILE" ]] || TARGET_FILE=$TARGET_FILE_FOR_ADD
     printf "%s\n" "$LINE_TO_ADD" >> "$TARGET_FILE"
 }
 
@@ -286,7 +291,7 @@ genmac () {
   hexchars="0123456789ABCDEF"
   : ${DEFAULT_MAC_ADDRESS_BLOCK:=52:54:00}
   
-  if [ ! -z "$1" ]; then
+  if [[ ! -z "$1" ]]; then
   	DEFAULT_MAC_ADDRESS_BLOCK=$1
   fi
   
@@ -440,7 +445,7 @@ qemu-provisioner () {
   	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
   	--network=$K8S_network,mac=$K8S_mac,model=virtio"
 
-  if [ "$K8S_provisionerHost" = "localhost" ]; then
+  if [[ "$K8S_provisionerHost" = "localhost" ]]; then
     squawk 5 "$qemucmd2run"
     $qemucmd2run
     squawk 5 "$virshcmd2run"
@@ -457,10 +462,10 @@ provisioner () {
   squawk 1 " provisioner"
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   squawk 8 "$slurpy"
-  if [ -e "$KUBASH_HOSTS_CSV" ]; then
+  if [[ -e "$KUBASH_HOSTS_CSV" ]]; then
     horizontal_rule
     echo "$KUBASH_HOSTS_CSV exists! Destroy existing cluster and remove before proceeding!"
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" = "yes" ]]; then
       rm -v $KUBASH_HOSTS_CSV
     else
       rm -iv $KUBASH_HOSTS_CSV
@@ -470,17 +475,17 @@ provisioner () {
   while IFS="," read -r $provision_csv_list
   do
       squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath"
-      if [ "$K8S_virt" = "qemu" ]; then
+      if [[ "$K8S_virt" = "qemu" ]]; then
         qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt
-      elif [ "$K8S_virt" = "vbox" ]; then
+      elif [[ "$K8S_virt" = "vbox" ]]; then
         vbox-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt
       else
 	echo "virtualization technology '$K8S_virt' not recognized"
       fi
       sleep 5
       squawk 4 "provisioned"
-      if [ "$K8S_networkDiscovery" = "virsh" ]; then
-        if [ "$K8S_provisionerHost" = "localhost" ]; then
+      if [[ "$K8S_networkDiscovery" == "virsh" ]]; then
+        if [[ "$K8S_provisionerHost" == "localhost" ]]; then
           while [[ -z "$K8S_node_ip" ]]; do
             squawk 7 "checking for IP address"
             squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
@@ -495,7 +500,7 @@ provisioner () {
     	sleep 2
           done
         fi
-      elif [ "$K8S_networkDiscovery" = "arp" ]; then
+      elif [[ "$K8S_networkDiscovery" == "arp" ]]; then
           while [[ -z "$K8S_node_ip" ]]; do
 	      squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
 	      NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
@@ -520,7 +525,7 @@ copy_image_to_all_provisioning_hosts () {
   #"K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
   while IFS="," read -r $uniq_hosts_list_columns
   do
-    if [ "$K8S_provisionerHost" = 'localhost' ]; then
+    if [[ "$K8S_provisionerHost" = 'localhost' ]]; then
       squawk 8 "localhost already done"
     else
       squawk 7 "rsync -azve \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
@@ -528,10 +533,10 @@ copy_image_to_all_provisioning_hosts () {
     fi
   done <<< "$uniq_hosts"
 
-  if [ "$VERBOSITY" -gt "9" ] ; then
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
   fi
-  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
   else
     bash $PARATMP/hopper
@@ -593,10 +598,10 @@ write_ansible_openshift_hosts () {
   squawk 1 " Make a hosts file for openshift ansible"
   # Make a fresh hosts file
   slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
-  if [ -e "$KUBASH_HOSTS" ]; then
+  if [[ -e "$KUBASH_HOSTS" ]]; then
     horizontal_rule
     echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" = "yes" ]]; then
       rm $KUBASH_HOSTS
     else
       rm -i $KUBASH_HOSTS
@@ -635,9 +640,9 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
   echo '[masters]'  >> $KUBASH_HOSTS
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "master" ]; then
+    if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
-    elif [ "$K8S_role" = "init_master" ]; then
+    elif [[ "$K8S_role" == "init_master" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
     fi
   done <<< "$slurpy"
@@ -647,10 +652,10 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
   echo '[etcd]'  >> $KUBASH_HOSTS
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "etcd" ]; then
+    if [[ "$K8S_role" = "etcd" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
-    elif [ "$K8S_role" = "master" -o "$K8S_role" = "init_master" ]; then
-      if [ "$MASTERS_AS_ETCD" = "true" ]; then
+    elif [[ "$K8S_role" == "master" -o "$K8S_role" == "init_master" ]]; then
+      if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
         echo "$K8S_node" >> $KUBASH_HOSTS
       fi
     fi
@@ -662,7 +667,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
   echo '[nodes]'  >> $KUBASH_HOSTS
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "node" ]; then
+    if [[ "$K8S_role" == "node" ]]; then
       echo "$K8S_node $openshift_labels" >> $KUBASH_HOSTS
     fi
   done <<< "$slurpy"
@@ -672,10 +677,10 @@ write_ansible_kubespray_hosts () {
   squawk 1 " Make a hosts file for ansible"
   # Make a fresh hosts file
   slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
-  if [ -e "$KUBASH_HOSTS" ]; then
+  if [[ -e "$KUBASH_HOSTS" ]]; then
     horizontal_rule
     echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" == "yes" ]]; then
       rm $KUBASH_HOSTS
     else
       rm -i $KUBASH_HOSTS
@@ -695,7 +700,7 @@ write_ansible_kubespray_hosts () {
   echo '[kubernetes-kubeminions]' >> $KUBASH_HOSTS
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "node" ]; then
+    if [[ "$K8S_role" == "node" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
     fi
   done <<< "$slurpy"
@@ -710,9 +715,9 @@ write_ansible_kubespray_hosts () {
   echo '[kubernetes-kubemasters]' >> $KUBASH_HOSTS
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "master" ]; then
+    if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
-    elif [ "$K8S_role" = "init_master" ]; then
+    elif [[ "$K8S_role" == "init_master" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
     fi
   done <<< "$slurpy"
@@ -736,11 +741,11 @@ w8_kubedns () {
   # while loop
   countone=1
   # timeout for 15 minutes
-  while [ $countone -lt 151 ]
+  while [[ $countone -lt 151 ]]
   do
     echo -n '.'
     RESULT=$(kubectl get po --namespace kube-system |grep kube-dns|grep Running)
-    if [ "$RESULT" ]; then
+    if [[ "$RESULT" ]]; then
         sleep 3
         echo '.'
         echo "$RESULT"
@@ -761,9 +766,9 @@ w8_kubectl () {
   countone_w8_kubectl=1
   countlimit_w8_kubectl=151
   # timeout for 15 minutes
-  while [ "$countone_w8_kubectl" -lt "$countlimit_w8_kubectl" ]; do
+  while [[ "$countone_w8_kubectl" -lt "$countlimit_w8_kubectl" ]]; do
     echo -n '.'
-    if [ "$VERBOSITY" -gt "11" ] ; then
+    if [[ "$VERBOSITY" -gt "11" ]] ; then
       kubectl get pods -n kube-system | grep kube-apiserver
     fi
     result=$(kubectl get pods -n kube-system | grep kube-apiserver |grep Running)
@@ -789,14 +794,14 @@ w8_node () {
   countone_w8_node=1
   countlimit_w8_node=151
   # timeout for 15 minutes
-  while [ "$countone_w8_node" -lt "$countlimit_w8_node" ]; do
+  while [[ "$countone_w8_node" -lt "$countlimit_w8_node" ]]; do
     echo -n '.'
-    if [ "$VERBOSITY" -gt "11" ] ; then
+    if [[ "$VERBOSITY" -gt "11" ]] ; then
       kubectl get node $node_name
     fi
     result=$(kubectl get node $node_name | grep -v NotReady | grep Ready)
     squawk 13 "Result is $result"
-    if [ "$result" ]; then
+    if [[ "$result" ]]; then
       squawk 15 "Result nailed $result"
       countone_w8_node=`expr $countlimit_w8_node + 1`
       break
@@ -823,10 +828,10 @@ remove_vagrant_user () {
 	      >> $PARATMP/hopper
   done < $KUBASH_HOSTS_CSV
 
-  if [ "$VERBOSITY" -gt "9" ] ; then
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
   fi
-  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
   else
     bash $PARATMP/hopper
@@ -853,10 +858,10 @@ ping_in_parallel () {
 	      >> $PARATMP/hopper
   done < $KUBASH_HOSTS_CSV
 
-  if [ "$VERBOSITY" -gt "9" ] ; then
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
   fi
-  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
   else
     bash $PARATMP/hopper
@@ -892,11 +897,11 @@ hostnamero () {
 }
 
 chkdir () {
-  if [ ! -w $1 ] ; then
+  if [[ ! -w $1 ]] ; then
     sudo mkdir -p $1
     sudo chown $USER. $1
   fi
-  if [ ! -w $1 ] ; then
+  if [[ ! -w $1 ]] ; then
     echo "Cannot write to $1, please check your permissions"
     exit 2
   fi
@@ -932,8 +937,8 @@ do_grab () {
   do_grab_master_count=0
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "init_master" ]; then
-      if [ "$do_grab_master_count" -lt "1" ]; then
+    if [[ "$K8S_role" == "init_master" ]]; then
+      if [[ "$do_grab_master_count" -lt "1" ]]; then
         master_grab_kube_config $K8S_node $K8S_node_ip $K8S_su_user $K8S_node_port
       fi
       do_grab_master_count=`expr $do_grab_master_count + 1`
@@ -947,7 +952,7 @@ master_join () {
   my_node_user=$3
   my_node_port=$4
   squawk 1 " master_join $my_node_name $my_node_ip $my_node_user $my_node_port"
-  if [ "$DO_MASTER_JOIN" = "true" ] ; then
+  if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
     hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
     squawk 3 " kubadm reset"
     ssh -n -p $my_node_port $my_node_user@$my_node_ip "hostname; uname -a;kubeadm reset"
@@ -964,11 +969,11 @@ master_init_join () {
   my_master_ip=$2
   my_master_user=$3
   my_master_port=$4
-  if [ "$K8S_NET" = "calico" ]; then
+  if [[ "$K8S_NET" == "calico" ]]; then
     my_KUBE_CIDR="192.168.0.0/16"
   fi
   squawk 0 " master_init_join $my_master_name $my_master_ip $my_master_user $my_master_port"
-  if [ "$DO_MASTER_JOIN" = "true" ] ; then
+  if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
     squawk 1 ' hostnamero'
     hostnamero $my_master_name $my_master_ip $my_master_port $my_master_user
     squawk 3 ' kubeadm reset'
@@ -992,7 +997,7 @@ master_grab_kube_config () {
   my_master_port=$4
   squawk 1 ' refresh-kube-config'
   squawk 3 " master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port"
-  if [ "$DO_GRAB" = "true" ] ; then
+  if [[ "$DO_GRAB" == "true" ]] ; then
     squawk 5 "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
 
@@ -1012,7 +1017,7 @@ node_join () {
   my_node_user=$3
   my_node_port=$4
   squawk 1 " node_join $my_node_name $my_node_ip $my_node_user $my_node_port"
-  if [ "$DO_NODE_JOIN" = "true" ] ; then
+  if [[ "$DO_NODE_JOIN" == "true" ]] ; then
     hostnamero $my_node_name $my_node_ip $my_node_port
     result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "hostname; uname -a;kubeadm reset")
     squawk 13 "Result is $result"
@@ -1034,7 +1039,7 @@ checks () {
   check_cmd nmap
   check_cmd uname
   check_cmd expr
-  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     check_cmd parallel
   fi
   check_cmd 'grep'
@@ -1045,18 +1050,18 @@ do_install () {
   squawk 1 " do_install"
   UNAME=$(uname)
 
-  if [ "$UNAME" = "CYGWIN_NT-10.0" ] ; then
+  if [[ "$UNAME" == "CYGWIN_NT-10.0" ]] ; then
     PLATFORM="os.cygwin.x86_64"
     echo "WARNING: Cygwin is not supported at this time!"
     exit 1
   fi
 
-  if [ "$UNAME" = "Linux" ] ; then
+  if [[ "$UNAME" == "Linux" ]] ; then
     squawk 1 " $UNAME is a Supported OS"
-  elif [ "$UNAME" = "Darwin" -o "$UNAME" = "FreeBSD" ] ; then
+  elif [[ "$UNAME" == "Darwin" -o "$UNAME" = "FreeBSD" ]] ; then
       echo " $UNAME is not a Supported OS"
       exit 1
-  elif [ "$UNAME" ">" "MINGW" -a "$UNAME" "<" "MINGX" ] ; then
+  elif [[ "$UNAME" ">" "MINGW" -a "$UNAME" "<" "MINGX" ]] ; then
       echo "# $UNAME is not a Supported OS"
       exit 1
   else
@@ -1065,10 +1070,10 @@ do_install () {
     exit 1
   fi
 
-  if [ "$UNAME" = "Linux" ] ; then
+  if [[ "$UNAME" == "Linux" ]] ; then
     ### Linux ###
     LINUX_ARCH=$(uname -m)
-    if [ "${LINUX_ARCH}" = "x86_64" ] ; then
+    if [[ "${LINUX_ARCH}" == "x86_64" ]] ; then
       PLATFORM="os.linux.x86_64"
     else
       echo "Unusable architecture: ${LINUX_ARCH}"
@@ -1078,7 +1083,7 @@ do_install () {
   fi
 
   # make reqs
-  if [ "$PLATFORM" = "os.linux.x86_64" ] ; then
+  if [[ "$PLATFORM" == "os.linux.x86_64" ]] ; then
     linux_install
   fi
 }
@@ -1092,7 +1097,7 @@ initialize () {
 kubespray_initialize () {
   squawk 1 "kubespray initialize"
   check_csv
-  if [ -e "$KUBASH_HOSTS" ]; then
+  if [[ -e "$KUBASH_HOSTS" ]]; then
     squawk 1 'Hosts file found, not overwriting'
   else
     write_ansible_kubespray_hosts
@@ -1105,7 +1110,7 @@ kubespray_initialize () {
 openshift_initialize () {
   squawk 1 "openshift initialize"
   check_csv
-  if [ -e "$KUBASH_HOSTS" ]; then
+  if [[ -e "$KUBASH_HOSTS" ]]; then
     squawk 1 'Hosts file found, not overwriting'
   else
     write_ansible_openshift_hosts
@@ -1125,8 +1130,8 @@ read_csv () {
   while IFS="," read -r $hosts_csv_columns
   do
     squawk 5 "$K8S_node $K8S_user $K8S_node_ip $K8S_node_port $K8S_role $K8S_su_user $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
-    if [ "$K8S_role" = "master" ]; then
-      if [ "$read_master_count" -lt "1" ]; then
+    if [[ "$K8S_role" == "master" ]]; then
+      if [[ "$read_master_count" -lt "1" ]]; then
         echo "master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
       else
         echo "master_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
@@ -1137,7 +1142,7 @@ read_csv () {
 
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "node" ]; then
+    if [[ "$K8S_role" == "node" ]]; then
       echo "node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
     fi
   done < $KUBASH_HOSTS_CSV
@@ -1145,7 +1150,7 @@ read_csv () {
 
 check_csv () {
   squawk 4 " check_csv"
-  if [ ! -e $KUBASH_HOSTS_CSV ]; then
+  if [[ ! -e $KUBASH_HOSTS_CSV ]]; then
     echo 'CSV file not found.  You must specify a valid csv file with the --csv option!'
     exit 1
   fi
@@ -1157,8 +1162,8 @@ do_init_master () {
 
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "init_master" ]; then
-      if [ "$do_master_count" -lt "1" ]; then
+    if [[ "$K8S_role" == "init_master" ]]; then
+      if [[ "$do_master_count" -lt "1" ]]; then
         master_init_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
       else
 	echo 'There should only be one init master! Skipping this master'
@@ -1174,7 +1179,7 @@ do_masters () {
 
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "master" ]; then
+    if [[ "$K8S_role" == "master" ]]; then
       kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master
     fi
   done < $KUBASH_HOSTS_CSV
@@ -1188,16 +1193,16 @@ do_masters_in_parallel () {
   # We can parallelize the rest, but the first master we will do alone and wait on it
   while IFS="," read -r $hosts_csv_columns
   do
-    if [ "$K8S_role" = "master" ]; then
+    if [[ "$K8S_role" == "master" ]]; then
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master" \
 	      >> $PARATMP/hopper
     fi
   done < $KUBASH_HOSTS_CSV
 
-  if [ "$VERBOSITY" -gt "9" ] ; then
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
   fi
-  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
   else
     bash $PARATMP/hopper
@@ -1210,7 +1215,7 @@ do_nodes () {
   countzero_do_nodes=0
   while IFS="," read -r $hosts_csv_columns
   do 
-    if [ "$K8S_role" = "node" ]; then
+    if [[ "$K8S_role" == "node" ]]; then
       node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
     else
       squawk 11 " K8S_role NOT NODE"
@@ -1228,7 +1233,7 @@ do_nodes_in_parallel () {
   countzero_do_nodes=0
   while IFS="," read -r $hosts_csv_columns
   do 
-    if [ "$K8S_role" = "node" ]; then
+    if [[ "$K8S_role" == "node" ]]; then
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role node" \
 	      >> $PARATMP/hopper
     else
@@ -1239,10 +1244,10 @@ do_nodes_in_parallel () {
     squawk 13 " count $countzero_do_nodes"
   done < $KUBASH_HOSTS_CSV
 
-  if [ "$VERBOSITY" -gt "9" ] ; then
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
   fi
-  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
   else
     bash $PARATMP/hopper
@@ -1253,7 +1258,7 @@ do_nodes_in_parallel () {
 do_csv () {
   squawk 3 " do_csv"
   do_init_master
-  if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     do_masters_in_parallel
     do_nodes_in_parallel
   else
@@ -1281,7 +1286,7 @@ preppy () {
 }
 
 do_decom () {
-  if [ "$ANSWER_YES" = "yes" ]; then
+  if [[ "$ANSWER_YES" == "yes" ]]; then
     decom_kvm
     rm -v $KUBASH_HOSTS_CSV
     rm -v $KUBASH_HOSTS
@@ -1316,13 +1321,13 @@ coreos_build  () {
   bunzip2 coreos_production_qemu_image.img.bz2
 
   if [[ $VERBOSITY -gt '1' ]]; then
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" == "yes" ]]; then
       MV_CMD='mv -v'
     else
       MV_CMD='mv -iv'
     fi
   else
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" == "yes" ]]; then
       MV_CMD='mv'
     else
       MV_CMD='mv -i'
@@ -1347,13 +1352,13 @@ packer_build  () {
     LN_CMD='ln -s'
   fi
   if [[ $VERBOSITY -gt '1' ]]; then
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" == "yes" ]]; then
       MV_CMD='mv -v'
     else
       MV_CMD='mv -iv'
     fi
   else
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" == "yes" ]]; then
       MV_CMD='mv'
     else
       MV_CMD='mv -i'
@@ -1361,7 +1366,7 @@ packer_build  () {
   fi
 
   cd $KUBASH_DIR/pax
-  if [ ! -L build ]; then
+  if [[ ! -L build ]]; then
     $LN_CMD $KUBASH_BUILDS builds
   fi
 
@@ -1369,7 +1374,7 @@ packer_build  () {
   check_cmd packer
   squawk 2 " Executing packer build..."
 
-  if [ "$debug" = "true" ]; then
+  if [[ "$debug" == "true" ]]; then
     debug_flag='-debug -on-error=ask'
     PACKER_LOG=1
   else
@@ -1382,13 +1387,13 @@ packer_build  () {
     packer build -only=$build_virt $debug_flag $target_build.json
 
   if [[ $VERBOSITY -gt '1' ]]; then
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" == "yes" ]]; then
       MV_CMD='mv -v'
     else
       MV_CMD='mv -iv'
     fi
   else
-    if [ "$ANSWER_YES" = "yes" ]; then
+    if [[ "$ANSWER_YES" == "yes" ]]; then
       MV_CMD='mv'
     else
       MV_CMD='mv -i'
@@ -1427,7 +1432,7 @@ main () {
   PARSED_OPTIONS=$(getopt -n "$0" -o "$short_opts" --long "$long_opts" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
-  if [ $? -ne 0 ];
+  if [[ $? -ne 0 ]];
   then
     exit 1
   fi
@@ -1511,19 +1516,19 @@ main () {
 
   squawk 7 "Check args"
 
-  if [ $# -gt 1 ]; then
+  if [[ $# -gt 1 ]]; then
     usage
     exit 1
   fi
 
-  if [ $# -eq 1 ]; then
+  if [[ $# -eq 1 ]]; then
     RAISON=$1
     squawk 5 "Raison set to $RAISON"
   fi
 
   checks
 
-  if [ $RAISON = "false" -o "$RAISON" = "help" ]; then
+  if [[ $RAISON = "false" -o "$RAISON" = "help" ]]; then
     usage
     exit 1
   fi
@@ -1665,7 +1670,7 @@ main () {
       init_usage
       exit 1
     fi
-    if [ -z "$initializer" ]; then
+    if [[ -z "$initializer" ]]; then
       initializer=kubeadm
       DO_CSV=true
       DO_NET=true
@@ -1676,10 +1681,10 @@ main () {
       do_dotfiles=true
       DO_NODE_JOIN=true
       DO_MASTER_JOIN=true
-    elif [ "$initializer" = "kubespray" ]; then
+    elif [[ "$initializer" == "kubespray" ]]; then
       kubespray_initialize
       exit 0
-    elif [ "$initializer" = "openshift" ]; then
+    elif [[ "$initializer" == "openshift" ]]; then
       openshift_initialize
       exit 0
     fi
@@ -1835,7 +1840,7 @@ main () {
   fi
 
   if [[ $DO_PING == "true" ]]; then
-    if [ "$PARALLEL_JOBS" -gt "1" ] ; then
+    if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
       ping_in_parallel
     else
       ping
