@@ -1,5 +1,17 @@
 #!/bin/sh -eux
-curl https://raw.githubusercontent.com/joshuacox/roustabout/master/KubadmNstall|bash
+
+if [ "$KUBEADM_INSTALL" = "openshift" ]; then
+  # leaving clean for now, let ansible initialize
+  #yum install -y centos-release-openshift-origin origin-clients
+  echo 'Sticking to defaults for openshift'
+elif [ "$KUBEADM_INSTALL" = "kubespray" ]; then
+  # leaving clean for now, let ansible initialize
+  echo 'Sticking to defaults for kubespray'
+else
+  curl https://raw.githubusercontent.com/joshuacox/roustabout/master/KubadmNstall|bash
+  kubeadm init
+  kubeadm reset --force
+fi
 
 ## Show IP address in /etc/issue
 cat << EOF > /usr/local/bin/get-ip-address
