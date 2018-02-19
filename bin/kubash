@@ -502,7 +502,7 @@ provisioner () {
 	      squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
 	      NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
 	      squawk 1 'arp -n|grep $K8S_mac|awk  "{print $1}"'
-	      K8S_node_ip=$(arp -n|grep $K8S_mac|awk '{print $1}')
+	      K8S_node_ip=$(arp -n|grep $K8S_mac|awk '{print $1}'|tail -n 1)
     	    sleep 8
           done
       fi
