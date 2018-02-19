@@ -394,7 +394,7 @@ vbox-provisioner () {
 
 
 qemu-provisioner () {
-  squawk 1 "qemu-provisioner"
+  squawk 1 "qemu-provisioner $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12}"
   
   K8S_node=$1
   K8S_role=$2
