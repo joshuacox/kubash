@@ -11,7 +11,7 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   curl https://raw.githubusercontent.com/joshuacox/roustabout/master/KubadmNstall|bash
   swapoff --all
   kubeadm init
-  kubeadm reset --force
+  kubeadm reset
 else
   echo 'Sticking to defaults'
 fi

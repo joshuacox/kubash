@@ -25,7 +25,7 @@ else
   curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
   swapoff --all
   kubeadm init
-  kubeadm reset --force
+  kubeadm reset
 fi
 
 #pip install --upgrade pip
