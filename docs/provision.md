@@ -1,8 +1,9 @@
 # Provision
 
-[![asciicast](https://asciinema.org/a/MRv6SgjwhbiOEvrLlayGWfolt.png)](https://asciinema.org/a/MRv6SgjwhbiOEvrLlayGWfolt)
 
-`kubash provision`
+```
+kubash provision
+```
 
 ### provision.list
 
@@ -42,4 +43,10 @@ etcd1,etcd,2,4096,default,52:54:00:e2:8c:16,localhost,root,22,/var/lib/libvirt/i
 
 Kubash can also generate mac addresses for you:
 
-`kubash genmac`
+```
+kubash genmac
+```
+
+### Asciinema example run
+
+[![asciicast](https://asciinema.org/a/MRv6SgjwhbiOEvrLlayGWfolt.png)](https://asciinema.org/a/MRv6SgjwhbiOEvrLlayGWfolt)
