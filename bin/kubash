@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+: ${KUBASH_CLUSTER_NAME=default}
 : ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
-: ${KUBASH_HOSTS_CSV:=$KUBASH_DIR/gen/hosts.csv}
-: ${KUBASH_HOSTS:=$KUBASH_DIR/gen/hosts}
+: ${KUBASH_HOSTS_CSV:=$KUBASH_DIR/clusters/$KUBASH_CLUSTER_NAME/hosts.csv}
+: ${KUBASH_HOSTS:=$KUBASH_DIR/clusters/$KUBASH_CLUSTER_NAME/hosts}
+: ${KUBASH_HOSTS_PROVISION_CSV:=$KUBASH_DIR/clusters/$KUBASH_CLUSTER_NAME/provision.csv}
 : ${KUBASH_INGRESS_NAME:='kubash-ingress'}
 : ${VERBOSITY:=0}
 : ${KVM_IMAGE_DIR:=/var/lib/libvirt/images}
@@ -457,7 +459,7 @@ qemu-provisioner () {
 
 provisioner () {
   squawk 1 " provisioner"
-  slurpy="$(grep -v '^#' $KUBASH_DIR/provision.list)"
+  slurpy="$(grep -v '^#' $KUBASH_DIR/$KUBASH_HOSTS_PROVISION_CSV)"
   squawk 8 "$slurpy"
   if [ -e "$KUBASH_HOSTS_CSV" ]; then
     horizontal_rule
@@ -515,7 +517,7 @@ provisioner () {
 
 copy_image_to_all_provisioning_hosts () {
   squawk 0 "copy_image_to_all_provisioning_hosts"
-  uniq_hosts="$(grep -v '^#' provision.list|cut -d, -f7,8,9,10,11,12|sort|uniq)"
+  uniq_hosts="$(grep -v '^#' $KUBASH_HOSTS_PROVISION_CSV|cut -d, -f7,8,9,10,11,12|sort|uniq)"
   squawk 8 "$uniq_hosts"
   PARATMP=$(mktemp -d)
   touch $PARATMP/hopper
@@ -567,7 +569,7 @@ demo () {
 
 do_net () {
   squawk 0 " do_net"
-  slurpy="$(grep -v '^#' $KUBASH_DIR/provision.list)"
+  slurpy="$(grep -v '^#' $KUBASH_HOSTS_PROVISION_CSV)"
   if [[ $K8S_NET == "calico" ]]; then
     kubectl apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
   fi
@@ -1424,8 +1426,8 @@ main () {
   squawk 5 'parse opts'
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
-  short_opts="c:hvy"
-  long_opts="initializer:,csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  short_opts="c:hvyn:"
+  long_opts="clustername:,initializer:,csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
   PARSED_OPTIONS=$(getopt -n "$0" -o "$short_opts" --long "$long_opts" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
@@ -1453,6 +1455,12 @@ main () {
       -y|--yes)
 	ANSWER_YES=yes
         shift;;
+      -n|--clustername)
+        KUBASH_CLUSTER_NAME="$2"
+        KUBASH_HOSTS_CSV=$KUBASH_DIR/cluster/$KUBASH_CLUSTER_NAME/hosts.csv
+        KUBASH_HOSTS=$KUBASH_DIR/cluster/$KUBASH_CLUSTER_NAME/hosts
+        KUBASH_HOSTS_PROVISION_CSV=$KUBASH_DIR/clusters/$KUBASH_CLUSTER_NAME/provision.csv
+        shift 2 ;;
       -c|--csv)
         KUBASH_HOSTS_CSV="$2"
         RAISON=true
