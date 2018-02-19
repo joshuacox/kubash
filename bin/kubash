@@ -1061,9 +1061,6 @@ do_install () {
   elif [[ "$UNAME" == "Darwin" || "$UNAME" = "FreeBSD" ]] ; then
       echo " $UNAME is not a Supported OS"
       exit 1
-  elif [[ "$UNAME" ">" "MINGW" && "$UNAME" "<" "MINGX" ]] ; then
-      echo "# $UNAME is not a Supported OS"
-      exit 1
   else
     echo " $UNAME is not a Supported OS"
     echo "Sorry, this OS is not supported yet via this installer."
