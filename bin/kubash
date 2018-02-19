@@ -3,6 +3,7 @@
 : ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${KUBASH_CLUSTERS_DIR:=$KUBASH_DIR/clusters}
+: ${KUBASH_CLUSTER_CONFIG:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/config}
 : ${KUBASH_HOSTS_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts.csv}
 : ${KUBASH_HOSTS:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts}
 : ${KUBASH_PROVISION_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv}
@@ -306,18 +307,6 @@ rolero () {
   NODE_ROLE=$2
   result=$(kubectl label --overwrite node $node_name node-role.kubernetes.io/$NODE_ROLE=)
   squawk 4 "Result = $result"
-}
-
-up () {
-  squawk 0 " up"
-  run_join=$(ssh -n root@$K8S_master_ip 'kubeadm init --pod-network-cidr=192.168.0.0/16' | tee /tmp/rawresults.k8s | grep -- 'kubeadm join --token')
-  echo $run_join > $KUBASH_DIR/join.sh
-  ssh -n coopadmin@$K8S_master_ip 'bin/refresh-kube-config'
-  chkdir .kube
-  ssh -n coopadmin@$K8S_master_ip 'cat .kube/config' > .kube/config
-  sudo chmod 600 .kube/config
-  sudo chown -R coopadmin. .kube/config
-  w8_kubectl
 }
 
 kvm-decommer () {
@@ -731,7 +720,7 @@ write_ansible_kubespray_hosts () {
 removestalekeys () {
   squawk 1 " removestalekeys"
   node_ip=$1
-  ssh-keygen -f "/home/coopadmin/.ssh/known_hosts" -R "$node_ip"
+  ssh-keygen -f "$HOME/.ssh/known_hosts" -R "$node_ip"
 }
 
 w8_kubedns () {
@@ -1003,10 +992,10 @@ master_grab_kube_config () {
 
     chkdir $HOME/.kube
     squawk 3 ' grab config'
-    rm -f $HOME/.kube/config
-    ssh -n -p $my_master_port $my_master_user@$my_master_ip 'cat .kube/config' > $HOME/.kube/config
-    sudo chmod 600 $HOME/.kube/config
-    sudo chown -R coopadmin. $HOME/.kube/config
+    rm -f $KUBASH_CLUSTER_CONFIG
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip 'cat .kube/config' > $KUBASH_CLUSTER_CONFIG
+    sudo chmod 600 $KUBASH_CLUSTER_CONFIG
+    sudo chown -R $USER. $KUBASH_CLUSTER_CONFIG
     DO_GRAB=false
   fi
 }
