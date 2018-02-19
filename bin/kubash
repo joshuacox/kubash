@@ -181,16 +181,14 @@ init_usage () {
   # Print usage
   echo '--
 usage: kubash init
-init - init a base image
 
-This script automates the setup and maintenance of a kubernetes cluster
-e.g.
-
-kubash init
+This initializes the cluster
 
 options:
 
  -h --help - Print usage
+
+ --initializer - Choose the initialization method (kubeadm,kubespray,openshift)
 '
 }
 
@@ -201,10 +199,7 @@ provision_usage () {
 usage: kubash provision
 provision - provision a base image
 
-This script automates the setup and maintenance of a kubernetes cluster
-e.g.
-
-kubash provision
+This provisions the base VMs
 
 options:
 
