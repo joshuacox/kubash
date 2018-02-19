@@ -318,7 +318,7 @@ up () {
 }
 
 kvm-decommer () {
-  squawk 5 "kvm-decommer"
+  squawk 5 "kvm-decommer $1"
   REBASED_NODE=$1
 
   $PSEUDO virsh destroy $REBASED_NODE
@@ -329,7 +329,7 @@ kvm-decommer () {
 }
 
 kvm-decommer-remote () {
-  squawk 5 "kvm-decommer-remote"
+  squawk 5 "kvm-decommer-remote $1 $2 $3 $4"
   REBASED_NODE=$1
   THRU_USER=$2
   THRU_HOST=$3
