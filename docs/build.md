@@ -46,4 +46,4 @@ For the coreos option this sets the channel (stable,beta,alpha)
 
 ### Asciinema example run
 
-[![asciicast](https://asciinema.org/a/164055.png)](https://asciinema.org/a/164055)
+[![asciicast](https://asciinema.org/a/164070.png)](https://asciinema.org/a/164070)
