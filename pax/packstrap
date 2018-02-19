@@ -7,10 +7,12 @@ if [ "$KUBEADM_INSTALL" = "openshift" ]; then
 elif [ "$KUBEADM_INSTALL" = "kubespray" ]; then
   # leaving clean for now, let ansible initialize
   echo 'Sticking to defaults for kubespray'
-else
+elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   curl https://raw.githubusercontent.com/joshuacox/roustabout/master/KubadmNstall|bash
   kubeadm init
   kubeadm reset --force
+else
+  echo 'Sticking to defaults'
 fi
 
 ## Show IP address in /etc/issue
