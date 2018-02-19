@@ -5,7 +5,7 @@
 : ${KUBASH_CLUSTERS_DIR:=$KUBASH_DIR/clusters}
 : ${KUBASH_HOSTS_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts.csv}
 : ${KUBASH_HOSTS:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts}
-: ${KUBASH_HOSTS_PROVISION_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv}
+: ${KUBASH_PROVISION_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv}
 : ${KUBASH_INGRESS_NAME:='kubash-ingress'}
 : ${VERBOSITY:=0}
 : ${KVM_IMAGE_DIR:=/var/lib/libvirt/images}
@@ -455,7 +455,7 @@ qemu-provisioner () {
 
 provisioner () {
   squawk 1 " provisioner"
-  slurpy="$(grep -v '^#' $KUBASH_DIR/$KUBASH_HOSTS_PROVISION_CSV)"
+  slurpy="$(grep -v '^#' $KUBASH_DIR/$KUBASH_PROVISION_CSV)"
   squawk 8 "$slurpy"
   if [ -e "$KUBASH_HOSTS_CSV" ]; then
     horizontal_rule
@@ -513,7 +513,7 @@ provisioner () {
 
 copy_image_to_all_provisioning_hosts () {
   squawk 0 "copy_image_to_all_provisioning_hosts"
-  uniq_hosts="$(grep -v '^#' $KUBASH_HOSTS_PROVISION_CSV|cut -d, -f7,8,9,10,11,12|sort|uniq)"
+  uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f7,8,9,10,11,12|sort|uniq)"
   squawk 8 "$uniq_hosts"
   PARATMP=$(mktemp -d)
   touch $PARATMP/hopper
@@ -565,7 +565,7 @@ demo () {
 
 do_net () {
   squawk 0 " do_net"
-  slurpy="$(grep -v '^#' $KUBASH_HOSTS_PROVISION_CSV)"
+  slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   if [[ $K8S_NET == "calico" ]]; then
     kubectl apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
   fi
@@ -1455,7 +1455,7 @@ main () {
         KUBASH_CLUSTER_NAME="$2"
         KUBASH_HOSTS_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts.csv
         KUBASH_HOSTS=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts
-        KUBASH_HOSTS_PROVISION_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv
+        KUBASH_PROVISION_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv
         shift 2 ;;
       -c|--csv)
         KUBASH_HOSTS_CSV="$2"
