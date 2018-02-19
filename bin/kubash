@@ -394,7 +394,6 @@ vbox-provisioner () {
 
 
 qemu-provisioner () {
-  squawk 5 "KUBASH_CLUSTERS_DIR $KUBASH_CLUSTERS_DIR KUBASH_HOSTS_CSV $KUBASH_HOSTS_CSV KUBASH_HOSTS $KUBASH_HOSTS KUBASH_PROVISION_CSV $KUBASH_PROVISION_CSV KUBASH_INGRESS_NAME $KUBASH_INGRESS_NAME" 
   squawk 1 "qemu-provisioner $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12}"
   
   K8S_node=$1
@@ -456,7 +455,7 @@ qemu-provisioner () {
 
 provisioner () {
   squawk 1 " provisioner"
-  slurpy="$(grep -v '^#' $KUBASH_DIR/$KUBASH_PROVISION_CSV)"
+  slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   squawk 8 "$slurpy"
   if [ -e "$KUBASH_HOSTS_CSV" ]; then
     horizontal_rule
