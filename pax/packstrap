@@ -29,3 +29,5 @@ echo "" >> /etc/issue
 EOF
 
 chmod +x /etc/network/if-up.d/show-ip-address
+kubeadm init
+kubeadm reset --force
