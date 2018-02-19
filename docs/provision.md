@@ -49,4 +49,4 @@ kubash genmac
 
 ### Asciinema example run
 
-[![asciicast](https://asciinema.org/a/MRv6SgjwhbiOEvrLlayGWfolt.png)](https://asciinema.org/a/MRv6SgjwhbiOEvrLlayGWfolt)
+[![asciicast](https://asciinema.org/a/3MeHIsTiaIP4PU4NkF5tNJzdO.png)](https://asciinema.org/a/3MeHIsTiaIP4PU4NkF5tNJzdO)
