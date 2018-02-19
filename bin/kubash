@@ -1537,6 +1537,13 @@ main () {
 	kubash provision
 	kubash ping
 	kubash init
+	sleep 10
+	kubash openebs
+	sleep 10
+	kubash tiller 
+	sleep 10
+	kubash ingress
+	kubash demo
 	squawk 1 "Full auto finished"
       exit
   elif [[ $RAISON == "grab" ]]; then
