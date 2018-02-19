@@ -23,6 +23,7 @@ elif [ "$KUBEADM_INSTALL" = "kubespray" ]; then
   echo 'Sticking to default centos'
 else
   curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
+  swapoff --all
   kubeadm init
   kubeadm reset --force
 fi
