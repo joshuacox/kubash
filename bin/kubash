@@ -661,7 +661,7 @@ refresh_network_addresses () {
         this_K8S_user=$K8S_user
       fi
       squawk 6  "$K8S_node,$this_K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort"
-      echo "$K8S_node,$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort" >> $KUBASH_HOSTS_CSV
+      echo "$K8S_node,$this_$K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort" >> $KUBASH_HOSTS_CSV
       K8S_node_ip=''
   done <<< "$slurpy"
 }
@@ -1836,7 +1836,7 @@ main () {
       exit 1
     fi
     provisioner
-    sleep 10
+    sleep 30
     refresh_network_addresses
     prep
     remove_vagrant_user
