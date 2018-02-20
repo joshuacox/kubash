@@ -658,7 +658,7 @@ refresh_network_addresses () {
           done
       fi
       squawk 5 "adding to $KUBASH_HOSTS_CSV"
-      if [[ "$K8S_os" =='coreos' ]]; then
+      if [[ "$K8S_os" == 'coreos' ]]; then
         this_K8S_user=$K8S_su_user
       else
         this_K8S_user=$K8S_user
