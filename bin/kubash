@@ -44,8 +44,7 @@ DO_HOSTS=no
 DO_PREP=no
 
 # prep the columns strings for csv input
-hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
-provision_csv_list="K8S_node  K8S_role K8S_cpuCount K8S_Memory K8S_network K8S_mac K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
+csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_network1 K8S_mac1 K8S_ip1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
 uniq_hosts_list_columns="K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
 
 squawk () {
@@ -340,8 +339,8 @@ kvm-decommer-remote () {
 decom_kvm () {
   squawk 1 "decom_kvm"
   # Write all hosts to inventory for id
-  # hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
-  while IFS="," read -r $hosts_csv_columns
+  # csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
+  while IFS="," read -r $csv_columns
   do
     squawk 3 "$K8S_node $K8S_user $K8S_node_ip $K8S_node_port $K8S_role $K8S_su_user $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
     if [[ "$K8S_provisionerHost" == "localhost" ]]; then
@@ -359,8 +358,8 @@ vbox-provisioner () {
   K8S_role=$2
   K8S_cpuCount=$3
   K8S_Memory=$4
-  K8S_network=$5
-  K8S_mac=$6
+  K8S_network1=$5
+  K8S_mac1=$6
   K8S_provisionerHost=$7
   K8S_provisionerUser=$8
   K8S_provisionerPort=$9
@@ -372,8 +371,8 @@ vbox-provisioner () {
   K8S_role=$2
   K8S_cpuCount=$3
   K8S_Memory=$4
-  K8S_network=$5
-  K8S_mac=$6
+  K8S_network1=$5
+  K8S_mac1=$6
   K8S_provisionerHost=$7
   K8S_provisionerUser=$8
   K8S_provisionerPort=$9
@@ -394,8 +393,8 @@ qemu-provisioner () {
   K8S_role=$2
   K8S_cpuCount=$3
   K8S_Memory=$4
-  K8S_network=$5
-  K8S_mac=$6
+  K8S_network1=$5
+  K8S_mac1=$6
   K8S_provisionerHost=$7
   K8S_provisionerUser=$8
   K8S_provisionerPort=$9
@@ -408,8 +407,8 @@ qemu-provisioner () {
   K8S_network3=${16}
   K8S_mac3=${17}
   K8S_ip3=${18}
-  if [[ "$K8S_mac" == '' ]]; then
-    $K8S_mac=$(kubash genmac)
+  if [[ "$K8S_mac1" == '' ]]; then
+    $K8S_mac1=$(kubash genmac)
   fi
   if [[ ! -z "$K8S_network2" ]]; then
     if [[ "$K8S_mac2" == '' ]]; then
@@ -428,8 +427,8 @@ qemu-provisioner () {
   K8S_role=$2
   K8S_cpuCount=$3
   K8S_Memory=$4
-  K8S_network=$5
-  K8S_mac=$6
+  K8S_network1=$5
+  K8S_mac1=$6
   K8S_provisionerHost=$7
   K8S_provisionerUser=$8
   K8S_provisionerPort=$9
@@ -509,7 +508,7 @@ qemu-provisioner () {
   	--hvm \
   	--os-variant=virtio26 \
   	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
-  	--network=$K8S_network,mac=$K8S_mac,model=virtio \
+  	--network=$K8S_network1,mac=$K8S_mac1,model=virtio \
   	$SECOND_NIC \
   	$THIRD_NIC \
 	--print-xml
@@ -527,7 +526,7 @@ qemu-provisioner () {
   	--hvm \
   	--os-variant=virtio26 \
   	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
-  	--network=$K8S_network,mac=$K8S_mac,model=virtio \
+  	--network=$K8S_network1,mac=$K8S_mac1,model=virtio \
   	$SECOND_NIC \
   	$THIRD_NIC"
   fi
@@ -591,17 +590,17 @@ provisioner () {
     fi
   fi
   touch $KUBASH_HOSTS_CSV
-  while IFS="," read -r $provision_csv_list
+  while IFS="," read -r $csv_columns
   do
       if [[ "$apparmor_fixed" == 'false' && "$K8S_os" == "coreos" ]]; then
         #apparmor_fix_all_provisioning_hosts
         apparmor_fixed='true'
       fi
       if [[ "$K8S_virt" = "qemu" ]]; then
-        squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
-        qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3
+        squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
+        qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3
       elif [[ "$K8S_virt" = "vbox" ]]; then
-        vbox-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3
+        vbox-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3
       else
 	echo "virtualization technology '$K8S_virt' not recognized"
       fi
@@ -615,15 +614,15 @@ refresh_network_addresses () {
   squawk 8 "$slurpy"
   rm $KUBASH_HOSTS_CSV
   touch $KUBASH_HOSTS_CSV
-  while IFS="," read -r $provision_csv_list
+  while IFS="," read -r $csv_columns
   do
       if [[ "$K8S_networkDiscovery" == "virsh" ]]; then
         if [[ "$K8S_provisionerHost" == "localhost" ]]; then
           countzero=0
-          while [[ -z "$K8S_node_ip" ]]; do
+          while [[ -z "$this_node_ip" ]]; do
             squawk 7 "checking for IP address"
             squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
-            K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|tail -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+            this_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|tail -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
 	    if [[ "$countzero" -gt 2 ]]; then
     	      sleep 2
             fi
@@ -631,10 +630,11 @@ refresh_network_addresses () {
           done
         else
           countzero=0
-          while [[ -z "$K8S_node_ip" ]]; do
+          this_node_ip=''
+          while [[ "$this_node_ip" == '' ]]; do
             squawk 7 "checking for IP address"
             squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
-            K8S_node_ip=$(ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO virsh domifaddr $K8S_node --full"|grep ipv4|tail -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+            this_node_ip=$(ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO virsh domifaddr $K8S_node --full"|grep ipv4|tail -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
 	    if [[ "$countzero" -gt 2 ]]; then
     	      sleep 2
             fi
@@ -643,11 +643,11 @@ refresh_network_addresses () {
         fi
       elif [[ "$K8S_networkDiscovery" == "arp" ]]; then
           countzero=0
-          while [[ -z "$K8S_node_ip" ]]; do
+          while [[ -z "$this_node_ip" ]]; do
 	    squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
 	    NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
-	    squawk 1 'arp -n|grep $K8S_mac|awk  "{print $1}"'
-	    K8S_node_ip=$(arp -n|grep $K8S_mac|awk '{print $1}'|tail -n 1)
+	    squawk 1 'arp -n|grep $K8S_mac1|awk  "{print $1}"'
+	    this_node_ip=$(arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
 	    if [[ "$countzero" -gt 2 ]]; then
     	      sleep 8
             fi
@@ -660,9 +660,9 @@ refresh_network_addresses () {
       else
         this_K8S_user=$K8S_user
       fi
-      echo "$K8S_node,$this_K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort" >> $KUBASH_HOSTS_CSV
-      squawk 6 "$K8S_node,$this_K8S_user,$K8S_node_ip,$K8S_node_port,$K8S_role,$K8S_su_user,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort"
-      K8S_node_ip=''
+      squawk 6 "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_network1,$K8S_mac1,$this_node_ip,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_network3,$K8S_mac3,$K8S_ip3"
+      echo "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_network1,$K8S_mac1,$this_node_ip,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_network3,$K8S_mac3,$K8S_ip3" >> $KUBASH_HOSTS_CSV
+      this_node_ip=''
   done <<< "$slurpy"
 }
 
@@ -793,7 +793,7 @@ write_ansible_openshift_hosts () {
     touch $KUBASH_HOSTS
   fi
   # Write all hosts to inventory for id
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     echo "$K8S_node ansible_ssh_host=$K8S_node_ip ansible_ssh_port=$K8S_node_port ansible_user=$K8S_user" >> $KUBASH_HOSTS
   done <<< "$slurpy"
@@ -820,7 +820,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
   echo '' >> $KUBASH_HOSTS
 
   echo '[masters]'  >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
@@ -832,7 +832,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
   echo '' >> $KUBASH_HOSTS
 
   echo '[etcd]'  >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "etcd" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
@@ -847,7 +847,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
 
   openshift_labels="openshift_node_labels=\"{'region': '$OPENSHIFT_REGION', 'zone': '$OPENSHIFT_ZONE'}\" openshift_schedulable=true"
   echo '[nodes]'  >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" ]]; then
       echo "$K8S_node $openshift_labels" >> $KUBASH_HOSTS
@@ -857,7 +857,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
   echo '' >> $KUBASH_HOSTS
 
   echo '[ingress]'  >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "ingress" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
@@ -884,7 +884,7 @@ write_ansible_kubespray_hosts () {
     touch $KUBASH_HOSTS
   fi
   # Write all hosts to inventory for id
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     echo "$K8S_node ansible_ssh_host=$K8S_node_ip ansible_ssh_port=$K8S_node_port ansible_user=$K8S_user" >> $KUBASH_HOSTS
   done <<< "$slurpy"
@@ -892,7 +892,7 @@ write_ansible_kubespray_hosts () {
   echo '' >> $KUBASH_HOSTS
 
   echo '[kubernetes-kubeminions]' >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
@@ -907,7 +907,7 @@ write_ansible_kubespray_hosts () {
   echo '' >> $KUBASH_HOSTS
 
   echo '[kubernetes-kubemasters]' >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
@@ -924,7 +924,7 @@ write_ansible_kubespray_hosts () {
   echo '' >> $KUBASH_HOSTS
 
   echo '[ingress]'  >> $KUBASH_HOSTS
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "ingress" ]]; then
       echo "$K8S_node" >> $KUBASH_HOSTS
@@ -1023,8 +1023,7 @@ w8_node () {
 remove_vagrant_user () {
   PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   squawk 2 ' Remove vagrant user from all hosts using ssh'
-  # hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     squawk 1 "$K8S_node_ip"
     squawk 3 "$K8S_user"
@@ -1048,7 +1047,7 @@ remove_vagrant_user () {
 ping_in_parallel () {
   PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   squawk 2 ' Pinging all hosts using ssh'
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     squawk 1 "$K8S_node_ip"
     squawk 3 "$K8S_user"
@@ -1077,7 +1076,7 @@ ping_in_parallel () {
 
 ping () {
   squawk 2 ' Pinging all hosts using ssh'
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     squawk 1 "$K8S_node_ip"
     squawk 3 "$K8S_user"
@@ -1141,7 +1140,7 @@ linux_install () {
 do_grab () {
   squawk 1 " do_grab"
   do_grab_master_count=0
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "init_master" ]]; then
       if [[ "$do_grab_master_count" -lt "1" ]]; then
@@ -1332,7 +1331,7 @@ read_csv () {
   squawk 1 " read_csv"
   read_master_count=0
 
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     squawk 5 "$K8S_node $K8S_user $K8S_node_ip $K8S_node_port $K8S_role $K8S_su_user $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
     if [[ "$K8S_role" == "master" ]]; then
@@ -1345,7 +1344,7 @@ read_csv () {
     fi
   done < $KUBASH_HOSTS_CSV
 
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" || "$K8S_role" == "ingress" ]]; then
       echo "node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
@@ -1365,7 +1364,7 @@ do_init_master () {
   squawk 3 " do_masters"
   do_master_count=0
 
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "init_master" ]]; then
       if [[ "$do_master_count" -lt "1" ]]; then
@@ -1382,7 +1381,7 @@ do_init_master () {
 do_masters () {
   squawk 3 " do_masters"
 
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master
@@ -1396,7 +1395,7 @@ do_masters_in_parallel () {
   do_master_count=0
 
   # We can parallelize the rest, but the first master we will do alone and wait on it
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master" \
@@ -1418,7 +1417,7 @@ do_masters_in_parallel () {
 do_nodes () {
   squawk 3 " do_nodes"
   countzero_do_nodes=0
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "node" ]]; then
       node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port
@@ -1436,7 +1435,7 @@ do_nodes_in_parallel () {
   touch $PARATMP/hopper
   squawk 3 " do_nodes_in_parallel"
   countzero_do_nodes=0
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "node" ]]; then
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_node_ip --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role node" \
@@ -1474,7 +1473,7 @@ do_csv () {
 
 prep () {
   squawk 5 " prep"
-  while IFS="," read -r $hosts_csv_columns
+  while IFS="," read -r $csv_columns
   do
     preppy $K8S_node $K8S_node_ip $K8S_node_port
   done < $KUBASH_HOSTS_CSV
@@ -1840,7 +1839,6 @@ main () {
     refresh_network_addresses
     prep
     remove_vagrant_user
-    ping
   elif [[ $RAISON == "decommission" ]]; then
     if [[ $print_help == "true" ]]; then
       decom_usage
