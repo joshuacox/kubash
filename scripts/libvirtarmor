@@ -32,8 +32,8 @@ add_line_to()
   fi
   TARGET_FILE=$TARGET_FILE_FOR_ADD
   [ -w "$TARGET_FILE" ] || TARGET_FILE=$TARGET_FILE_FOR_ADD
-  printf "%s\n" "$LINE_TO_ADD" >> "$TARGET_FILE"
-  systemctl restart apparmor.service
+  printf "%s\n" "$LINE_TO_ADD" | sudo tee -a "$TARGET_FILE"
+  sudo systemctl restart apparmor.service
 }
 
 checkarmor () {
