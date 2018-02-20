@@ -45,7 +45,7 @@ DO_PREP=no
 
 # prep the columns strings for csv input
 hosts_csv_columns='K8S_node K8S_user K8S_node_ip K8S_node_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
-provision_csv_list="K8S_node  K8S_role K8S_cpuCount K8S_Memory K8S_network K8S_mac K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
+provision_csv_list="K8S_node  K8S_role K8S_cpuCount K8S_Memory K8S_network K8S_mac K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
 uniq_hosts_list_columns="K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
 
 squawk () {
@@ -388,7 +388,7 @@ vbox-provisioner () {
 
 
 qemu-provisioner () {
-  squawk 1 "qemu-provisioner $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12}"
+  squawk 1 "qemu-provisioner $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11} ${12} ${13} ${14} ${15} ${16} ${17} ${18}"
   
   K8S_node=$1
   K8S_role=$2
@@ -402,6 +402,27 @@ qemu-provisioner () {
   K8S_provisionerBasePath=${10}
   K8S_os=${11}
   K8S_virt=${12}
+  K8S_network2=${13}
+  K8S_mac2=${14}
+  K8S_ip2=${15}
+  K8S_network3=${16}
+  K8S_mac3=${17}
+  K8S_ip3=${18}
+  if [[ -z "$K8S_mac"]]; then
+    $K8S_mac=$(kubash genmac)
+  fi
+  if [[ ! -z "$K8S_network2"]]; then
+    if [[ -z "$K8S_mac2"]]; then
+      $K8S_mac2=$(kubash genmac)
+    fi
+    SECOND_NIC="--network=$K8S_network2,mac=$K8S_mac2,model=virtio"
+  fi
+  if [[ ! -z "$K8S_network3"]]; then
+    if [[ -z "$K8S_mac3"]]; then
+      $K8S_mac3=$(kubash genmac)
+    fi
+    THIRD_NIC="--network=$K8S_network3,mac=$K8S_mac3,model=virtio"
+  fi
   
   squawk 7 "K8S_node=$1
   K8S_role=$2
@@ -432,7 +453,8 @@ qemu-provisioner () {
   	--hvm \
   	--os-variant=virtio26 \
   	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
-  	--network=$K8S_network,mac=$K8S_mac,model=virtio"
+  	--network=$K8S_network,mac=$K8S_mac,model=virtio \
+  	$SECOND_NIC"
 
   if [[ "$K8S_provisionerHost" = "localhost" ]]; then
     squawk 5 "$qemucmd2run"
@@ -463,11 +485,11 @@ provisioner () {
   touch $KUBASH_HOSTS_CSV
   while IFS="," read -r $provision_csv_list
   do
-      squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath"
+      squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
       if [[ "$K8S_virt" = "qemu" ]]; then
-        qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt
+        qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3
       elif [[ "$K8S_virt" = "vbox" ]]; then
-        vbox-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt
+        vbox-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3
       else
 	echo "virtualization technology '$K8S_virt' not recognized"
       fi
