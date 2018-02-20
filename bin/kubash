@@ -556,11 +556,11 @@ qemu-provisioner () {
       squawk 9 "rsync -avze 'ssh -p$K8S_provisionerPort' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/"
       rsync -avze "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/
 
-      virshcmd2run="virsh define $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
+      virshcmd2run="$PSEUDO virsh define $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
 
-      virshcmd2run="virsh start $K8S_node"
+      virshcmd2run="$PSEUDO virsh start $K8S_node"
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
     else 
