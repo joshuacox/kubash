@@ -448,7 +448,7 @@ qemu-provisioner () {
   qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_node.qcow2"
 
   if [[ "$K8S_os" == "coreos" ]]; then
-    squawk 5 Keyer
+    squawk 15 Keyer
     KEYTMP=$(mktemp -d)
     touch $KEYTMP/keys
     if [ ! -z  "$KEYS_URL" ]; then
@@ -461,11 +461,11 @@ qemu-provisioner () {
     else
       echo 'no KEYS_TO_ADD given'
     fi
-    squawk 8 "Keys $(cat $KEYTMP/keys)"
+    squawk 28 "Keys $(cat $KEYTMP/keys)"
     echo '    ssh_authorized_keys:'>  $KEYTMP/keys.json
     cat  $KEYTMP/keys|sed 's/^/    - /' >> $KEYTMP/keys.json
     SSH_AUTHORIZED_KEYS=$(cat $KEYTMP/keys.json)
-    squawk 9 "Keys.json $SSH_AUTHORIZED_KEYS"
+    squawk 39 "Keys.json $SSH_AUTHORIZED_KEYS"
     rm -Rf $KEYTMP
     chkdir $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node
     if [[ "$K8S_ip2" == '' && "$K8S_ip2" == '' ]]; then
@@ -549,7 +549,7 @@ qemu-provisioner () {
         K8S_home_path=/home
       fi
       sed -i 's|type=\"kvm\"|type=\"kvm\" xmlns:qemu=\"http://libvirt.org/schemas/domain/qemu/1.0\"|' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
-      sed -i "/<\/devices>/a <qemu:commandline>\n  <qemu:arg value='-fw_cfg'/>\n  <qemu:arg value='name=opt/com.coreos/user_data.json,file=$K8S_home_path/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.json'/>\n</qemu:commandline>" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
+      sed -i "/<\/devices>/a <qemu:commandline>\n  <qemu:arg value='-fw_cfg'/>\n  <qemu:arg value='name=opt/com.coreos/user_data.json,file=/etc/kubash/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.json'/>\n</qemu:commandline>" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
 
       squawk 5 "sync the cluster directory"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO mkdir -p /etc/kubash"
