@@ -606,6 +606,7 @@ provisioner () {
   done <<< "$slurpy"
   sleep 7
   refresh_network_addresses
+  remove_vagrant_user
 }
 
 refresh_network_addresses () {
@@ -1472,7 +1473,6 @@ prep () {
   do
     preppy $K8S_node $K8S_node_ip $K8S_node_port
   done < $KUBASH_HOSTS_CSV
-  remove_vagrant_user
 }
 
 preppy () {
