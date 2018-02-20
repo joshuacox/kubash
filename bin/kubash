@@ -473,7 +473,7 @@ qemu-provisioner () {
     ct < $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data \
        > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.json
 
-    virshcmd2run="$PSEUDO virt-install --connect qemu:///system \
+    virshcmd2run="\"$PSEUDO virt-install --connect qemu:///system \
  	--import \
   	--autostart \
   	--name $K8S_node \
@@ -488,7 +488,7 @@ qemu-provisioner () {
   	--network=$K8S_network,mac=$K8S_mac,model=virtio \
   	$SECOND_NIC \
   	$THIRD_NIC \
-	--print-xml \
+	--print-xml \"\
         > /home/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
 	"
   else
