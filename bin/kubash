@@ -604,6 +604,18 @@ provisioner () {
       fi
       sleep 5
       squawk 4 "provisioned"
+  done <<< "$slurpy"
+  refresh_network_addresses
+}
+
+refresh_network_addresses () {
+  squawk 1 " provisioner"
+  slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
+  squawk 8 "$slurpy"
+  rm $KUBASH_HOSTS_CSV
+  touch $KUBASH_HOSTS_CSV
+  while IFS="," read -r $provision_csv_list
+  do
       if [[ "$K8S_networkDiscovery" == "virsh" ]]; then
         if [[ "$K8S_provisionerHost" == "localhost" ]]; then
           while [[ -z "$K8S_node_ip" ]]; do
@@ -1878,6 +1890,12 @@ main () {
       exit 1
     fi
         DO_TILLER=true
+  elif [[ $RAISON == "refresh" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    refresh_network_addresses
   elif [[ $RAISON == "copy" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
