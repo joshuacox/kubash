@@ -703,8 +703,8 @@ apparmor_fix_all_provisioning_hosts () {
   squawk 8 "$uniq_hosts"
   PARATMP=$(mktemp -d)
   touch $PARATMP/hopper
-  #CURLY="curl -Ls https://raw.githubusercontent.com/kubash/kubash/master/scripts/libvirtarmor | bash"
-  CURLY="curl -Ls https://raw.githubusercontent.com/joshuacox/kubash/coreos/scripts/libvirtarmor | bash"
+  #CURLY="bash $(curl -Ls https://raw.githubusercontent.com/kubash/kubash/master/scripts/libvirtarmor)"
+  CURLY="bash $(curl -Ls https://raw.githubusercontent.com/joshuacox/kubash/coreos/scripts/libvirtarmor)"
   #"K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
   while IFS="," read -r $uniq_hosts_list_columns
   do
