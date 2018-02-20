@@ -16,7 +16,7 @@ storage:
 networkd:
   units:
   - name: 20-dhcp.network
-    content: |
+    contents: |
       [Match]
       name=en*
 
