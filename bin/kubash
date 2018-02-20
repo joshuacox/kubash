@@ -462,8 +462,8 @@ qemu-provisioner () {
       echo 'no KEYS_TO_ADD given'
     fi
     squawk 8 "Keys $(cat $KEYTMP/keys)"
-    echo 'ssh_authorized_keys:'>  $KEYTMP/keys.json
-    cat  $KEYTMP/keys|sed 's/^/  - /' >> $KEYTMP/keys.json
+    echo '    ssh_authorized_keys:'>  $KEYTMP/keys.json
+    cat  $KEYTMP/keys|sed 's/^/    - /' >> $KEYTMP/keys.json
     SSH_AUTHORIZED_KEYS=$(cat $KEYTMP/keys.json)
     squawk 9 "Keys.json $SSH_AUTHORIZED_KEYS"
     rm -Rf $KEYTMP

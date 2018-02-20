@@ -1,16 +1,23 @@
 #cloud-config
-
-# add each entry to ~/.ssh/authorized_keys for the configured user or the
-# first user defined in the user definition directive.
+#
+passwd:
+  users:
+  - name: core
 $SSH_AUTHORIZED_KEYS
-hostname: $K8S_node
 
-coreos:
-    units:
-      - name: 20-dhcp.network
-        content: |
-          [Match]
-          name=en*
+storage:
+  files:
+  - path: /etc/hostname
+    filesystem: "root"
+    contents:
+      inline: $K8S_node
 
-          [Network]
-          DHCP=yes
+networkd:
+  units:
+  - name: 20-dhcp.network
+    content: |
+      [Match]
+      name=en*
+
+      [Network]
+      DHCP=yes
