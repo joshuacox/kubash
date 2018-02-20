@@ -472,11 +472,7 @@ qemu-provisioner () {
   	$SECOND_NIC \
   	$THIRD_NIC \
 	--print-xml \
-        > /home/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml \
-        && sed -i 's|type=\"kvm\"|type=\"kvm\" xmlns:qemu=\"http://libvirt.org/schemas/domain/qemu/1.0\"|' \"$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml\" \
-        && sed -i \"/<\/devices>/a <qemu:commandline>\n  <qemu:arg value='-fw_cfg'/>\n  <qemu:arg value='name=opt/com.coreos/user_data.json,file=$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.json'/>\n</qemu:commandline>\" \"$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml\" \
-	&& virsh define /home/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml \
-	&& virsh start $K8S_node
+        > /home/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
 	"
   else
     virshcmd2run="$PSEUDO virt-install --connect qemu:///system \
@@ -511,6 +507,23 @@ qemu-provisioner () {
     ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$qemucmd2run"
     squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
     ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+    if [[ "$K8S_os" == "coreos" ]]; then
+      virshcmd2run="sed -i 's|type=\"kvm\"|type=\"kvm\" xmlns:qemu=\"http://libvirt.org/schemas/domain/qemu/1.0\"|' \"$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml\""
+      squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+
+      virshcmd2run="sed -i \"/<\/devices>/a <qemu:commandline>\n  <qemu:arg value='-fw_cfg'/>\n  <qemu:arg value='name=opt/com.coreos/user_data.json,file=$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.json'/>\n</qemu:commandline>\" \"$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml\""
+      squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+
+      virshcmd2run="virsh define /home/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
+      squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+
+      virshcmd2run="virsh start $K8S_node"
+      squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+    fi
   fi
 }
 
