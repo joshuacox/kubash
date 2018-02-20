@@ -442,6 +442,23 @@ qemu-provisioner () {
   qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_node.qcow2"
 
   if [[ "$K8S_os" == "coreos" ]]; then
+    # Keyer
+    KEYTMP=$(mktemp -d)
+    touch $KEYTMP/keys
+    if [ ! -z  "$KEYS_URL" ]; then
+      curl --silent -L "$KEYS_URL"  >> $KEYTMP/keys 
+    else
+      echo 'no KEYS_URL given'
+    fi
+    if [ ! -z  "$KEYS_TO_ADD" ]; then
+      echo "$KEYS_TO_ADD" >>  $KEYTMP/keys
+    else
+      echo 'no KEYS_TO_ADD given'
+    fi
+    echo 'ssh_authorized_keys:'>  $KEYTMP/keys.json
+    cat  $KEYTMP/keys|sed 's/^/  - /' >> $KEYTMP/keys.json
+    SSH_AUTHORIZED_KEYS=$(cat $KEYTMP/keys.json)
+    rm -Rf $KEYTMP
     chkdir $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node
     if [[ "$K8S_ip2" == '' && "$K8S_ip2" == '' ]]; then
       envsubst < $KUBASH_DIR/templates/user_data \
