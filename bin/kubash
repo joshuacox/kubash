@@ -489,7 +489,7 @@ qemu-provisioner () {
   	$SECOND_NIC \
   	$THIRD_NIC \
 	--print-xml
-	"
+	" >&3
   else
     virshcmd2run="$PSEUDO virt-install --connect qemu:///system \
  	--import \
