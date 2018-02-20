@@ -474,11 +474,18 @@ qemu-provisioner () {
       envsubst < $KUBASH_DIR/templates/user_data \
       > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data
     elif [[ ! -z "$K8S_ip2" && "$K8S_ip3" == '' ]]; then
+      K8S_mac2=$K8S_mac2 \
+      K8S_ip2=$K8S_ip2 \
       SSH_AUTHORIZED_KEYS=$SSH_AUTHORIZED_KEYS \
       K8S_node=$K8S_node \
       envsubst < $KUBASH_DIR/templates/user_data_two_interface \
       > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data
     else
+      K8S_mac2=$K8S_mac2 \
+      K8S_ip2=$K8S_ip2 \
+      K8S_network3=$K8S_network3 \
+      K8S_mac3=$K8S_mac3 \
+      K8S_ip3=$K8S_ip3 \
       SSH_AUTHORIZED_KEYS=$SSH_AUTHORIZED_KEYS \
       K8S_node=$K8S_node \
       envsubst < $KUBASH_DIR/templates/user_data_three_interface \
