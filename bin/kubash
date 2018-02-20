@@ -1444,6 +1444,7 @@ main () {
         shift;;
       -n|--clustername)
         KUBASH_CLUSTER_NAME="$2"
+        KUBASH_CLUSTER_CONFIG=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/config
         KUBASH_HOSTS_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts.csv
         KUBASH_HOSTS=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts
         KUBASH_PROVISION_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv
@@ -1525,16 +1526,23 @@ main () {
       exit 1
     fi
 	squawk 1 "Full auto engaged"
-	kubash provision
-	kubash ping
-	kubash init
+	kubash provision \
+          -n $KUBASH_CLUSTER_NAME
+	kubash ping \
+          -n $KUBASH_CLUSTER_NAME
+	kubash init \
+          -n $KUBASH_CLUSTER_NAME
 	sleep 10
-	kubash openebs
+	kubash openebs \
+          -n $KUBASH_CLUSTER_NAME
 	sleep 10
-	kubash tiller 
+	kubash tiller  \
+          -n $KUBASH_CLUSTER_NAME
 	sleep 10
-	kubash ingress
-	kubash demo
+	kubash ingress \
+          -n $KUBASH_CLUSTER_NAME
+	kubash demo \
+          -n $KUBASH_CLUSTER_NAME
 	squawk 1 "Full auto finished"
       exit
   elif [[ $RAISON == "grab" ]]; then
