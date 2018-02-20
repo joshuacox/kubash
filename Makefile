@@ -259,3 +259,15 @@ tests:
 fail_tests:
 	@echo 'These are tests which fail and can be considered future fixes'
 	bats .fails.bats
+
+ct: /usr/local/bin/ct
+
+/usr/local/bin/ct:
+	$(eval TMP := $(shell mktemp -d --suffix=CTTMP))
+	$(eval CT_VERSION := v0.7.0)
+	cd $(TMP) \
+	&& curl -L -o ct \
+	https://github.com/coreos/container-linux-config-transpiler/releases/download/$(CT_VERSION)/ct-$(CT_VERSION)-x86_64-unknown-linux-gnu \
+	&& chmod +x ct \
+	&& mv ct /usr/local/bin/
+	rm -Rf $(TMP)
