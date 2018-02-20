@@ -488,7 +488,7 @@ qemu-provisioner () {
   	--network=$K8S_network,mac=$K8S_mac,model=virtio \
   	$SECOND_NIC \
   	$THIRD_NIC \
-	--print-xml \"\
+	--print-xml
 	"
   else
     virshcmd2run="$PSEUDO virt-install --connect qemu:///system \
