@@ -534,8 +534,7 @@ qemu-provisioner () {
     ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
     if [[ "$K8S_os" == "coreos" ]]; then
       squawk 5 "create the domain.xml"
-      DOMAIN_XML=$(ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run" >&3)
-      echo "$DOMAIN_XML" | tee $KUBASH_CLUSTER_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml 
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run" 2> $KUBASH_CLUSTER_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml 
       sed -i 's|type=\"kvm\"|type=\"kvm\" xmlns:qemu=\"http://libvirt.org/schemas/domain/qemu/1.0\"|' $KUBASH_CLUSTER_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
       sed -i \"/<\/devices>/a <qemu:commandline>\n  <qemu:arg value='-fw_cfg'/>\n  <qemu:arg value='name=opt/com.coreos/user_data.json,file=$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.json'/>\n</qemu:commandline>\" $KUBASH_CLUSTER_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
 

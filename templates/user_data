@@ -9,6 +9,7 @@ storage:
   files:
   - path: /etc/hostname
     filesystem: "root"
+    mode: "0644"
     contents:
       inline: $K8S_node
 
