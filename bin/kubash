@@ -497,17 +497,12 @@ qemu-provisioner () {
   	$THIRD_NIC"
   fi
 
-
-  if [[ "$K8S_os" == "coreos" ]]; then
-  fi
-
   if [[ "$K8S_provisionerHost" = "localhost" ]]; then
     squawk 5 "$qemucmd2run"
     $qemucmd2run
     squawk 5 "$virshcmd2run"
     $virshcmd2run
   else
-
     if [[ "$K8S_os" == "coreos" ]]; then
       rsync -avze "ssh -n -p$K8S_provisionerPort" \
       $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME \
