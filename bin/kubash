@@ -544,7 +544,7 @@ qemu-provisioner () {
       touch $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml 
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run" > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml 
       if [[ "$K8S_provisionerUser" == "root" ]]; then
-        K8S_home_path=/
+        K8S_home_path=
       else
         K8S_home_path=/home
       fi
@@ -555,7 +555,7 @@ qemu-provisioner () {
       squawk 9 "rsync -avze 'ssh -p$K8S_provisionerPort' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/"
       rsync -avze "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/
 
-      virshcmd2run="virsh define $K8S_home_path/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
+      virshcmd2run="virsh define $K8S_home_path/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
 
