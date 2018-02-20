@@ -2,7 +2,7 @@
 #
 passwd:
   users:
-  - name: core
+  - name: $K8S_su_user
 $SSH_AUTHORIZED_KEYS
 
 storage:
