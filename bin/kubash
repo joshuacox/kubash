@@ -1285,6 +1285,7 @@ do_decom () {
     fi
     rm -iv $KUBASH_HOSTS_CSV
     rm -iv $KUBASH_HOSTS
+    rm -iv $KUBASH_CLUSTER_CONFIG
   fi
 }
 
