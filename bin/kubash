@@ -712,8 +712,8 @@ apparmor_fix_all_provisioning_hosts () {
       echo "$CURLY"\
 	      >> $PARATMP/hopper
     else
-      squawk 9 "ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip \"$CURLY\""
-      echo "ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip \"$CURLY\""\
+      squawk 9 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost \"$CURLY\""
+      echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost \"$CURLY\"" \
 	      >> $PARATMP/hopper
     fi
   done <<< "$uniq_hosts"
