@@ -607,9 +607,6 @@ provisioner () {
       fi
       squawk 4 "provisioned"
   done <<< "$slurpy"
-  sleep 7
-  refresh_network_addresses
-  remove_vagrant_user
 }
 
 refresh_network_addresses () {
@@ -1840,7 +1837,10 @@ main () {
     fi
     provisioner
     sleep 10
+    refresh_network_addresses
     prep
+    remove_vagrant_user
+    ping
   elif [[ $RAISON == "decommission" ]]; then
     if [[ $print_help == "true" ]]; then
       decom_usage
