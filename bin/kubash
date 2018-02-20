@@ -534,6 +534,7 @@ qemu-provisioner () {
     ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
     if [[ "$K8S_os" == "coreos" ]]; then
       squawk 5 "create the domain.xml"
+      squawk 11 "touch $KUBASH_CLUSTER_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
       touch $KUBASH_CLUSTER_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml 
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run" > $KUBASH_CLUSTER_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml 
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run" 2> $KUBASH_CLUSTER_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/edomain.xml 
