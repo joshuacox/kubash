@@ -602,9 +602,9 @@ provisioner () {
       else
 	echo "virtualization technology '$K8S_virt' not recognized"
       fi
-      sleep 5
       squawk 4 "provisioned"
   done <<< "$slurpy"
+  sleep 7
   refresh_network_addresses
 }
 
@@ -618,27 +618,39 @@ refresh_network_addresses () {
   do
       if [[ "$K8S_networkDiscovery" == "virsh" ]]; then
         if [[ "$K8S_provisionerHost" == "localhost" ]]; then
+          countzero=0
           while [[ -z "$K8S_node_ip" ]]; do
             squawk 7 "checking for IP address"
             squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
             K8S_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|tail -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-    	sleep 2
+	    if [[ "$countzero" -gt 2 ]]; then
+    	      sleep 2
+            fi
+	    ((countzero++))
           done
         else
+          countzero=0
           while [[ -z "$K8S_node_ip" ]]; do
             squawk 7 "checking for IP address"
             squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
             K8S_node_ip=$(ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO virsh domifaddr $K8S_node --full"|grep ipv4|tail -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
-    	sleep 2
+	    if [[ "$countzero" -gt 2 ]]; then
+    	      sleep 2
+            fi
+	    ((countzero++))
           done
         fi
       elif [[ "$K8S_networkDiscovery" == "arp" ]]; then
+          countzero=0
           while [[ -z "$K8S_node_ip" ]]; do
-	      squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
-	      NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
-	      squawk 1 'arp -n|grep $K8S_mac|awk  "{print $1}"'
-	      K8S_node_ip=$(arp -n|grep $K8S_mac|awk '{print $1}'|tail -n 1)
-    	    sleep 8
+	    squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
+	    NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
+	    squawk 1 'arp -n|grep $K8S_mac|awk  "{print $1}"'
+	    K8S_node_ip=$(arp -n|grep $K8S_mac|awk '{print $1}'|tail -n 1)
+	    if [[ "$countzero" -gt 2 ]]; then
+    	      sleep 8
+            fi
+	    ((countzero++))
           done
       fi
       squawk 5 "adding to $KUBASH_HOSTS_CSV"
