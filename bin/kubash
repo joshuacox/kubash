@@ -528,9 +528,11 @@ qemu-provisioner () {
     if [[ "$K8S_os" == "coreos" ]]; then
       squawk 5 "create domain.xml $virshcmd2run"
       $virshcmd2run > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml 
+      $PSEUDO virsh define $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
+      $PSEUDO virsh start $K8S_node
     else
-      squawk 5 "$virshcmd2run"
-      $virshcmd2run
+      squawk 5 "$PSEUDO $virshcmd2run"
+      $PSEUDO $virshcmd2run
     fi
   else
     squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $qemucmd2run"
@@ -547,12 +549,9 @@ qemu-provisioner () {
       squawk 5 "sync the cluster directory"
       rsync -avze "ssh -n -p$K8S_provisionerPort" \
       $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME \
-      $K8S_provisionerUser@$K8S_provisionerHost:/home/$K8S_provisionerUser/
+      $K8S_provisionerUser@$K8S_provisionerHost
 
-      squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
-      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
-
-      virshcmd2run="virsh define /home/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
+      virshcmd2run="virsh define $KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
 
