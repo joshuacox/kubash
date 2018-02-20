@@ -456,8 +456,7 @@ qemu-provisioner () {
     ct < $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data \
        > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.json
 
-    virshcmd2run="mkdir -p /home/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node && 
-    $PSEUDO virt-install --connect qemu:///system \
+    virshcmd2run="$PSEUDO virt-install --connect qemu:///system \
  	--import \
   	--autostart \
   	--name $K8S_node \
