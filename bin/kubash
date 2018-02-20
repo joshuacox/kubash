@@ -594,7 +594,7 @@ provisioner () {
   while IFS="," read -r $provision_csv_list
   do
       if [[ "$apparmor_fixed" == 'false' && "$K8S_os" == "coreos" ]]; then
-        apparmor_fix_all_provisioning_hosts
+        #apparmor_fix_all_provisioning_hosts
         apparmor_fixed='true'
       fi
       if [[ "$K8S_virt" = "qemu" ]]; then
@@ -1916,6 +1916,12 @@ main () {
       exit 1
     fi
     refresh_network_addresses
+  elif [[ $RAISON == "armor_fix" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    apparmor_fix_all_provisioning_hosts
   elif [[ $RAISON == "copy" ]]; then
     if [[ $print_help == "true" ]]; then
       usage

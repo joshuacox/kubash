@@ -38,7 +38,7 @@ add_line_to()
 
 checkarmor () {
   chkdir /var/lib/libvirt/images
-  LINE_TO_ADD='/var/lib/libvirt/images/* r,'
+  LINE_TO_ADD='  /var/lib/libvirt/images/*/*/* r,'
   TARGET_FILE_FOR_ADD=/etc/apparmor.d/abstractions/libvirt-qemu  
   check_if_line_exists || add_line_to
 }
