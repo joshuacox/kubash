@@ -408,20 +408,33 @@ qemu-provisioner () {
   K8S_network3=${16}
   K8S_mac3=${17}
   K8S_ip3=${18}
-  if [[ -z "$K8S_mac"]]; then
+  if [[ "$K8S_mac" == '' ]]; then
     $K8S_mac=$(kubash genmac)
   fi
-  if [[ ! -z "$K8S_network2"]]; then
-    if [[ -z "$K8S_mac2"]]; then
+  if [[ ! -z "$K8S_network2" ]]; then
+    if [[ "$K8S_mac2" == '' ]]; then
       $K8S_mac2=$(kubash genmac)
     fi
     SECOND_NIC="--network=$K8S_network2,mac=$K8S_mac2,model=virtio"
   fi
-  if [[ ! -z "$K8S_network3"]]; then
-    if [[ -z "$K8S_mac3"]]; then
+  if [[ ! -z "$K8S_network3" ]]; then
+    if [[ "$K8S_mac3" == '' ]]; then
       $K8S_mac3=$(kubash genmac)
     fi
     THIRD_NIC="--network=$K8S_network3,mac=$K8S_mac3,model=virtio"
+  fi
+  if [[ "$K8S_os" == "coreos" ]]; then
+    chkdir $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node
+    if [[ "$K8S_ip2" == '' && "$K8S_ip2" == '' ]]; then
+      envsubst < $KUBASH_DIR/templates/user_data \
+      > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data
+    elif [[ ! -z "$K8S_ip2" && "$K8S_ip3" == '' ]]; then
+      envsubst < $KUBASH_DIR/templates/user_data_two_interface \
+      > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data
+    else
+      envsubst < $KUBASH_DIR/templates/user_data_three_interface \
+      > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data
+    fi
   fi
   
   squawk 7 "K8S_node=$1
