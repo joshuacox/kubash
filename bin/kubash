@@ -552,10 +552,12 @@ qemu-provisioner () {
       sed -i "/<\/devices>/a <qemu:commandline>\n  <qemu:arg value='-fw_cfg'/>\n  <qemu:arg value='name=opt/com.coreos/user_data.json,file=$K8S_home_path/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.json'/>\n</qemu:commandline>" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
 
       squawk 5 "sync the cluster directory"
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO mkdir -p /etc/kubash"
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$PSEUDO chmod 644 /etc/kubash"
       squawk 9 "rsync -avze 'ssh -p$K8S_provisionerPort' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/"
-      rsync -avze "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/
+      rsync -avze "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:/etc/kubash/
 
-      virshcmd2run="virsh define $K8S_home_path/$K8S_provisionerUser/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
+      virshcmd2run="virsh define /etc/kubash/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
 
