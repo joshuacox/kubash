@@ -682,6 +682,18 @@ osm_default_node_selector="region=lab"' >> $KUBASH_HOSTS
       echo "$K8S_node $openshift_labels" >> $KUBASH_HOSTS
     fi
   done <<< "$slurpy"
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[ingress]'  >> $KUBASH_HOSTS
+  while IFS="," read -r $hosts_csv_columns
+  do
+    if [[ "$K8S_role" = "ingress" ]]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_HOSTS
 }
 
 write_ansible_kubespray_hosts () {
@@ -737,6 +749,18 @@ write_ansible_kubespray_hosts () {
 
   echo '[kubernetes-kubemasters:vars]' >> $KUBASH_HOSTS
   echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_HOSTS
+
+  echo '' >> $KUBASH_HOSTS
+
+  echo '[ingress]'  >> $KUBASH_HOSTS
+  while IFS="," read -r $hosts_csv_columns
+  do
+    if [[ "$K8S_role" = "ingress" ]]; then
+      echo "$K8S_node" >> $KUBASH_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_HOSTS
 }
 
 removestalekeys () {
@@ -1150,7 +1174,7 @@ read_csv () {
 
   while IFS="," read -r $hosts_csv_columns
   do
-    if [[ "$K8S_role" == "node" ]]; then
+    if [[ "$K8S_role" == "node" || "$K8S_role" == "ingress" ]]; then
       echo "node_join $K8S_node $K8S_node_ip $K8S_user $K8S_node_port"
     fi
   done < $KUBASH_HOSTS_CSV
