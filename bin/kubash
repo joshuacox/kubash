@@ -577,6 +577,7 @@ provisioner () {
   squawk 1 " provisioner"
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   squawk 8 "$slurpy"
+  apparmor_fixed='false'
   if [[ -e "$KUBASH_HOSTS_CSV" ]]; then
     horizontal_rule
     echo "$KUBASH_HOSTS_CSV exists! Destroy existing cluster and remove before proceeding!"
@@ -589,8 +590,12 @@ provisioner () {
   touch $KUBASH_HOSTS_CSV
   while IFS="," read -r $provision_csv_list
   do
-      squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
+      if [[ "$apparmor_fixed" == 'false' && "$K8S_os" == "coreos" ]]; then
+        apparmor_fix_all_provisioning_hosts
+        apparmor_fixed='true'
+      fi
       if [[ "$K8S_virt" = "qemu" ]]; then
+        squawk 19 "qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
         qemu-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3
       elif [[ "$K8S_virt" = "vbox" ]]; then
         vbox-provisioner $K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network $K8S_mac $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3
@@ -645,6 +650,37 @@ copy_image_to_all_provisioning_hosts () {
     else
       squawk 7 "rsync -azve \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
       echo "rsync -azve \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+    fi
+  done <<< "$uniq_hosts"
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $PARATMP/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
+}
+
+apparmor_fix_all_provisioning_hosts () {
+  squawk 0 "apparmor_fix_all_provisioning_hosts"
+  uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f7,8,9,10,11,12|sort|uniq)"
+  squawk 8 "$uniq_hosts"
+  PARATMP=$(mktemp -d)
+  touch $PARATMP/hopper
+  CURLY="curl -Ls https://raw.githubusercontent.com/joshuacox/kubash/master/scripts/dotfiles | bash"
+  #"K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
+  while IFS="," read -r $uniq_hosts_list_columns
+  do
+    if [[ "$K8S_provisionerHost" = 'localhost' ]]; then
+      echo "$CURLY"\
+	      >> $PARATMP/hopper
+    else
+      squawk 9 "ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip \"$CURLY\""
+      echo "ssh -n -p $K8S_node_port $K8S_user@$K8S_node_ip \"$CURLY\""\
+	      >> $PARATMP/hopper
     fi
   done <<< "$uniq_hosts"
 
