@@ -1083,11 +1083,6 @@ ping_in_parallel () {
 	      >> $PARATMP/hopper
     echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$MY_ECHO\""\
 	      >> $PARATMP/hopper
-    MY_ECHO="echo '$K8S_ip1 $K8S_user pong'" 
-    squawk 5 "ssh -n -p $K8S_node_port $K8S_user@$K8S_ip1 \"$MY_ECHO\""
-	      >> $PARATMP/hopper
-    echo "ssh -n -p $K8S_node_port $K8S_user@$K8S_ip1 \"$MY_ECHO\""\
-	      >> $PARATMP/hopper
   done < $KUBASH_HOSTS_CSV
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
