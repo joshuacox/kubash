@@ -85,7 +85,7 @@ main () {
   flight_checks
 
   if [ ! -d $KUBASH_DIR ]; then
-    git clone https://github.com/joshuacox/kubash.git $KUBASH_DIR
+    git clone https://github.com/kubash/kubash.git $KUBASH_DIR
   else
     cd $KUBASH_DIR
     git pull
