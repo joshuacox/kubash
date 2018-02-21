@@ -271,3 +271,6 @@ ct: /usr/local/bin/ct
 	&& chmod +x ct \
 	&& mv ct /usr/local/bin/
 	rm -Rf $(TMP)
+
+submodules/openebs:
+	cd submodules; git clone https://github.com/openebs/openebs.git
