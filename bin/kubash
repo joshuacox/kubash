@@ -1646,7 +1646,7 @@ do_coreos_initialization () {
   do_command_in_parallel_on_os "coreos" "cd /opt/bin;$PSEUDO chmod +x {kubeadm,kubelet,kubectl}"
   
   curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" | sed \"s:/usr/bin:/opt/bin:g\" > $CORETMP/kubelet.service
-  copy_in_parallel_to_os "coreos" $CORETMP/kubelet.service /etc/systemd/system/kubelet.service
+  copy_in_parallel_to_os "coreos" $CORETMP/kubelet.service /tmp/kubelet.service
   do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubelet.service /etc/systemd/system/kubelet.service"
   rm $CORETMP/kubelet.service
   do_command_in_parallel_on_os "coreos" "$PSEUDO mkdir -p /etc/systemd/system/kubelet.service.d"
