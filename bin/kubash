@@ -597,12 +597,7 @@ provisioner () {
   apparmor_fixed='false'
   if [[ -e "$KUBASH_HOSTS_CSV" ]]; then
     horizontal_rule
-    echo "$KUBASH_HOSTS_CSV exists! Destroy existing cluster and remove before proceeding!"
-    if [[ "$ANSWER_YES" = "yes" ]]; then
-      rm -v $KUBASH_HOSTS_CSV
-    else
-      rm -iv $KUBASH_HOSTS_CSV
-    fi
+    rm -v $KUBASH_HOSTS_CSV
   fi
   touch $KUBASH_HOSTS_CSV
   while IFS="," read -r $csv_columns
@@ -803,12 +798,7 @@ write_ansible_openshift_hosts () {
   slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   if [[ -e "$KUBASH_HOSTS" ]]; then
     horizontal_rule
-    echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
-    if [[ "$ANSWER_YES" = "yes" ]]; then
-      rm $KUBASH_HOSTS
-    else
-      rm -i $KUBASH_HOSTS
-    fi
+    rm -v $KUBASH_HOSTS
     touch $KUBASH_HOSTS
   else
     touch $KUBASH_HOSTS
@@ -894,12 +884,7 @@ write_ansible_kubespray_hosts () {
   slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   if [[ -e "$KUBASH_HOSTS" ]]; then
     horizontal_rule
-    echo " $KUBASH_HOSTS exists! Destroy running and cluster and remove before proceeding!"
-    if [[ "$ANSWER_YES" == "yes" ]]; then
-      rm $KUBASH_HOSTS
-    else
-      rm -i $KUBASH_HOSTS
-    fi
+    rm -v $KUBASH_HOSTS
     touch $KUBASH_HOSTS
   else
     touch $KUBASH_HOSTS
@@ -1622,9 +1607,9 @@ do_decom () {
     then
       decom_kvm
     fi
-    rm -iv $KUBASH_HOSTS_CSV
-    rm -iv $KUBASH_HOSTS
-    rm -iv $KUBASH_CLUSTER_CONFIG
+    rm -v $KUBASH_HOSTS_CSV
+    rm -v $KUBASH_HOSTS
+    rm -v $KUBASH_CLUSTER_CONFIG
   fi
 }
 
