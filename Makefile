@@ -127,8 +127,9 @@ go-build-docker:
 	rmdir $(TMP)
 
 example:
-	cp -iv hosts.csv.example hosts.csv
-	cp -iv provision.list.example provision.list
+	mkdir -p clusters/default/hosts.csv
+	cp -iv hosts.csv.example clusters/default/hosts.csv
+	cp -iv provision.csv.example clusters/default/provision.csv
 
 pax/ubuntu/builds/ubuntu-16.04.libvirt.box:
 	TMPDIR=/tiamat/tmp packer build -only=qemu kubash-ubuntu-16.04-amd64.json
