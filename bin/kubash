@@ -1643,7 +1643,11 @@ do_coreos_initialization () {
   
   do_command_in_parallel_on_os "coreos" "$PSEUDO mkdir -p /opt/bin"
 
-  wget -c https://storage.googleapis.com/kubernetes-release/release/${RELEASE}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+  if [[ -e "$CORETMP/kubelet" ]]; then
+    squawk 9 "kubelet has no headers and will not continue skipping for now"
+  else
+    wget -c https://storage.googleapis.com/kubernetes-release/release/${RELEASE}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+  fi
   # cd /opt/bin
   copy_in_parallel_to_os "coreos" $CORETMP/kubeadm /tmp/
   do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubeadm /opt/bin/"
