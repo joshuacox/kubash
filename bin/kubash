@@ -1039,6 +1039,7 @@ w8_node () {
 remove_vagrant_user () {
   PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   squawk 2 ' Remove vagrant user from all hosts using ssh'
+  touch $PARATMP/hopper
   while IFS="," read -r $csv_columns
   do
     squawk 1 "$K8S_ip1"
