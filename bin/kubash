@@ -1118,7 +1118,7 @@ hostnamero () {
   my_PORT=$3
   my_USER=$4
   squawk 1 " hostnamero my_HOST=$my_HOST my_IP=$my_IP my_PORT=$my_PORT my_USER=$my_USER"
-  result=$(ssh -n -p $my_PORT root@$my_IP "$PSEUDO hostname $my_HOST && echo $my_HOST | $PSEUDO tee /etc/hostname && echo \"127.0.1.1 $my_HOST.$my_DOMAIN $my_HOST  \" | $PSEUDO tee -a /etc/hosts ")
+  result=$(ssh -n -p $my_PORT $my_USER@$my_IP "$PSEUDO hostname $my_HOST && echo $my_HOST | $PSEUDO tee /etc/hostname && echo \"127.0.1.1 $my_HOST.$my_DOMAIN $my_HOST  \" | $PSEUDO tee -a /etc/hosts ")
   squawk 13 "Result is $result"
 }
 
