@@ -1119,7 +1119,7 @@ hostnamero () {
   my_PORT=$3
   my_USER=$4
   squawk 1 " hostnamero my_HOST=$my_HOST my_IP=$my_IP my_PORT=$my_PORT my_USER=$my_USER"
-  result=$(ssh -n -p $my_PORT root@$my_IP "hostname $my_HOST && echo $my_HOST > /etc/hostname && echo \"127.0.1.1 $my_HOST.$my_DOMAIN $my_HOST  \" >> /etc/hosts ")
+  result=$(ssh -n -p $my_PORT root@$my_IP "$PSEUDO hostname $my_HOST && echo $my_HOST | $PSEUDO tee /etc/hostname && echo \"127.0.1.1 $my_HOST.$my_DOMAIN $my_HOST  \" | $PSEUDO tee -a /etc/hosts ")
   squawk 13 "Result is $result"
 }
 
@@ -1360,7 +1360,7 @@ read_csv () {
       if [[ "$read_master_count" -lt "1" ]]; then
         echo "master_init_join $K8S_node $K8S_ip1 $K8S_user $K8S_node_port"
       else
-        echo "master_join $K8S_node $K8S_ip1 $K8S_user $K8S_node_port"
+        echo "master_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_node_port"
       fi
       read_master_count=`expr $read_master_count + 1`
     fi
