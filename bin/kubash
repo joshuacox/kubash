@@ -21,7 +21,6 @@
 : ${K8S_NET:=calico}
 : ${K8S_node_port:=22}
 : ${K8S_su_user:=coopadmin}
-: ${K8S_networkDiscovery:=virsh}
 : ${my_DOMAIN:=example.com}
 : ${GOPATH:=~/.go}
 : ${KUTIME:="/usr/bin/time -v"}
@@ -632,6 +631,12 @@ refresh_network_addresses () {
   touch $KUBASH_HOSTS_CSV
   while IFS="," read -r $csv_columns
   do
+      net_type=$(echo $K8S_network1|cut -f1 -d=)
+      if [[ "$net_type" == "network" ]]; then
+        K8S_networkDiscovery=virsh
+      else
+        K8S_networkDiscovery=arp
+      fi
       if [[ "$K8S_networkDiscovery" == "virsh" ]]; then
         if [[ "$K8S_provisionerHost" == "localhost" ]]; then
           countzero=0
