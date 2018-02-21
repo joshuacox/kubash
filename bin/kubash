@@ -1043,10 +1043,15 @@ remove_vagrant_user () {
   do
     squawk 1 "$K8S_ip1"
     squawk 3 "$K8S_user"
-    REMMY="userdel -f vagrant && rm -Rf /home/vagrant"
-    squawk 5 "ssh -n -p $K8S_node_port $K8S_user@$K8S_ip1 \"$REMMY\""
-    echo "ssh -n -p $K8S_node_port $K8S_user@$K8S_ip1 \"$REMMY\""\
+    squawk 3 "$K8S_os"
+    if [[ "$K8S_os" == 'coreos' ]]
+      squawk 9 'coreos so skipping'
+    else
+      REMMY="userdel -f vagrant && rm -Rf /home/vagrant"
+      squawk 5 "ssh -n -p $K8S_node_port $K8S_user@$K8S_ip1 \"$REMMY\""
+      echo "ssh -n -p $K8S_node_port $K8S_user@$K8S_ip1 \"$REMMY\""\
 	      >> $PARATMP/hopper
+    fi
   done < $KUBASH_HOSTS_CSV
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
