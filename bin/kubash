@@ -1080,7 +1080,6 @@ ping_in_parallel () {
     squawk 3 "$K8S_user"
     MY_ECHO="echo '$K8S_ip1 $K8S_su_user pong'" 
     squawk 5 "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$MY_ECHO\""
-	      >> $PARATMP/hopper
     echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$MY_ECHO\""\
 	      >> $PARATMP/hopper
   done < $KUBASH_HOSTS_CSV
@@ -1169,6 +1168,21 @@ do_grab () {
         master_grab_kube_config $K8S_node $K8S_ip1 $K8S_su_user $K8S_node_port
       fi
       do_grab_master_count=`expr $do_grab_master_count + 1`
+    fi
+  done < $KUBASH_HOSTS_CSV
+}
+
+check_coreos () {
+  squawk 1 " check_coreos"
+  do_coreos_init_count=0
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_os" == "coreos" ]]; then
+      if [[ "$do_coreos_init_count" -lt "1" ]]; then
+        do_coreos_initialization
+	break
+      fi
+      do_coreos_init_count=`expr $do_coreos_init_count + 1`
     fi
   done < $KUBASH_HOSTS_CSV
 }
@@ -1317,6 +1331,7 @@ do_install () {
 initialize () {
   squawk 1 " initialize"
   check_csv
+  check_coreos
   do_csv
 }
 
@@ -1481,6 +1496,91 @@ do_nodes_in_parallel () {
   rm -Rf $PARATMP
 }
 
+do_command_in_parallel () {
+  PARATMP=$(mktemp -d)
+  command2run=$1
+  touch $PARATMP/hopper
+  squawk 3 " do_command_in_parallel"
+  countzero_do_nodes=0
+  while IFS="," read -r $csv_columns
+  do 
+    countzero_do_nodes=`expr $countzero_do_nodes + 1`
+    squawk 13 " count $countzero_do_nodes"
+    squawk 5 "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$command2run\""
+    echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$command2run\""\
+	      >> $PARATMP/hopper
+  done < $KUBASH_HOSTS_CSV
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $PARATMP/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
+}
+
+copy_in_parallel_to_os () {
+  PARATMP=$(mktemp -d)
+  os2copy2=$1
+  file2copy=$2
+  destination=$3
+  touch $PARATMP/hopper
+  squawk 3 " do_command_in_parallel"
+  countzero_do_nodes=0
+  while IFS="," read -r $csv_columns
+  do 
+    if [[ "$K8S_os" == "$os2copy2" ]]; then
+      countzero_do_nodes=`expr $countzero_do_nodes + 1`
+      squawk 13 " count $countzero_do_nodes"
+      squawk 5 "rsync -avze 'ssh -p $K8S_node_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"
+      echo "rsync -avze 'ssh -p $K8S_node_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"\
+        >> $PARATMP/hopper
+    fi
+  done < $KUBASH_HOSTS_CSV
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $PARATMP/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
+}
+
+do_command_in_parallel_on_os () {
+  PARATMP=$(mktemp -d)
+  os2runiton=$1
+  command2run=$2
+  touch $PARATMP/hopper
+  squawk 3 " do_command_in_parallel"
+  countzero_do_nodes=0
+  while IFS="," read -r $csv_columns
+  do 
+    if [[ "$K8S_os" == "$os2runiton" ]]; then
+      countzero_do_nodes=`expr $countzero_do_nodes + 1`
+      squawk 13 " count $countzero_do_nodes"
+      squawk 5 "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$command2run\""
+      echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$command2run\""\
+        >> $PARATMP/hopper
+    fi
+  done < $KUBASH_HOSTS_CSV
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $PARATMP/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
+}
+
 do_csv () {
   squawk 3 " do_csv"
   do_init_master
@@ -1526,6 +1626,42 @@ do_decom () {
     rm -iv $KUBASH_HOSTS
     rm -iv $KUBASH_CLUSTER_CONFIG
   fi
+}
+
+do_coreos_initialization () {
+  CNI_VERSION="v0.6.0"
+  RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+  CORETMP=$(mktemp -d)
+  cd $CORETMP
+  
+  do_command_in_parallel_on_os 'coreos' "mkdir -p /opt/cni/bin"
+  curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" -o $CORETMP/cni-plugins-amd64-${CNI_VERSION}.tgz
+  copy_in_parallel_to_os "coreos" $CORETMP/cni-plugins-amd64-${CNI_VERSION}.tgz /tmp/
+  rm $CORETMP/cni-plugins-amd64-${CNI_VERSION}.tgz
+  do_command_in_parallel_on_os "coreos" "tar -C /opt/cni/bin -xzf /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
+  do_command_in_parallel_on_os "coreos" "rm -f /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
+  
+  do_command_in_parallel_on_os "coreos" "mkdir -p /opt/bin"
+
+  curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${RELEASE}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+  # cd /opt/bin
+  copy_in_parallel_to_os "coreos" $CORETMP/kubeadm /opt/bin/
+  rm $CORETMP/kubeadm
+  copy_in_parallel_to_os "coreos" $CORETMP/kubelet /opt/bin/
+  rm $CORETMP/kubelet
+  copy_in_parallel_to_os "coreos" $CORETMP/kubectl /opt/bin/
+  rm $CORETMP/kubectl
+  do_command_in_parallel_on_os "coreos" "cd /opt/bin; chmod +x {kubeadm,kubelet,kubectl}"
+  
+  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" | sed \"s:/usr/bin:/opt/bin:g\" > $CORETMP/kubelet.service
+  copy_in_parallel_to_os "coreos" $CORETMP/kubelet.service /etc/systemd/system/kubelet.service
+  rm $CORETMP/kubelet.service
+  do_command_in_parallel_on_os "coreos" "mkdir -p /etc/systemd/system/kubelet.service.d"
+  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" | sed \"s:/usr/bin:/opt/bin:g\" > $CORETMP/10-kubeadm.conf
+  copy_in_parallel_to_os "coreos" $CORETMP/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  rm $CORETMP/10-kubeadm.conf
+  
+  rmdir $CORETMP
 }
 
 do_openebs () {
