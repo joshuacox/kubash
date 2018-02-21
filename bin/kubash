@@ -1670,8 +1670,9 @@ do_coreos_initialization () {
   do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
   rm $CORETMP/10-kubeadm.conf
 
-  do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl restart docker.service; systemctl enable docker.service"
-  do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl restart kubelet.service; systemctl enable kubelet.service"
+  do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl restart docker.service ; $PSEUDO systemctl enable docker.service"
+
+  do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl restart kubelet.service ; $PSEUDO systemctl enable kubelet.service"
   
   #rmdir $CORETMP
 }
