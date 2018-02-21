@@ -1230,7 +1230,10 @@ master_grab_kube_config () {
     chkdir $HOME/.kube
     squawk 3 ' grab config'
     rm -f $KUBASH_CLUSTER_CONFIG
-    ssh -n -p $my_master_port $my_master_user@$my_master_ip 'cat .kube/config' > $KUBASH_CLUSTER_CONFIG
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip 'cat .kube/config' \
+    sed "s/^  name: kubernetes$/  name: $my_master_name/" \
+    sed "s/^    cluster: kubernetes$/  cluster: $my_master_name/" \
+	    > $KUBASH_CLUSTER_CONFIG
     sudo chmod 600 $KUBASH_CLUSTER_CONFIG
     sudo chown -R $USER. $KUBASH_CLUSTER_CONFIG
     DO_GRAB=false
