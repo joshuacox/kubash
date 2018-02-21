@@ -1044,7 +1044,7 @@ remove_vagrant_user () {
     squawk 1 "$K8S_ip1"
     squawk 3 "$K8S_user"
     squawk 3 "$K8S_os"
-    if [[ "$K8S_os" == 'coreos' ]]
+    if [[ "$K8S_os" == 'coreos' ]]; then
       squawk 9 'coreos so skipping'
     else
       REMMY="userdel -f vagrant && rm -Rf /home/vagrant"
