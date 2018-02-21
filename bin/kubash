@@ -1657,7 +1657,8 @@ do_coreos_initialization () {
 
   do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl restart docker.service ; $PSEUDO systemctl enable docker.service"
 
-  do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl unmask kubelet.service ; $PSEUDO systemctl restart kubelet.service ; $PSEUDO systemctl enable kubelet.service"
+  #do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl unmask kubelet.service ; $PSEUDO systemctl restart kubelet.service ; $PSEUDO systemctl enable kubelet.service"
+  do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl restart kubelet.service ; $PSEUDO systemctl enable kubelet.service"
   
   #rmdir $CORETMP
 }
