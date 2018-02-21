@@ -1218,10 +1218,10 @@ master_init_join () {
     squawk 1 ' hostnamero'
     hostnamero $my_master_name $my_master_ip $my_master_port $my_master_user
     squawk 3 ' kubeadm reset'
-    ssh -n -p $my_master_port $my_master_user@$my_master_ip "hostname; uname -a;kubeadm reset"
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$PSEUDO hostname;$PSEUDO  uname -a;$PSEUDO kubeadm reset"
     my_grep='kubeadm join --token'
     squawk 3 ' kubeadm join'
-    my_KUBE_INIT="kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
+    my_KUBE_INIT="$PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
     squawk 5 "$my_KUBE_INIT"
     run_join=$(ssh -n root@$my_master_ip $my_KUBE_INIT | tee $TMP/rawresults.k8s | grep -- "$my_grep")
     echo $run_join > $KUBASH_DIR/join.sh
@@ -1263,7 +1263,7 @@ node_join () {
     result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "hostname; uname -a;kubeadm reset")
     squawk 13 "Result is $result"
     run_join=$(cat $KUBASH_DIR/join.sh)
-    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$run_join")
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join")
     squawk 13 "Result is $result"
     w8_node $my_node_name
     rolero $my_node_name node
@@ -1373,7 +1373,7 @@ read_csv () {
     squawk 5 "$K8S_node $K8S_user $K8S_ip1 $K8S_node_port $K8S_role $K8S_su_user $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
     if [[ "$K8S_role" == "master" ]]; then
       if [[ "$read_master_count" -lt "1" ]]; then
-        echo "master_init_join $K8S_node $K8S_ip1 $K8S_user $K8S_node_port"
+        echo "master_init_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_node_port"
       else
         echo "master_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_node_port"
       fi
@@ -1384,7 +1384,7 @@ read_csv () {
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" || "$K8S_role" == "ingress" ]]; then
-      echo "node_join $K8S_node $K8S_ip1 $K8S_user $K8S_node_port"
+      echo "node_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_node_port"
     fi
   done < $KUBASH_HOSTS_CSV
 }
@@ -1405,10 +1405,10 @@ do_init_master () {
   do
     if [[ "$K8S_role" == "init_master" ]]; then
       if [[ "$do_master_count" -lt "1" ]]; then
-        master_init_join $K8S_node $K8S_ip1 $K8S_user $K8S_node_port
+        master_init_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_node_port
       else
 	echo 'There should only be one init master! Skipping this master'
-        echo "master_init_join $K8S_node $K8S_ip1 $K8S_user $K8S_node_port"
+        echo "master_init_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_node_port"
       fi
       do_master_count=`expr $do_master_count + 1`
     fi
@@ -1421,7 +1421,7 @@ do_masters () {
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
-      kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master
+      kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_node_port --node-join-role master
     fi
   done < $KUBASH_HOSTS_CSV
 }
@@ -1435,7 +1435,7 @@ do_masters_in_parallel () {
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
-      echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role master" \
+      echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_node_port --node-join-role master" \
 	      >> $PARATMP/hopper
     fi
   done < $KUBASH_HOSTS_CSV
@@ -1457,7 +1457,7 @@ do_nodes () {
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "node" ]]; then
-      node_join $K8S_node $K8S_ip1 $K8S_user $K8S_node_port
+      node_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_node_port
     else
       squawk 11 " K8S_role NOT NODE"
       squawk 11 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_node_port"
@@ -1475,7 +1475,7 @@ do_nodes_in_parallel () {
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "node" ]]; then
-      echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_user --node-join-port $K8S_node_port --node-join-role node" \
+      echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_node_port --node-join-role node" \
 	      >> $PARATMP/hopper
     else
       squawk 11 " K8S_role NOT NODE"
