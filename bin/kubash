@@ -983,7 +983,7 @@ w8_kubectl () {
     if [[ "$VERBOSITY" -gt "11" ]] ; then
       kubectl get pods -n kube-system | grep kube-apiserver
     fi
-    result=$(kubectl get pods -n kube-system | grep kube-apiserver |grep Running)
+    result=$(kubectl get pods -n kube-system 2>/dev/null | grep kube-apiserver |grep Running)
     squawk 13 "Result is $result"
     if [[ "$result" ]]; then
       squawk 15 "Result nailed $result"
