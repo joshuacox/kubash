@@ -1634,31 +1634,36 @@ do_coreos_initialization () {
   CORETMP=$(mktemp -d)
   cd $CORETMP
   
-  do_command_in_parallel_on_os 'coreos' "mkdir -p /opt/cni/bin"
+  do_command_in_parallel_on_os 'coreos' "$PSEUDO mkdir -p /opt/cni/bin"
   curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" -o $CORETMP/cni-plugins-amd64-${CNI_VERSION}.tgz
   copy_in_parallel_to_os "coreos" $CORETMP/cni-plugins-amd64-${CNI_VERSION}.tgz /tmp/
   rm $CORETMP/cni-plugins-amd64-${CNI_VERSION}.tgz
-  do_command_in_parallel_on_os "coreos" "tar -C /opt/cni/bin -xzf /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
-  do_command_in_parallel_on_os "coreos" "rm -f /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
+  do_command_in_parallel_on_os "coreos" "$PSEUDO tar -C /opt/cni/bin -xzf /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
+  do_command_in_parallel_on_os "coreos" "$PSEUDO rm -f /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
   
-  do_command_in_parallel_on_os "coreos" "mkdir -p /opt/bin"
+  do_command_in_parallel_on_os "coreos" "$PSEUDO mkdir -p /opt/bin"
 
   curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${RELEASE}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
   # cd /opt/bin
-  copy_in_parallel_to_os "coreos" $CORETMP/kubeadm /opt/bin/
+  copy_in_parallel_to_os "coreos" $CORETMP/kubeadm /tmp/
+  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubeadm /opt/bin/"
   rm $CORETMP/kubeadm
-  copy_in_parallel_to_os "coreos" $CORETMP/kubelet /opt/bin/
+  copy_in_parallel_to_os "coreos" $CORETMP/kubelet /tmp/
+  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubelet /opt/bin/"
   rm $CORETMP/kubelet
-  copy_in_parallel_to_os "coreos" $CORETMP/kubectl /opt/bin/
+  copy_in_parallel_to_os "coreos" $CORETMP/kubectl /tmp/
+  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubectl /opt/bin/"
   rm $CORETMP/kubectl
-  do_command_in_parallel_on_os "coreos" "cd /opt/bin; chmod +x {kubeadm,kubelet,kubectl}"
+  do_command_in_parallel_on_os "coreos" "cd /opt/bin;$PSEUDO chmod +x {kubeadm,kubelet,kubectl}"
   
   curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" | sed \"s:/usr/bin:/opt/bin:g\" > $CORETMP/kubelet.service
   copy_in_parallel_to_os "coreos" $CORETMP/kubelet.service /etc/systemd/system/kubelet.service
+  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubelet.service /etc/systemd/system/kubelet.service"
   rm $CORETMP/kubelet.service
-  do_command_in_parallel_on_os "coreos" "mkdir -p /etc/systemd/system/kubelet.service.d"
+  do_command_in_parallel_on_os "coreos" "$PSEUDO mkdir -p /etc/systemd/system/kubelet.service.d"
   curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" | sed \"s:/usr/bin:/opt/bin:g\" > $CORETMP/10-kubeadm.conf
-  copy_in_parallel_to_os "coreos" $CORETMP/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  copy_in_parallel_to_os "coreos" $CORETMP/10-kubeadm.conf /tmp/kubelet.service.d/10-kubeadm.conf
+  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
   rm $CORETMP/10-kubeadm.conf
   
   rmdir $CORETMP
