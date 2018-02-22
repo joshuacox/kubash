@@ -8,7 +8,7 @@
 : ${KUBASH_HOSTS:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts}
 : ${KUBASH_PROVISION_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv}
 : ${KUBASH_USERS_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/users.csv}
-: ${KUBASH_INGRESS_NAME:='kubash-ingress'}
+: ${KUBASH_INGRESS_NAME:='kubashingress'}
 : ${KUBASH_OIDC_AUTH:='false'}
 : ${VERBOSITY:=0}
 : ${KVM_IMAGE_DIR:=/var/lib/libvirt/images}
@@ -1452,7 +1452,7 @@ grant_users () {
   while IFS="," read -r $user_csv_columns
   do
     squawk 3 "user_email=$user_email user_role=$user_role"
-    echo "kubash grant $user_email $user_role" >> $PARATMP/hopper
+    echo "kubash -n $KUBASH_CLUSTER_NAME grant $user_email $user_role" >> $PARATMP/hopper
   done <<< "$slurpy"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
@@ -1588,8 +1588,15 @@ do_etcd () {
     echo '  certFile: /etc/kubernetes/pki/etcd/client.pem' >> $PARATMP/endpoints.line
     echo '  keyFile: /etc/kubernetes/pki/etcd/client-key.pem' >> $PARATMP/endpoints.line
     if [[ "$countzero" -lt "3" ]]; then
+      horizontal_rule
       echo 'not enough etcd nodes'
       exit 1
+    else
+      if [[ "$((countzero%2))" -eq 0 ]]; then
+        horizontal_rule
+        echo "number of etcd nodes is even which is not supported"
+        exit 1
+      fi
     fi
   done <<< $kubash_hosts_csv_slurped
 
@@ -1665,7 +1672,7 @@ do_masters_in_parallel () {
   command2run="$PSEUDO rm /etc/kubernetes/pki/apiserver.crt"
   do_command_in_parallel_on_role "master" "$command2run"
 
-  command2run="kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_ssh_port --node-join-role master"
+  command2run="kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_ssh_port --node-join-role master"
   squawk 9 "$command2run"
   do_command_in_parallel_on_role "master" "$command2run"
 }
@@ -1694,7 +1701,7 @@ do_nodes_in_parallel () {
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "node" ]]; then
-      echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_ssh_port --node-join-role node" \
+      echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_ssh_port --node-join-role node" \
 	      >> $PARATMP/hopper
     else
       squawk 11 " K8S_role NOT NODE"
@@ -2084,6 +2091,7 @@ main () {
 
   # If cmd empty print usage
   if [[ -z "$1" ]]; then
+    horizontal_rule
     squawk 5 "No Args found printing usage"
     usage
     exit 1
@@ -2099,6 +2107,8 @@ main () {
   #Bad arguments, something has gone wrong with the getopt command.
   if [[ $? -ne 0 ]];
   then
+    horizontal_rule
+    echo 'bad argruments'
     exit 1
   fi
 
