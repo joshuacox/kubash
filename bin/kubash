@@ -4,10 +4,12 @@
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${KUBASH_CLUSTERS_DIR:=$KUBASH_DIR/clusters}
 : ${KUBASH_CLUSTER_CONFIG:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/config}
+: ${KUBECONFIG:=$KUBASH_CLUSTER_CONFIG}
 : ${KUBASH_HOSTS_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts.csv}
 : ${KUBASH_HOSTS:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts}
 : ${KUBASH_PROVISION_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv}
 : ${KUBASH_INGRESS_NAME:='kubash-ingress'}
+: ${KUBASH_OIDC_AUTH:='false'}
 : ${VERBOSITY:=0}
 : ${KVM_IMAGE_DIR:=/var/lib/libvirt/images}
 : ${KUBASH_BUILDS_TMP:=$KVM_IMAGE_DIR/kubashtmp}
@@ -303,6 +305,7 @@ rolero () {
   squawk 2 "rolero"
   node_name=$1
   NODE_ROLE=$2
+
   result=$(kubectl label --overwrite node $node_name node-role.kubernetes.io/$NODE_ROLE=)
   squawk 4 "Result = $result"
 }
@@ -1209,6 +1212,9 @@ master_init_join () {
     squawk 5 "$my_KUBE_INIT"
     run_join=$(ssh -n $my_master_user@$my_master_ip $my_KUBE_INIT | tee $TMP/rawresults.k8s | grep -- "$my_grep")
     echo $run_join > $KUBASH_DIR/join.sh
+    if [[ "$KUBASH_OIDC_AUTH" == 'true' ]]; then
+      ssh -n -p $my_master_port $my_master_user@$my_master_ip 'sed -i "/- kube-apiserver/a\    - --oidc-issuer-url=https://accounts.google.com\n    - --oidc-username-claim=email\n    - --oidc-client-id=" /etc/kubernetes/manifests/kube-apiserver.yaml'
+    fi
     DO_GRAB=true
     master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
     w8_kubectl
@@ -1801,7 +1807,7 @@ main () {
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
   short_opts="c:hvyn:"
-  long_opts="clustername:,initializer:,csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  long_opts="oidc,clustername:,initializer:,csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
   PARSED_OPTIONS=$(getopt -n "$0" -o "$short_opts" --long "$long_opts" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
@@ -1832,6 +1838,7 @@ main () {
       -n|--clustername)
         KUBASH_CLUSTER_NAME="$2"
         KUBASH_CLUSTER_CONFIG=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/config
+        KUBECONFIG=$KUBASH_CLUSTER_CONFIG
         KUBASH_HOSTS_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts.csv
         KUBASH_HOSTS=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts
         KUBASH_PROVISION_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv
@@ -1876,6 +1883,10 @@ main () {
       --verbosity)
         VERBOSITY=`expr $VERBOSITY + $2`
         squawk 2 " verbosity is now $VERBOSITY"
+        shift 2 ;;
+      --oidc)
+        KUBASH_OIDC_AUTH=true
+        squawk 2 "OIDC Auth turned on"
         shift 2 ;;
       --builder)
         builder=$2
