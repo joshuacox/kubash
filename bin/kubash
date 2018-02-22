@@ -4,10 +4,10 @@
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${KUBASH_CLUSTERS_DIR:=$KUBASH_DIR/clusters}
 : ${KUBASH_CLUSTER_CONFIG:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/config}
-: ${KUBECONFIG:=$KUBASH_CLUSTER_CONFIG}
 : ${KUBASH_HOSTS_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts.csv}
 : ${KUBASH_HOSTS:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts}
 : ${KUBASH_PROVISION_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv}
+: ${KUBASH_USERS_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/users.csv}
 : ${KUBASH_INGRESS_NAME:='kubash-ingress'}
 : ${KUBASH_OIDC_AUTH:='false'}
 : ${VERBOSITY:=0}
@@ -35,6 +35,7 @@
 
 #set -eu
 
+export KUBECONFIG=$KUBASH_CLUSTER_CONFIG
 # Rasion d'etre
 RAISON=false
 
@@ -45,6 +46,7 @@ DO_HOSTS=no
 DO_PREP=no
 
 # prep the columns strings for csv input
+user_csv_columns="user_email user_role"
 csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_network1 K8S_mac1 K8S_ip1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
 uniq_hosts_list_columns="K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
 
@@ -1394,6 +1396,39 @@ check_csv () {
   fi
 }
 
+grant () {
+  export EMAIL_ADDRESS_OF_ADMIN=$1
+  user_role=$2
+  grant_tmp=$(mktemp)
+  envsubst < $KUBASH_DIR/templates/$user_role-role \
+    > $grant_tmp
+  #kubectl apply -f $grant_tmp
+  cat $grant_tmp
+  rm $grant_tmp
+}
+
+grant_users () {
+  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  touch $PARATMP/hopper
+  slurpy="$(grep -v '^#' $KUBASH_USERS_CSV)"
+  # user_csv_columns="user_email user_role"
+  while IFS="," read -r $user_csv_columns
+  do
+    squawk 3 "user_email=$user_email user_role=$user_role"
+    echo "kubash grant $user_email $user_role" >> $PARATMP/hopper
+  done <<< "$slurpy"
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $PARATMP/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
+}
+
 do_init_master () {
   squawk 3 " do_masters"
   do_master_count=0
@@ -1842,10 +1877,11 @@ main () {
       -n|--clustername)
         KUBASH_CLUSTER_NAME="$2"
         KUBASH_CLUSTER_CONFIG=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/config
-        KUBECONFIG=$KUBASH_CLUSTER_CONFIG
+        export KUBECONFIG=$KUBASH_CLUSTER_CONFIG
         KUBASH_HOSTS_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts.csv
         KUBASH_HOSTS=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/hosts
         KUBASH_PROVISION_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/provision.csv
+        KUBASH_USERS_CSV=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/users.csv
         shift 2 ;;
       -c|--csv)
         KUBASH_HOSTS_CSV="$2"
@@ -1905,15 +1941,13 @@ main () {
 
   squawk 7 "Check args"
 
-  if [[ $# -gt 1 ]]; then
+  if [[ $# -eq 0 ]]; then
     usage
     exit 1
   fi
-
-  if [[ $# -eq 1 ]]; then
-    RAISON=$1
-    squawk 5 "Raison set to $RAISON"
-  fi
+  RAISON=$1
+  squawk 5 "Raison set to $RAISON"
+  shift
 
   checks
 
@@ -1953,6 +1987,20 @@ main () {
       exit 1
     fi
         DO_GRAB=true
+  elif [[ $RAISON == "grant" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    if [[ $# -eq 0 ]]; then
+      grant_users
+    elif [[ $# -eq 2 ]]; then
+      grant $1 $2
+    else
+      usage
+      exit 1
+    fi
+    exit 0
   elif [[ $RAISON == "openebs" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
