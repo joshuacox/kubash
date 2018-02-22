@@ -2235,8 +2235,6 @@ main () {
 	sleep 10
 	kubash ingress \
           -n $KUBASH_CLUSTER_NAME
-	kubash demo \
-          -n $KUBASH_CLUSTER_NAME
 	squawk 1 "Full auto finished"
       exit
   elif [[ $RAISON == "grab" ]]; then

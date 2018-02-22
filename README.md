@@ -50,34 +50,19 @@ kubash COMMAND
 
 ### Commands:
 
-
 [build](./docs/build.md) - build a base image
 
 [provision](./docs/provision.md) - provision individual nodes
 
 [init](./docs/init.md) - initialize the cluster
 
-decommission - tear down the cluster and decommission nodes
+[decommission](./docs/decommission.md) - /tear down the cluster and decommission nodes
 
-show - show the analyzed input of the hosts file
+[copy](./docs/copy.md) - copy the built images to the provisioning hosts
 
-ping - Perform ansible ping to all hosts
+[ping](./docs/ping.md) - /Perform ansible ping to all hosts
 
-auto - Full auto will provision and initialize all hosts
-
-masters - Perform initialization of masters
-
-nodes - Perform initialization of nodes
-
-dotfiles - Perform dotfiles auto configuration
-
-grab - Grab the .kube/config from the master
-
-hosts - Write ansible hosts file
-
-dry - Perform dry run
-
-copy - copy the built images to the provisioning hosts
+[auto](./docs/auto.md) - /Full auto will provision and initialize all hosts
 
 ### Options
 
@@ -97,6 +82,8 @@ options:
  --verbosity NUMBER - or you can set the verbosity directly
 
  --debug - adds the debug flag
+
+ --oidc - enable the oidc auths
 ```
 
 There is an example csv file in this repo which shows how to compose this file
