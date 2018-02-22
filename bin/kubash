@@ -1739,7 +1739,7 @@ packer_build  () {
   fi
 
   cd $KUBASH_DIR/pax
-  if [[ ! -L build ]]; then
+  if [[ ! -e build ]]; then
     $LN_CMD $KUBASH_BUILDS builds
   fi
 
