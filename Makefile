@@ -276,3 +276,8 @@ ct: /usr/local/bin/ct
 
 submodules/openebs:
 	cd submodules; git clone https://github.com/openebs/openebs.git
+
+cfssl:
+	sudo curl -o /usr/local/bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+	sudo curl -o /usr/local/bin/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+	sudo chmod +x /usr/local/bin/cfssl*

@@ -1330,6 +1330,7 @@ do_install () {
 initialize () {
   squawk 1 " initialize"
   check_csv
+  kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   check_coreos
   do_csv
 }
@@ -1428,6 +1429,16 @@ grant_users () {
   rm -Rf $PARATMP
 }
 
+do_etcd () {
+  squawk 3 " do_masters"
+
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "etcd" ]]; then
+    fi
+  done <<< $kubash_hosts_csv_slurped
+}
+
 do_init_master () {
   squawk 3 " do_masters"
   do_master_count=0
@@ -1443,7 +1454,7 @@ do_init_master () {
       fi
       do_master_count=`expr $do_master_count + 1`
     fi
-  done < $KUBASH_HOSTS_CSV
+  done <<< $kubash_hosts_csv_slurped
 }
 
 do_masters () {
@@ -1454,7 +1465,7 @@ do_masters () {
     if [[ "$K8S_role" == "master" ]]; then
       kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_node_port --node-join-role master
     fi
-  done < $KUBASH_HOSTS_CSV
+  done <<< $kubash_hosts_csv_slurped
 }
 
 do_masters_in_parallel () {
@@ -1470,7 +1481,7 @@ do_masters_in_parallel () {
       echo "kubash node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_node_port --node-join-role master" \
 	      >> $PARATMP/hopper
     fi
-  done < $KUBASH_HOSTS_CSV
+  done <<< $kubash_hosts_csv_slurped
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -1496,7 +1507,7 @@ do_nodes () {
     fi
     countzero_do_nodes=`expr $countzero_do_nodes + 1`
     squawk 11 " count $countzero_do_nodes"
-  done < $KUBASH_HOSTS_CSV
+  done <<< $kubash_hosts_csv_slurped
 }
 
 do_nodes_in_parallel () {
@@ -1515,7 +1526,7 @@ do_nodes_in_parallel () {
     fi
     countzero_do_nodes=`expr $countzero_do_nodes + 1`
     squawk 13 " count $countzero_do_nodes"
-  done < $KUBASH_HOSTS_CSV
+  done <<< $kubash_hosts_csv_slurped
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -1541,7 +1552,7 @@ do_command_in_parallel () {
     squawk 5 "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$command2run\""
     echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$command2run\""\
 	      >> $PARATMP/hopper
-  done < $KUBASH_HOSTS_CSV
+  done <<< $kubash_hosts_csv_slurped
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -1571,7 +1582,7 @@ copy_in_parallel_to_os () {
       echo "rsync -avze 'ssh -p $K8S_node_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
-  done < $KUBASH_HOSTS_CSV
+  done <<< $kubash_hosts_csv_slurped
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -1600,7 +1611,7 @@ do_command_in_parallel_on_os () {
       echo "ssh -n -p $K8S_node_port $K8S_su_user@$K8S_ip1 \"$command2run\""\
         >> $PARATMP/hopper
     fi
-  done < $KUBASH_HOSTS_CSV
+  done <<< $kubash_hosts_csv_slurped
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -1615,6 +1626,7 @@ do_command_in_parallel_on_os () {
 
 do_csv () {
   squawk 3 " do_csv"
+  do_etcd
   do_init_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     do_masters_in_parallel
