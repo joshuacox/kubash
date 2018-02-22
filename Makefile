@@ -127,8 +127,9 @@ go-build-docker:
 	rmdir $(TMP)
 
 example:
-	mkdir -p clusters/default/hosts.csv
+	mkdir -p clusters/default
 	cp -iv hosts.csv.example clusters/default/hosts.csv
+	cp -iv users.csv.example clusters/default/users.csv
 	cp -iv provision.csv.example clusters/default/provision.csv
 
 pax/ubuntu/builds/ubuntu-16.04.libvirt.box:

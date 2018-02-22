@@ -1402,8 +1402,7 @@ grant () {
   grant_tmp=$(mktemp)
   envsubst < $KUBASH_DIR/templates/$user_role-role \
     > $grant_tmp
-  #kubectl apply -f $grant_tmp
-  cat $grant_tmp
+  kubectl apply -f $grant_tmp
   rm $grant_tmp
 }
 
