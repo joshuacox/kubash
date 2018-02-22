@@ -131,6 +131,9 @@ example:
 	cp -iv hosts.csv.example clusters/default/hosts.csv
 	cp -iv users.csv.example clusters/default/users.csv
 	cp -iv provision.csv.example clusters/default/provision.csv
+	cp -iv templates/ca-csr.json clusters/default/
+	cp -iv templates/ca-config.json clusters/default/
+	cp -iv templates/client.json clusters/default/
 
 pax/ubuntu/builds/ubuntu-16.04.libvirt.box:
 	TMPDIR=/tiamat/tmp packer build -only=qemu kubash-ubuntu-16.04-amd64.json
