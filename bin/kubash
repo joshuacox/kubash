@@ -1252,11 +1252,14 @@ node_join () {
   my_node_port=$4
   squawk 1 " node_join $my_node_name $my_node_ip $my_node_user $my_node_port"
   if [[ "$DO_NODE_JOIN" == "true" ]] ; then
-    hostnamero $my_node_name $my_node_ip $my_node_port
-    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "hostname; uname -a;kubeadm reset")
+    hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
+    squawk 13 "Kubeadmin reset"
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a;$PSEUDO kubeadm reset")
     squawk 13 "Result is $result"
+    squawk 13 "Kubeadmin join"
     run_join=$(cat $KUBASH_DIR/join.sh)
-    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join")
+    #result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join --ignore-preflight-errors=IsPrivilegedUser")
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join --ignore-preflight-errors=IsPrivilegedUser")
     squawk 13 "Result is $result"
     w8_node $my_node_name
     rolero $my_node_name node
