@@ -579,8 +579,8 @@ qemu-provisioner () {
       sed -i "/<\/devices>/a <qemu:commandline>\n  <qemu:arg value='-fw_cfg'/>\n  <qemu:arg value='name=opt/com.coreos/config,file=$K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.ign'/>\n</qemu:commandline>" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
 
       squawk 5 "sync the cluster directory"
-      squawk 9 "rsync -avze 'ssh -p$K8S_provisionerPort' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/"
-      rsync -avze "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/
+      squawk 9 "rsync -aze 'ssh -p$K8S_provisionerPort' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/"
+      rsync -aze "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/
 
       virshcmd2run="$PSEUDO virsh define $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
@@ -1240,7 +1240,7 @@ master_init_join () {
       ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.lines) \
       envsubst  < $KUBASH_CLUSTER_DIR/tmp/kubeadm-config.yaml
         > $kubeadmin_config_tmp
-      rsync -avze "ssh -p $my_master_port" $kubeadmin_config_tmp $this_user@$this_ip:/tmp/config.yaml
+      rsync -aze "ssh -p $my_master_port" $kubeadmin_config_tmp $this_user@$this_ip:/tmp/config.yaml
       rm $kubeadmin_config_tmp
       my_KUBE_INIT="$PSEUDO kubeadm init --config=/tmp/config.yaml"
       squawk 5 "$my_KUBE_INIT"
@@ -1257,7 +1257,7 @@ master_init_join () {
     DO_GRAB=true
     master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
     rm -Rf $KUBASH_CLUSTER_DIR/pki
-    rsync -avze "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/etc/kubernetes/pki $KUBASH_CLUSTER_DIR/
+    rsync -aze "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/etc/kubernetes/pki $KUBASH_CLUSTER_DIR/
     w8_kubectl
   fi
 }
@@ -1490,7 +1490,7 @@ finish_etcd () {
     cd $KUBASH_DIR/tmp
     wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz 
   fi
-  rsync -avze "ssh -p $K8S_ssh_port" $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz $this_user@$this_ip:/tmp/
+  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz $this_user@$this_ip:/tmp/
   command2run="$PSEUDO tar -xzfv --strip-components=1 -C /usr/local/bin/ /tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz"
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
   command2run="touch /etc/etcd.env"
@@ -1498,13 +1498,13 @@ finish_etcd () {
   etctmp=$(mktemp)
   echo "PEER_NAME=$PEER_NAME" >> $etctmp
   echo "PRIVATE_IP=$PRIVATE_IP" >> $etctmp
-  rsync -avze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/tmp/etcd.env
+  rsync -aze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/tmp/etcd.env
   command2run="$PSEUDO mv -v /tmp/etcd.env /etc/etcd.env" 
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
   INITIAL_ETCD_CLUSTER=$(cat $KUBASH_CLUSTER_DIR/etcd.line) \
   envsubst < $KUBASH_CLUSTER_DIR/tmp/etcd.service \
   > $etctmp
-  rsync -avze "ssh -p $K8S_ssh_port" $etctmp $this_user@$this_ip:/tmp/etcd.service
+  rsync -aze "ssh -p $K8S_ssh_port" $etctmp $this_user@$this_ip:/tmp/etcd.service
   command2run="$PSEUDO mv -v /tmp/etcd.service /etc/systemd/system/etcd.service" 
   rm $etctmp
   command2run="$PSEUDO systemctl daemon-reload"
@@ -1522,15 +1522,15 @@ prep_init_etcd () {
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
   command2run="$PSEUDO chown $this_user /etc/kubernetes/pki/etcd"
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
-  rsync -avze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-config.json $this_user@$this_ip:/tmp/ca-config.json
+  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-config.json $this_user@$this_ip:/tmp/ca-config.json
   command2run="$PSEUDO mv -v /tmp/ca-config.json /etc/kubernetes/pki/etcd/ca-config.json"
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
 
-  rsync -avze "ssh -p $K8S_ssh_port" /usr/local/bin/cfssl $this_user@$this_ip:/tmp/cfssl
+  rsync -aze "ssh -p $K8S_ssh_port" /usr/local/bin/cfssl $this_user@$this_ip:/tmp/cfssl
   command2run="$PSEUDO mv -v /tmp/cfssl /usr/local/bin/cfssl"
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
 
-  rsync -avze "ssh -p $K8S_ssh_port" /usr/local/bin/cfssljson $this_user@$this_ip:/tmp/cfssljson
+  rsync -aze "ssh -p $K8S_ssh_port" /usr/local/bin/cfssljson $this_user@$this_ip:/tmp/cfssljson
   command2run="$PSEUDO mv -v /tmp/cfssljson /usr/local/bin/cfssljson"
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
 
@@ -1540,11 +1540,11 @@ prep_init_etcd () {
   command2run='cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client'
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
 
-  rsync -avze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca.pem $KUBASH_CLUSTER_DIR/
-  rsync -avze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca-key.pem $KUBASH_CLUSTER_DIR/
-  rsync -avze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/client.pem $KUBASH_CLUSTER_DIR/
-  rsync -avze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/client-key.pem $KUBASH_CLUSTER_DIR/
-  rsync -avze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca-config.json $KUBASH_CLUSTER_DIR/
+  rsync -aze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca.pem $KUBASH_CLUSTER_DIR/
+  rsync -aze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca-key.pem $KUBASH_CLUSTER_DIR/
+  rsync -aze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/client.pem $KUBASH_CLUSTER_DIR/
+  rsync -aze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/client-key.pem $KUBASH_CLUSTER_DIR/
+  rsync -aze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca-config.json $KUBASH_CLUSTER_DIR/
   finish_etcd $this_user $this_ip $this_name
 }
 
@@ -1556,11 +1556,11 @@ prep_etcd () {
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
   command2run="$PSEUDO chown $this_user /etc/kubernetes/pki/etcd"
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
-  rsync -avze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca.pem $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca.pem
-  rsync -avze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-key.pem $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca-key.pem
-  rsync -avze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/client.pem $this_user@$this_ip:/etc/kubernetes/pki/etcd/client.pem
-  rsync -avze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/client-key.pem $this_user@$this_ip:/etc/kubernetes/pki/etcd/client-key.pem
-  rsync -avze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-config.json $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca-config.json
+  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca.pem $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca.pem
+  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-key.pem $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca-key.pem
+  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/client.pem $this_user@$this_ip:/etc/kubernetes/pki/etcd/client.pem
+  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/client-key.pem $this_user@$this_ip:/etc/kubernetes/pki/etcd/client-key.pem
+  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-config.json $this_user@$this_ip:/etc/kubernetes/pki/etcd/ca-config.json
   finish_etcd $this_user $this_ip $this_name
 }
 
@@ -1762,8 +1762,8 @@ copy_in_parallel_to_role () {
     if [[ "$K8S_role" == "$role2copy2" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 13 " count $countzero_do_nodes"
-      squawk 5 "rsync -avze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"
-      echo "rsync -avze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"\
+      squawk 5 "rsync -aze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"
+      echo "rsync -aze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
@@ -1792,8 +1792,8 @@ copy_in_parallel_to_os () {
     if [[ "$K8S_os" == "$os2copy2" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 13 " count $countzero_do_nodes"
-      squawk 5 "rsync -avze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"
-      echo "rsync -avze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"\
+      squawk 5 "rsync -aze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"
+      echo "rsync -aze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
