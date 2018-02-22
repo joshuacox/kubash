@@ -308,7 +308,7 @@ rolero () {
   node_name=$1
   NODE_ROLE=$2
 
-  result=$(kubectl label --overwrite node $node_name node-role.kubernetes.io/$NODE_ROLE=)
+  result=$(kubectl --kubeconfig=$KUBECONFIG label --overwrite node $node_name node-role.kubernetes.io/$NODE_ROLE=)
   squawk 4 "Result = $result"
 }
 
@@ -749,25 +749,25 @@ apparmor_fix_all_provisioning_hosts () {
 
 do_nginx_ingress () {
   INGRESS_NAME=$1
-  helm install stable/nginx-ingress --name $INGRESS_NAME --set rbac.create=true
+  KUBECONFIG=$KUBECONFIG helm install stable/nginx-ingress --name $INGRESS_NAME --set rbac.create=true
 }
 
 demo () {
    cd $KUBASH_DIR/submodules/openebs/k8s/demo/crunchy-postgres
-   bash run.sh
+   KUBECONFIG=$KUBECONFIG bash run.sh
    cd $KUBASH_DIR/submodules/openebs/k8s/demo/rabbitmq
-   bash run.sh
+   KUBECONFIG=$KUBECONFIG bash run.sh
    cd $KUBASH_DIR/submodules/openebs/k8s/demo/percona
-   kubectl apply -f \
+   kubectl --kubeconfig=$KUBECONFIG apply -f \
      demo-percona-mysql-pvc.yaml
    cd $KUBASH_DIR/submodules/openebs/k8s/demo/jupyter
-   kubectl apply -f \
+   kubectl --kubeconfig=$KUBECONFIG apply -f \
      demo-jupyter-openebs.yaml
    cd $KUBASH_DIR/submodules/openebs/k8s/demo/mongodb
-   kubectl apply -f \
+   kubectl --kubeconfig=$KUBECONFIG apply -f \
      mongo-statefulset.yml
    cd $KUBASH_DIR/submodules/openebs/k8s/demo/jenkins
-   kubectl apply -f \
+   kubectl --kubeconfig=$KUBECONFIG apply -f \
      jenkins.yml
 }
 
@@ -775,16 +775,16 @@ do_net () {
   squawk 0 " do_net"
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   if [[ $K8S_NET == "calico" ]]; then
-    kubectl apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
+    kubectl --kubeconfig=$KUBECONFIG apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
   fi
 }
 
 do_tiller () {
   w8_kubedns
   squawk 1 " do_tiller"
-  kubectl create serviceaccount tiller --namespace kube-system
-  kubectl create -f $KUBASH_DIR/tiller/rbac-tiller-config.yaml
-  helm init --service-account tiller
+  kubectl --kubeconfig=$KUBECONFIG create serviceaccount tiller --namespace kube-system
+  kubectl --kubeconfig=$KUBECONFIG create -f $KUBASH_DIR/tiller/rbac-tiller-config.yaml
+  KUBECONFIG=$KUBECONFIG helm init --service-account tiller
 }
 
 mid () {
@@ -961,7 +961,7 @@ w8_kubedns () {
   while [[ $countone -lt 151 ]]
   do
     echo -n '.'
-    RESULT=$(kubectl get po --namespace kube-system |grep kube-dns|grep Running)
+    RESULT=$(kubectl --kubeconfig=$KUBECONFIG get po --namespace kube-system |grep kube-dns|grep Running)
     if [[ "$RESULT" ]]; then
         sleep 3
         echo '.'
@@ -986,9 +986,9 @@ w8_kubectl () {
   while [[ "$countone_w8_kubectl" -lt "$countlimit_w8_kubectl" ]]; do
     echo -n '.'
     if [[ "$VERBOSITY" -gt "11" ]] ; then
-      kubectl get pods -n kube-system | grep kube-apiserver
+      kubectl --kubeconfig=$KUBECONFIG get pods -n kube-system | grep kube-apiserver
     fi
-    result=$(kubectl get pods -n kube-system 2>/dev/null | grep kube-apiserver |grep Running)
+    result=$(kubectl --kubeconfig=$KUBECONFIG get pods -n kube-system 2>/dev/null | grep kube-apiserver |grep Running)
     squawk 13 "Result is $result"
     if [[ "$result" ]]; then
       squawk 15 "Result nailed $result"
@@ -1014,9 +1014,9 @@ w8_node () {
   while [[ "$countone_w8_node" -lt "$countlimit_w8_node" ]]; do
     echo -n '.'
     if [[ "$VERBOSITY" -gt "11" ]] ; then
-      kubectl get node $node_name
+      kubectl --kubeconfig=$KUBECONFIG get node $node_name
     fi
-    result=$(kubectl get node $node_name | grep -v NotReady | grep Ready)
+    result=$(kubectl --kubeconfig=$KUBECONFIG get node $node_name | grep -v NotReady | grep Ready)
     squawk 13 "Result is $result"
     if [[ "$result" ]]; then
       squawk 15 "Result nailed $result"
@@ -1397,12 +1397,12 @@ check_csv () {
 }
 
 grant () {
-  export EMAIL_ADDRESS_OF_ADMIN=$1
   user_role=$2
   grant_tmp=$(mktemp)
+  EMAIL_ADDRESS_OF_ADMIN=$1 \
   envsubst < $KUBASH_DIR/templates/$user_role-role \
     > $grant_tmp
-  kubectl apply -f $grant_tmp
+  kubectl --kubeconfig=$KUBECONFIG apply -f $grant_tmp
   rm $grant_tmp
 }
 
@@ -1720,8 +1720,8 @@ do_coreos_initialization () {
 }
 
 do_openebs () {
-	kubectl create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/openebs-operator.yaml
-	kubectl create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/openebs-storageclasses.yaml
+	kubectl --kubeconfig=$KUBECONFIG create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/openebs-operator.yaml
+	kubectl --kubeconfig=$KUBECONFIG create -f https://raw.githubusercontent.com/openebs/openebs/master/k8s/openebs-storageclasses.yaml
 }
 
 coreos_build  () {
@@ -1825,7 +1825,7 @@ packer_build  () {
 
 activate_monitoring () {
   # Prometheus
-  helm install stable/prometheus
+  KUBECONFIG=$KUBECONFIG helm install stable/prometheus
 }
 
 main () {
