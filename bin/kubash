@@ -1926,7 +1926,7 @@ main () {
       --oidc)
         KUBASH_OIDC_AUTH=true
         squawk 2 "OIDC Auth turned on"
-        shift 2 ;;
+        shift;;
       --builder)
         builder=$2
         shift 2 ;;
