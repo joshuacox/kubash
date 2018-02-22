@@ -1459,6 +1459,7 @@ do_masters () {
 
 do_masters_in_parallel () {
   PARATMP=$(mktemp -d)
+  touch $PARATMP/hopper
   squawk 3 " do_masters_in_parallel"
   do_master_count=0
 
