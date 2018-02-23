@@ -3,8 +3,8 @@ kind: ServiceAccount
 metadata:
   name: $EMAIL_ADDRESS_OF_ADMIN
   namespace: kube-system
-apiVersion: rbac.authorization.k8s.io/v1beta1
 
+apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
   name: $EMAIL_ADDRESS_OF_ADMIN
