@@ -701,7 +701,7 @@ copy_image_to_all_provisioning_hosts () {
   while IFS="," read -r $uniq_hosts_list_columns
   do
     if [[ "$K8S_provisionerHost" = 'localhost' ]]; then
-      if [[ "$(realpath $K8S_builderBasePath)" == "$(realpath $K8SprovisionerBasePath)" ]]; then
+      if [[ "$(realpath $K8S_builderBasePath)" == "$(realpath $K8S_provisionerBasePath)" ]]; then
 	      echo 'builder and provisioner are the same path here'
       else
         squawk 7 "rsync -aze \"ssh -p $K8S_provisionerPort\" $K8S_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
