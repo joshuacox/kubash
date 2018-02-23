@@ -1258,9 +1258,9 @@ master_init_join () {
     DO_GRAB=true
     master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
     rm -Rf $KUBASH_CLUSTER_DIR/pki
-    ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "cd /tmp;$PSEUDO cp -a /etc/kubernetes/pki /tmp/pki;$PSEUDO chown -R $K8S_su_user pki; tar zcf pki.tgz pki; rm -Rf pki"
+    ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO -c 'cd /tmp; cp -a /etc/kubernetes/pki /tmp/pki;tar zcf pki.tgz pki;chmod 755 $K8S_su_user pki.tgz;rm -Rf pki'"
     rsync -aze "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
-    ssh -n -p $my_master_port $K8S_su_user@$my_master_ip 'rm -f /tmp/pki.tgz'
+    ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO rm -f /tmp/pki.tgz"
     cd $KUBASH_CLUSTER_DIR/ && tar zpxf pki.tgz && rm pki.tgz
     w8_kubectl
   fi
