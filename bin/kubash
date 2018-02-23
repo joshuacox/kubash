@@ -693,12 +693,12 @@ refresh_network_addresses () {
 copy_image_to_all_provisioning_hosts () {
   squawk 0 "copy_image_to_all_provisioning_hosts"
 
-  #"K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
   uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f8,9,10,11,12,13|sort|uniq)"
   squawk 8 "$uniq_hosts"
   PARATMP=$(mktemp -d)
   touch $PARATMP/hopper
   while IFS="," read -r $uniq_hosts_list_columns
+  squawk 9 " $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt"
   do
     if [[ "$K8S_provisionerHost" = 'localhost' ]]; then
       if [[ "$(realpath $K8S_builderBasePath)" == "$(realpath $K8S_provisionerBasePath)" ]]; then
@@ -793,12 +793,6 @@ do_tiller () {
   kubectl --kubeconfig=$KUBECONFIG create serviceaccount tiller --namespace kube-system
   kubectl --kubeconfig=$KUBECONFIG create -f $KUBASH_DIR/tiller/rbac-tiller-config.yaml
   KUBECONFIG=$KUBECONFIG helm init --service-account tiller
-}
-
-mid () {
-  squawk 1 " mid"
-  do_net
-  do_tiller
 }
 
 write_ansible_hosts () {
@@ -1194,10 +1188,10 @@ master_join () {
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
     hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
     squawk 3 " kubadm reset"
-    ssh -n -p $my_node_port $my_node_user@$my_node_ip "hostname; uname -a;kubeadm reset"
+    ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSUEDO hostname;$PSUEDO  uname -a;$PSUEDO kubeadm reset"
     run_join=$(cat $KUBASH_DIR/join.sh)
     squawk 1 " run join $run_join"
-    ssh -n -p $my_node_port $my_node_user@$my_node_ip "$run_join"
+    ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join"
     w8_node $my_node_name
     rolero $my_node_name master
   fi
