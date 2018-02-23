@@ -1242,14 +1242,16 @@ master_init_join () {
         > $kubeadmin_config_tmp
       rsync -aze "ssh -p $my_master_port" $kubeadmin_config_tmp $this_user@$this_ip:/tmp/config.yaml
       rm $kubeadmin_config_tmp
-      my_KUBE_INIT="$PSEUDO kubeadm init --config=/tmp/config.yaml"
+      SU_PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin'
+      my_KUBE_INIT="PATH=$SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
       squawk 5 "$my_KUBE_INIT"
-      run_join=$(ssh -n $my_master_user@$my_master_ip $my_KUBE_INIT | tee $TMP/rawresults.k8s | grep -- "$my_grep")
+      run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
     else
-      my_KUBE_INIT="$PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
+      my_KUBE_INIT="PATH=$SU_PATH $PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
       squawk 5 "$my_KUBE_INIT"
-      run_join=$(ssh -n $my_master_user@$my_master_ip $my_KUBE_INIT | tee $TMP/rawresults.k8s | grep -- "$my_grep")
+      run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
     fi
+    squawk 9 "$(cat $TMP/rawresults.k8s)"
     echo $run_join > $KUBASH_DIR/join.sh
     if [[ "$KUBASH_OIDC_AUTH" == 'true' ]]; then
       command2run='sudo sed -i "/- kube-apiserver/a\    - --oidc-issuer-url=https://accounts.google.com\n    - --oidc-username-claim=email\n    - --oidc-client-id=" /etc/kubernetes/manifests/kube-apiserver.yaml'
