@@ -702,7 +702,7 @@ copy_image_to_all_provisioning_hosts () {
   do
     if [[ "$K8S_provisionerHost" = 'localhost' ]]; then
       if [[ "$(realpath $K8S_builderBasePath)" == "$(realpath $K8S_provisionerBasePath)" ]]; then
-	      echo 'builder and provisioner are the same path here'
+        squawk 9 'builder and provisioner are the same path here'
       else
         squawk 7 "rsync -aze \"ssh -p $K8S_provisionerPort\" $K8S_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
         echo "rsync -aze \"ssh -p $K8S_provisionerPort\" $K8S_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
