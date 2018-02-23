@@ -699,8 +699,8 @@ copy_image_to_all_provisioning_hosts () {
   PARATMP=$(mktemp -d)
   touch $PARATMP/hopper
   while IFS="," read -r $uniq_hosts_list_columns
-  squawk 9 " $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt"
   do
+    squawk 9 " $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt"
     if [[ "$K8S_provisionerHost" = 'localhost' ]]; then
       if [[ "$(realpath $K8S_builderBasePath)" == "$(realpath $K8S_provisionerBasePath)" ]]; then
         squawk 9 'builder and provisioner are the same path here'
