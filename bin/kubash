@@ -1252,7 +1252,8 @@ master_init_join () {
     fi
     echo $run_join > $KUBASH_DIR/join.sh
     if [[ "$KUBASH_OIDC_AUTH" == 'true' ]]; then
-      ssh -n -p $my_master_port $my_master_user@$my_master_ip 'sed -i "/- kube-apiserver/a\    - --oidc-issuer-url=https://accounts.google.com\n    - --oidc-username-claim=email\n    - --oidc-client-id=" /etc/kubernetes/manifests/kube-apiserver.yaml'
+      command2run='sudo sed -i "/- kube-apiserver/a\    - --oidc-issuer-url=https://accounts.google.com\n    - --oidc-username-claim=email\n    - --oidc-client-id=" /etc/kubernetes/manifests/kube-apiserver.yaml'
+      ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     fi
     DO_GRAB=true
     master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
