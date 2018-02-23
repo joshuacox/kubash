@@ -12,9 +12,9 @@
 : ${KUBASH_INGRESS_NAME:='kubashingress'}
 : ${KUBASH_OIDC_AUTH:='false'}
 : ${VERBOSITY:=0}
-: ${KVM_IMAGE_DIR:=/var/lib/libvirt/images}
-: ${KUBASH_BUILDS_TMP:=$KVM_IMAGE_DIR/kubashtmp}
-: ${KUBASH_BUILDS:=$KVM_IMAGE_DIR/kubashbuilds}
+: ${K8S_builderBasePath:=/var/lib/libvirt/images}
+: ${KUBASH_BUILDS_TMP:=$K8S_builderBasePath/kubashtmp}
+: ${KUBASH_BUILDS:=$K8S_builderBasePath/kubashbuilds}
 : ${KVM_BASE_IMG:=kubash.qcow2}
 : ${KVM_RAM:=4096}
 : ${KVM_CPU:=2}
@@ -322,7 +322,7 @@ kvm-decommer () {
   $PSEUDO virsh undefine $REBASED_NODE
 
   # Create VM for node
-  $PSEUDO rm $KVM_IMAGE_DIR/$REBASED_NODE.qcow2
+  $PSEUDO rm $K8S_builderBasePath/$REBASED_NODE.qcow2
 }
 
 kvm-decommer-remote () {
@@ -333,13 +333,13 @@ kvm-decommer-remote () {
   THRU_PORT=$4
   squawk 8 "ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO virsh destroy $REBASED_NODE
   ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO virsh undefine $REBASED_NODE
-  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO rm $KVM_IMAGE_DIR/$REBASED_NODE.qcow2"
+  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO rm $K8S_builderBasePath/$REBASED_NODE.qcow2"
 
   ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO virsh destroy $REBASED_NODE"
   ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO virsh undefine $REBASED_NODE"
 
   # Create VM for node
-  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO rm $KVM_IMAGE_DIR/$REBASED_NODE.qcow2"
+  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO rm $K8S_builderBasePath/$REBASED_NODE.qcow2"
 }
 
 decom_kvm () {
@@ -701,10 +701,15 @@ copy_image_to_all_provisioning_hosts () {
   while IFS="," read -r $uniq_hosts_list_columns
   do
     if [[ "$K8S_provisionerHost" = 'localhost' ]]; then
-      squawk 8 "localhost already done"
+      if [[ "$(realpath $K8S_builderBasePath)" == "$(realpath $K8SprovisionerBasePath)" ]]; then
+	      echo 'builder and provisioner are the same path here'
+      else
+        squawk 7 "rsync -aze \"ssh -p $K8S_provisionerPort\" $K8S_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
+        echo "rsync -aze \"ssh -p $K8S_provisionerPort\" $K8S_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+      fi
     else
-      squawk 7 "rsync -azve \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-      echo "rsync -azve \"ssh -p $K8S_provisionerPort\" $K8S_provisionerBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+      squawk 7 "rsync -aze \"ssh -p $K8S_provisionerPort\" $K8S_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
+      echo "rsync -aze \"ssh -p $K8S_provisionerPort\" $K8S_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
     fi
   done <<< "$uniq_hosts"
 
@@ -2010,7 +2015,7 @@ coreos_build  () {
 
   $PSEUDO $MV_CMD \
     $KUBASH_BUILDS_TMP/coreos_production_qemu_image.img \
-    $KVM_IMAGE_DIR/$target_os-$KVM_BASE_IMG
+    $K8S_builderBasePath/$target_os-$KVM_BASE_IMG
 }
 
 packer_build  () {
@@ -2076,7 +2081,7 @@ packer_build  () {
 
   $PSEUDO $MV_CMD \
     $KUBASH_BUILDS/packer-$target_build-$build_virt/$target_build \
-    $KVM_IMAGE_DIR/$target_os-$KVM_BASE_IMG
+    $K8S_builderBasePath/$target_os-$KVM_BASE_IMG
   rmdir $KUBASH_BUILDS/packer-$target_build-$build_virt
 }
 
