@@ -19,7 +19,7 @@
 : ${KVM_RAM:=4096}
 : ${KVM_CPU:=2}
 : ${KVM_NET:='default'}
-: ${PSEUDO:=sudo}
+: ${PSEUDO:=sudo -i}
 : ${K8S_user:=root}
 : ${K8S_NET:=calico}
 : ${K8S_ssh_port:=22}
