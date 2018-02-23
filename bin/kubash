@@ -1437,15 +1437,16 @@ read_csv () {
 check_csv () {
   squawk 4 " check_csv"
   if [[ ! -e $KUBASH_HOSTS_CSV ]]; then
-    echo 'CSV file not found.  You must specify a valid csv file with the --csv option!'
+    echo 'CSV file not found.  You must specify a valid a valid cluster with the --clustername option and place your provision.csv file in its directory!'
     exit 1
   fi
 }
 
 grant () {
-  user_role=$2
+  user_role=$3
   grant_tmp=$(mktemp)
-  EMAIL_ADDRESS_OF_ADMIN=$1 \
+  USERNAME_OF_ADMIN=$1 \
+  EMAIL_ADDRESS_OF_ADMIN=$2 \
   envsubst < $KUBASH_DIR/templates/$user_role-role \
     > $grant_tmp
   kubectl --kubeconfig=$KUBECONFIG apply -f $grant_tmp
@@ -1459,8 +1460,8 @@ grant_users () {
   # user_csv_columns="user_email user_role"
   while IFS="," read -r $user_csv_columns
   do
-    squawk 3 "user_email=$user_email user_role=$user_role"
-    echo "kubash -n $KUBASH_CLUSTER_NAME grant $user_email $user_role" >> $PARATMP/hopper
+    squawk 9 "user_name=$user_name user_email=$user_email user_role=$user_role"
+    echo "kubash -n $KUBASH_CLUSTER_NAME grant $user_name $user_email $user_role" >> $PARATMP/hopper
   done <<< "$slurpy"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
