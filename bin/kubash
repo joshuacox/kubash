@@ -1677,9 +1677,23 @@ do_masters_in_parallel () {
   command2run="$PSEUDO rm /etc/kubernetes/pki/apiserver.crt"
   do_command_in_parallel_on_role "master" "$command2run"
 
-  command2run="kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_ssh_port --node-join-role master"
-  squawk 9 "$command2run"
-  do_command_in_parallel_on_role "master" "$command2run"
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "master" ]]; then
+      command2run="kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_ssh_port --node-join-role master"
+      squawk 9 "$command2run"
+      echo "$command2run" >> $PARATMP/hopper
+    fi
+  done <<< $kubash_hosts_csv_slurped
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $PARATMP/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
 }
 
 do_nodes () {
