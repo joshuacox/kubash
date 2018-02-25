@@ -1608,8 +1608,6 @@ prep_init_etcd () {
   rsync -aze "ssh -p $K8S_ssh_port" $init_etcd_tmp/pki $this_user@$this_ip:/etc/etcd/
   rm -Rf $init_etcd_tmp
 
-  command2run="$PSEUDO mkdir -p /etc/etcd/pki"
-  ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
   command2run="$PSEUDO chown $this_user /etc/etcd/pki"
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-config.json $this_user@$this_ip:/tmp/ca-config.json
