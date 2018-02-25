@@ -46,7 +46,7 @@ initial-advertise-peer-urls: "https://$PRIVATE_IP:2380"
 advertise-client-urls: "https://$PRIVATE_IP:2379"
 
 # Discovery URL used to bootstrap the cluster.
-discovery: "$ETCD_INITCLUSER_LINE"
+discovery:
 
 # Valid values include 'exit', 'proxy'
 discovery-fallback: 'proxy'
@@ -58,7 +58,7 @@ discovery-proxy:
 discovery-srv:
 
 # Initial cluster configuration for bootstrapping.
-initial-cluster:
+initial-cluster: "$ETCD_INITCLUSER_LINE"
 
 # Initial cluster token for the etcd cluster during bootstrap.
 initial-cluster-token: "$KUBASH_CLUSTER_NAME"
