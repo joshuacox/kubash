@@ -35,6 +35,7 @@
 : ${MASTERS_AS_ETCD:='false'}
 : ${BROADCAST_TO_NETWORK:='10.0.23.0/24'}
 : ${INTERFACE_NET:='eth0'}
+: ${DO_KEEPALIVED:='false'}
 
 #set -eu
 
@@ -1232,38 +1233,40 @@ master_init_join () {
   done <<< $kubash_hosts_csv_slurped
   K8S_load_balancer_ip=$(head -n1 $KUBASH_CLUSTER_DIR/ingress.ip2)
 
-  #keepalived
-  setup_keepalived_tmp=$(mktemp -d)
-
-  MASTER_VIP=$my_master_ip \
-  envsubst < $KUBASH_CLUSTER_DIR/templates/check_apiserver.sh \
-  > $setup_keepalived_tmp/check_apiserver.sh
-  copy_in_parallel_to_role master $setup_keepalived_tmp/check_apiserver.sh "/tmp/"
-  command2run="$PSEUDO mv /tmp/check_apiserver.sh /etc/keepalived/"
-  do_command_in_parallel_on_role "master" "$command2run"
-
-  MASTER_OR_BACKUP=BACKUP \
-  PRIORITY=100 \
-  INTERFACE_NET=$INTERFACE_NET \ 
-  MASTER_VIP=$my_master_ip \
-  envsubst < $KUBASH_CLUSTER_DIR/templates/keepalived.conf
-  > $setup_keepalived_tmp/keepalived.conf
-  copy_in_parallel_to_role master $setup_keepalived_tmp/keepalived.conf "/tmp/"
-  command2run="$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/"
-  do_command_in_parallel_on_role "master" "$command2run"
-  # Then let's overwrite that on our primary master
-  MASTER_OR_BACKUP=MASTER \
-  PRIORITY=101 \
-  INTERFACE_NET=$INTERFACE_NET \ 
-  MASTER_VIP=$my_master_ip \
-  envsubst < $KUBASH_CLUSTER_DIR/templates/keepalived.conf
-  > $setup_keepalived_tmp/keepalived.conf
-  rsync -aze "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $K8S_su_user@$my_master_ip:/tmp/keepalived.conf
-  command2run="$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/"
-  ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+  if [[ "DO_KEEPALIVED" == 'true' ]]; then
+    #keepalived
+    setup_keepalived_tmp=$(mktemp -d)
   
-  rm -f $setup_keepalived_tmp/keepalived.conf $setup_keepalived_tmp/check_apiserver.sh
-  rmdir $setup_keepalived_tmp
+    MASTER_VIP=$my_master_ip \
+    envsubst < $KUBASH_CLUSTER_DIR/templates/check_apiserver.sh \
+    > $setup_keepalived_tmp/check_apiserver.sh
+    copy_in_parallel_to_role master $setup_keepalived_tmp/check_apiserver.sh "/tmp/"
+    command2run="$PSEUDO mv /tmp/check_apiserver.sh /etc/keepalived/"
+    do_command_in_parallel_on_role "master" "$command2run"
+
+    MASTER_OR_BACKUP=BACKUP \
+    PRIORITY=100 \
+    INTERFACE_NET=$INTERFACE_NET \ 
+    MASTER_VIP=$my_master_ip \
+    envsubst < $KUBASH_CLUSTER_DIR/templates/keepalived.conf
+    > $setup_keepalived_tmp/keepalived.conf
+    copy_in_parallel_to_role master $setup_keepalived_tmp/keepalived.conf "/tmp/"
+    command2run="$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/"
+    do_command_in_parallel_on_role "master" "$command2run"
+    # Then let's overwrite that on our primary master
+    MASTER_OR_BACKUP=MASTER \
+    PRIORITY=101 \
+    INTERFACE_NET=$INTERFACE_NET \ 
+    MASTER_VIP=$my_master_ip \
+    envsubst < $KUBASH_CLUSTER_DIR/templates/keepalived.conf
+    > $setup_keepalived_tmp/keepalived.conf
+    rsync -aze "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $K8S_su_user@$my_master_ip:/tmp/keepalived.conf
+    command2run="$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/"
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    
+    rm -f $setup_keepalived_tmp/keepalived.conf $setup_keepalived_tmp/check_apiserver.sh
+    rmdir $setup_keepalived_tmp
+  fi
 
   squawk 0 " master_init_join $my_master_name $my_master_ip $my_master_user $my_master_port"
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
@@ -1725,6 +1728,20 @@ do_masters () {
   do_masters_in_parallel
 }
 
+do_scale_up_kube_dns () {
+  squawk 3 "do_scale_up_kube_dns"
+  do_scale_up_kube_dns=0
+
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
+    do_scale_up_kube_dns=`expr $do_scale_up_kube_dns + 1`
+    fi
+  done <<< $kubash_hosts_csv_slurped
+
+  kubectl scale --replicas=$do_scale_up_kube_dns -n kube-system  deployment/kube-dns
+}
+
 do_masters_in_parallel () {
   squawk 3 " do_masters_in_parallel"
   do_master_count=0
@@ -1774,6 +1791,7 @@ do_masters_in_parallel () {
   if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
     do_command_in_parallel_on_role "master" "$PSEUDO rm -f /tmp/config.yaml"
   fi
+  do_scale_up_kube_dns
 }
 
 do_nodes () {
