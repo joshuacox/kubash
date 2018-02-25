@@ -1695,7 +1695,7 @@ prep_etcd () {
   command2run='rm -Rf /etc/etcd/pki'
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   rsync -aze "ssh -p $K8S_ssh_port"  $KUBASH_CLUSTER_DIR/pki.tgz $this_user@$this_ip:/tmp/
-  command2run='cd /; tar zxf /tmp/pki.tgz'
+  command2run='cd /; tar zxvf /tmp/pki.tgz'
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run="chown -R $this_user /etc/etcd/pki"
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
