@@ -1681,7 +1681,7 @@ do_etcd () {
   do
     if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
       if [[ "$countzero" -lt "3" ]]; then
-	echo -n "etcd$countzero=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
+	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
       fi
       if [[ "$countzero" -lt "2" ]]; then
 	echo -n "," >> $PARATMP/etcd.line
