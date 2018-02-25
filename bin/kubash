@@ -1661,7 +1661,7 @@ do_etcd () {
       if [[ "$countzero" -lt "2" ]]; then
 	echo -n "," >> $PARATMP/etcd.line
       fi
-      echo -n "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
+      echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
       countzero=`expr $countzero + 1`
     fi
   done <<< $kubash_hosts_csv_slurped
