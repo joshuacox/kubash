@@ -1312,12 +1312,8 @@ master_init_join () {
     fi
     DO_GRAB=true
     master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
-    rm -Rf $KUBASH_CLUSTER_DIR/pki
+    rm -Rf $KUBASH_CLUSTER_DIR/pki.tgz
     rsync -aze "ssh -p $my_master_port" $KUBASH_DIR/scripts/grabpki $K8S_su_user@$my_master_ip:/tmp/grabpki
-    if [[ "$VERBOSITY" -gt 9 ]]; then
-      squawk 10 'check pki dir'
-      ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO ls -lh /etc/kubernetes/pki"
-    fi
     ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO bash /tmp/grabpki"
     squawk 15 'pull pki.tgz from primary master'
     rsync -aze "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
@@ -1693,8 +1689,8 @@ prep_etcd () {
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run='rm -Rf /etc/etcd/pki'
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  squawk 15 "rsync -azve 'ssh -p $K8S_ssh_port'  $KUBASH_CLUSTER_DIR/pki.tgz $this_user@$this_ip:/tmp/"
   rsync -azve "ssh -p $K8S_ssh_port"  $KUBASH_CLUSTER_DIR/pki.tgz $this_user@$this_ip:/tmp/
-  echo 'squawk'
   command2run='cd /; tar zxvf /tmp/pki.tgz'
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run="chown -R $this_user /etc/etcd/pki"
