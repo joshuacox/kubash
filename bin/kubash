@@ -1603,12 +1603,12 @@ prep_init_etcd () {
   cp $KUBASH_DIR/templates/ca-config.json $init_etcd_tmp/pki/ca-csr.json
   cp $KUBASH_DIR/templates/client.json $init_etcd_tmp/pki/ca-csr.json
   jinja2 $KUBASH_DIR/templates/ca-csr.json $KUBASH_CLUSTER_DIR/ca-data.yaml --format=yaml > $init_etcd_tmp/pki/ca-csr.json
-  command2run="$PSEUDO mkdir -p /etc/etcd/pki"
+  command2run=$PSEUDO mkdir -p /etc/etcd/pki
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
   rsync -aze "ssh -p $K8S_ssh_port" $init_etcd_tmp/pki $this_user@$this_ip:/etc/etcd/
   rm -Rf $init_etcd_tmp
 
-  command2run="$PSEUDO chown $this_user /etc/etcd/pki"
+  command2run=$PSEUDO chown $this_user /etc/etcd/pki
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-config.json $this_user@$this_ip:/tmp/ca-config.json
   command2run="$PSEUDO mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json"
