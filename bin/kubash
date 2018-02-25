@@ -2555,7 +2555,7 @@ main () {
       usage
       exit 1
     fi
-    prepetcd $@
+    prep_etcd $@
   elif [[ $RAISON == "copy" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
