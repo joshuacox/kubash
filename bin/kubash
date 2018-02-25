@@ -1583,10 +1583,10 @@ finish_etcd () {
   PEER_NAME=$PEER_NAME \
   PRIVATE_IP=$PRIVATE_IP \
   ETCD_INITCLUSER_LINE="$(cat $KUBASH_CLUSTER_DIR/etcd.line)" \
-  envsubst < $KUBASH_DIR/templates/etcd.conf \
+  envsubst < $KUBASH_DIR/templates/etcd.conf.yml \
   > $etctmp
-  rsync -aze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/tmp/etcd.conf
-  command2run="sudo mv /tmp/etcd.conf /etc/etcd/etcd.conf"
+  rsync -aze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/tmp/etcd.conf.yml
+  command2run="sudo mv /tmp/etcd.conf /etc/etcd/etcd.conf.yml"
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
 
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
