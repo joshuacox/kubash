@@ -1791,7 +1791,7 @@ do_masters_in_parallel () {
   if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
     do_command_in_parallel_on_role "master" "$PSEUDO rm -f /tmp/config.yaml"
   fi
-  do_scale_up_kube_dns
+  #do_scale_up_kube_dns
 }
 
 do_nodes () {
