@@ -1644,13 +1644,13 @@ prep_init_etcd () {
   command2run='cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client'
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
-  rsync -aze "ssh -p $my_master_port" $KUBASH_DIR/scripts/grabpki $K8S_su_user@$my_master_ip:/tmp/grabpki
+  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/scripts/grabpki $this_user@$this_ip:/tmp/grabpki
   if [[ "$VERBOSITY" -gt 9 ]]; then
     squawk 10 'check pki dir'
-    ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO ls -lh /etc/kubernetes/pki"
+    ssh -n -p $K8S_ssh_port $this_user@$this_ip "$PSEUDO ls -lh /etc/kubernetes/pki"
   fi
-  ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO bash /tmp/grabpki"
-  rsync -aze "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
+  ssh -n -p $K8S_ssh_port $K8S_su_user@$my_master_ip "$PSEUDO bash /tmp/grabpki"
+  rsync -aze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
   finish_etcd $this_user $this_ip $this_name
 }
 
