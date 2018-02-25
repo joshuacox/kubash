@@ -1612,7 +1612,7 @@ prep_init_etcd () {
   rsync -aze "ssh -p $K8S_ssh_port" $init_etcd_tmp/pki $this_user@$this_ip:/etc/etcd/
   rm -Rf $init_etcd_tmp
 
-  command2run='sudo  chown $this_user /etc/etcd/pki'
+  command2run="sudo  chown $this_user /etc/etcd/pki"
   do_command $K8S_ssh_port $this_user $this_ip "$command2run"
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-config.json $this_user@$this_ip:/tmp/ca-config.json
   command2run='sudo  mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json'
@@ -1883,7 +1883,7 @@ do_command () {
   command2run=$4
   touch $PARATMP/hopper
   squawk 13 " do_command $1 $2 $3 $4" 
-  squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"lbash -c '$command2run'\""
+  squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"bash -c '$command2run'\""
   ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 "bash -c '$command2run'"
 }
 
