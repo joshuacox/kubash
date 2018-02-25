@@ -63,7 +63,10 @@ squawk () {
   # the number given then this function will echo out your message
   # and pad it with # to let you now how verbose that message was
   squawk_lvl=$1
-  squawk=$2
+  shift
+  squawk=$1
+  shift
+  squawk_opt=$@
 
   if [[ "$VERBOSITY" -ge "$squawk_lvl" ]] ; then
   count_squawk=0
@@ -962,7 +965,7 @@ removestalekeys () {
 }
 
 w8_kubedns () {
-  echo -n "wait on Kube-DNS to become available"
+  squawk 10 "wait on Kube-DNS to become available" -n
   sleep 1
   
   # while loop
@@ -970,12 +973,12 @@ w8_kubedns () {
   # timeout for 15 minutes
   while [[ $countone -lt 151 ]]
   do
-    echo -n '.'
+    squawk 10 '.' -n
     RESULT=$(kubectl --kubeconfig=$KUBECONFIG get po --namespace kube-system |grep kube-dns|grep Running)
     if [[ "$RESULT" ]]; then
         sleep 3
-        echo '.'
-        echo "$RESULT"
+        squawk 10 '.'
+        squawk 10 "$RESULT"
         break
     fi
     countone=`expr $countone + 1`
@@ -987,14 +990,14 @@ w8_kubedns () {
 }
 
 w8_kubectl () {
-  echo -n "# wait on the K8S cluster to become available"
+  squawk 10 "Wait on the K8S cluster to become available" -n
   sleep 15
   # while loop
   countone_w8_kubectl=1
   countlimit_w8_kubectl=151
   # timeout for 15 minutes
   while [[ "$countone_w8_kubectl" -lt "$countlimit_w8_kubectl" ]]; do
-    echo -n '.'
+    squawk 10 '.' -n
     if [[ "$VERBOSITY" -gt "11" ]] ; then
       kubectl --kubeconfig=$KUBECONFIG get pods -n kube-system | grep kube-apiserver
     fi
@@ -1009,20 +1012,20 @@ w8_kubectl () {
     squawk 19 "$countone_w8_kubectl"
     sleep 5
   done
-  echo  "."
+  squawk 10  "."
   squawk 11 "kubectl commands are now able to interact with the kubernetes cluster"
 }
 
 w8_node () {
   node_name=$1
-  echo -n "# wait on the K8S node $node_name to become available"
+  squawk 10 "Wait on the K8S node $node_name to become available" -n
   sleep 5
   # while loop
   countone_w8_node=1
   countlimit_w8_node=151
   # timeout for 15 minutes
   while [[ "$countone_w8_node" -lt "$countlimit_w8_node" ]]; do
-    echo -n '.'
+    squawk 10 '.' -n
     if [[ "$VERBOSITY" -gt "11" ]] ; then
       kubectl --kubeconfig=$KUBECONFIG get node $node_name
     fi
@@ -1037,8 +1040,8 @@ w8_node () {
     squawk 19 "$countone_w8_node"
     sleep 3
   done
-  echo  "."
-  echo  "kubectl commands are now able to interact with the kubernetes node"
+  squawk 10  "."
+  squawk 10  "kubectl commands are now able to interact with the kubernetes node"
 }
 
 remove_vagrant_user () {
@@ -1101,9 +1104,14 @@ ping () {
   do
     squawk 11 "$K8S_ip1"
     squawk 13 "$K8S_user"
-    ssh -n -p $K8S_ssh_port $K8S_user@$K8S_ip1 'echo pong'
-    squawk 13 "$K8S_su_user"
-    ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'echo pong'
+    if [[ "$VERBOSITY" -gt 10 ]]; then
+      ssh -n -p $K8S_ssh_port $K8S_user@$K8S_ip1 'echo pong'
+      squawk 13 "$K8S_su_user"
+      ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'echo pong'
+    else
+      ssh -n -p $K8S_ssh_port $K8S_user@$K8S_ip1 'touch /tmp/sshpingtest-kubash'
+      ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'touch /tmp/sshpingtest-kubash'
+    fi
   done < $KUBASH_HOSTS_CSV
 }
 
