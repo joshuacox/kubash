@@ -1754,7 +1754,7 @@ do_masters_in_parallel () {
     my_master_ip=$my_master_ip \
     load_balancer_ip=$K8S_load_balancer_ip \
     ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
-    envsubst  < $KUBASH_DIR/tmp/kubeadm-config.yaml
+    envsubst  < $KUBASH_DIR/templates/kubeadm-config.yaml
       > $kubeadmin_config_tmp
     copy_in_parallel_to_role master "$kubeadmin_config_tmp" "/tmp/config.yaml"
     rm $kubeadmin_config_tmp
