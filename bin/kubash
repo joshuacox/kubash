@@ -1883,8 +1883,8 @@ do_command () {
   command2run=$4
   touch $PARATMP/hopper
   squawk 13 " do_command $1 $2 $3 $4" 
-  squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 bash -c '$command2run'"
-  ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"bash -c '$command2run'\"
+  squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"lbash -c '$command2run'\""
+  ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 "bash -c '$command2run'"
 }
 
 copy_in_parallel_to_role () {
