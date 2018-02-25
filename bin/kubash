@@ -1582,7 +1582,7 @@ finish_etcd () {
   KUBASH_CLUSTER_NAME=$KUBASH_CLUSTER_NAME \
   PEER_NAME=$PEER_NAME \
   PRIVATE_IP=$PRIVATE_IP \
-  ETCD_INITIAL_CLUSTER="$(cat $KUBASH_CLUSTER_DIR/etcd.line)" \
+  ETCD_INITCLUSER_LINE="$(cat $KUBASH_CLUSTER_DIR/etcd.line)" \
   envsubst < $KUBASH_DIR/templates/etcd.conf \
   > $etctmp
   rsync -aze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/tmp/etcd.conf
