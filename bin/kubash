@@ -1617,7 +1617,9 @@ prep_init_etcd () {
   command2run='mkdir -p /etc/etcd/pki'
   squawk 15 "command2run $command2run"
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
-  rsync -aze "ssh -p $K8S_ssh_port" $init_etcd_tmp/pki $this_user@$this_ip:/etc/etcd/
+  rsync -aze "ssh -p $K8S_ssh_port" $init_etcd_tmp/pki $this_user@$this_ip:/tmp/
+  command2run='mv /tmp/pki /etc/etcd/pki'
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   rm -Rf $init_etcd_tmp
 
   command2run="chown $this_user /etc/etcd/pki"
