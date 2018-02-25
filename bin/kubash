@@ -1250,7 +1250,7 @@ master_init_join () {
     envsubst < $KUBASH_CLUSTER_DIR/templates/check_apiserver.sh \
     > $setup_keepalived_tmp/check_apiserver.sh
     copy_in_parallel_to_role master $setup_keepalived_tmp/check_apiserver.sh "/tmp/"
-    command2run="$PSEUDO mv /tmp/check_apiserver.sh /etc/keepalived/"
+    command2run=$PSEUDO mv /tmp/check_apiserver.sh /etc/keepalived/
     do_command_in_parallel_on_role "master" "$command2run"
 
     MASTER_OR_BACKUP=BACKUP \
@@ -1260,7 +1260,7 @@ master_init_join () {
     envsubst < $KUBASH_CLUSTER_DIR/templates/keepalived.conf
     > $setup_keepalived_tmp/keepalived.conf
     copy_in_parallel_to_role master $setup_keepalived_tmp/keepalived.conf "/tmp/"
-    command2run="$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/"
+    command2run=$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/
     do_command_in_parallel_on_role "master" "$command2run"
     # Then let's overwrite that on our primary master
     MASTER_OR_BACKUP=MASTER \
@@ -1270,7 +1270,7 @@ master_init_join () {
     envsubst < $KUBASH_CLUSTER_DIR/templates/keepalived.conf
     > $setup_keepalived_tmp/keepalived.conf
     rsync -aze "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $K8S_su_user@$my_master_ip:/tmp/keepalived.conf
-    command2run="$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/"
+    command2run=$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     
     rm -f $setup_keepalived_tmp/keepalived.conf $setup_keepalived_tmp/check_apiserver.sh
@@ -1298,7 +1298,7 @@ master_init_join () {
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
       squawk 15 "$my_KUBE_INIT"
       run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
-      command2run="$PSEUDO rm /tmp/config.yaml"
+      command2run=$PSEUDO rm /tmp/config.yaml
       ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     else
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
@@ -1541,24 +1541,24 @@ finish_etcd () {
   this_ip=$2
   PEER_NAME=$3
 
-  command2run="cd /etc/etcd/pki; $PSEUDO cfssl print-defaults csr > config.json"
+  command2run=cd /etc/etcd/pki; $PSEUDO cfssl print-defaults csr > config.json
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="$PSEUDO sed -i '0,/CN/{s/example\.net/'"$PEER_NAME"'/}' /etc/etcd/pki/config.json"
+  command2run=$PSEUDO sed -i '0,/CN/{s/example\.net/'$PEER_NAME'/}' /etc/etcd/pki/config.json
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="$PSEUDO sed -i 's/www\.example\.net/'"$PRIVATE_IP"'/' /etc/etcd/pki/config.json"
+  command2run=$PSEUDO sed -i 's/www\.example\.net/'$PRIVATE_IP'/' /etc/etcd/pki/config.json
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="$PSEUDO sed -i 's/example\.net/'"$PEER_NAME"'/' /etc/etcd/pki/config.json"
+  command2run=$PSEUDO sed -i 's/example\.net/'$PEER_NAME'/' /etc/etcd/pki/config.json
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json |$PSEUDO cfssljson -bare server"
+  command2run=cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json |$PSEUDO cfssljson -bare server
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json |$PSEUDO cfssljson -bare peer"
+  command2run=cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json |$PSEUDO cfssljson -bare peer
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="$PSEUDO chown -R etcd:etcd /etc/etcd/pki"
+  command2run=$PSEUDO chown -R etcd:etcd /etc/etcd/pki
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="$PSEUDO mkdir -p /etc/kubernetes/pki/etcd"
+  command2run=$PSEUDO mkdir -p /etc/kubernetes/pki/etcd
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
   squawk 15 'cp the etcd pki files'
-  command2run="$PSEUDO cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/"
+  command2run=$PSEUDO cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
 
   if [[ -e $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz ]]; then
@@ -1568,9 +1568,9 @@ finish_etcd () {
     wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz 
   fi
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz $this_user@$this_ip:/tmp/
-  command2run="$PSEUDO tar -xzf --strip-components=1 -C /usr/local/bin/ /tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz"
+  command2run=$PSEUDO tar -xzf --strip-components=1 -C /usr/local/bin/ /tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="touch /etc/etcd.env"
+  command2run=touch /etc/etcd.env
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
   etctmp=$(mktemp)
   KUBASH_CLUSTER_NAME=$KUBASH_CLUSTER_NAME \
@@ -1582,13 +1582,13 @@ finish_etcd () {
   rsync -aze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/etc/etcd/etcd.conf
 
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
-  command2run="$PSEUDO cp /tmp/etcd.service /lib/systemd/system/etcd.service"
+  command2run=$PSEUDO cp /tmp/etcd.service /lib/systemd/system/etcd.service
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
 
   rm $etctmp
-  command2run="$PSEUDO systemctl daemon-reload"
+  command2run=$PSEUDO systemctl daemon-reload
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="$PSEUDO systemctl start etcd"
+  command2run=$PSEUDO systemctl start etcd
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
   # Run kubeadm init on master0
 }
@@ -1611,15 +1611,15 @@ prep_init_etcd () {
   command2run=$PSEUDO chown $this_user /etc/etcd/pki
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/ca-config.json $this_user@$this_ip:/tmp/ca-config.json
-  command2run="$PSEUDO mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json"
+  command2run=$PSEUDO mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
 
   rsync -aze "ssh -p $K8S_ssh_port" /usr/local/bin/cfssl $this_user@$this_ip:/tmp/cfssl
-  command2run="$PSEUDO mv /tmp/cfssl /usr/local/bin/cfssl"
+  command2run=$PSEUDO mv /tmp/cfssl /usr/local/bin/cfssl
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
 
   rsync -aze "ssh -p $K8S_ssh_port" /usr/local/bin/cfssljson $this_user@$this_ip:/tmp/cfssljson
-  command2run="$PSEUDO mv /tmp/cfssljson /usr/local/bin/cfssljson"
+  command2run=$PSEUDO mv /tmp/cfssljson /usr/local/bin/cfssljson
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
 
   command2run='cd /etc/etcd/pki; cfssl gencert -initca ca-csr.json | cfssljson -bare ca -'
@@ -1636,9 +1636,9 @@ prep_etcd () {
   this_user=$1
   this_ip=$2
   this_name=$3
-  command2run="$PSEUDO mkdir -p /etc/etcd/pki"
+  command2run=$PSEUDO mkdir -p /etc/etcd/pki
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
-  command2run="$PSEUDO chown $this_user /etc/etcd/pki"
+  command2run=$PSEUDO chown $this_user /etc/etcd/pki
   ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/pki $this_user@$this_ip:/etc/etcd/
   finish_etcd $this_user $this_ip $this_name
@@ -1763,9 +1763,9 @@ do_masters_in_parallel () {
   do_master_count=0
 
   copy_in_parallel_to_role master "$KUBASH_CLUSTER_DIR/pki.tgz" "/tmp/"
-  command2run="cd /;$PSEUDO tar pzxf /tmp/pki.tgz"
+  command2run=cd /;$PSEUDO tar pzxf /tmp/pki.tgz
   do_command_in_parallel_on_role "master" "$command2run"
-  #command2run="$PSEUDO rm /etc/kubernetes/pki/apiserver.crt"
+  #command2run=$PSEUDO rm /etc/kubernetes/pki/apiserver.crt
   #do_command_in_parallel_on_role "master" "$command2run"
   if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
     kubeadmin_config_tmp=$(mktemp)
