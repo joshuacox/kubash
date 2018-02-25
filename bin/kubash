@@ -1600,9 +1600,39 @@ finish_etcd () {
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='systemctl daemon-reload'
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run='systemctl start etcd'
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+}
+
+start_etcd () {
+
   # Run kubeadm init on master0
+  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  touch $PARATMP/hopper
+  squawk 13 " do_etcd"
+
+  countzero=0
+  touch $PARATMP/endpoints.line
+  echo 'etcd:' >> $PARATMP/endpoints.line
+  echo '  endpoints:' > $PARATMP/endpoints.line
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
+      if [[ "$countzero" -lt "3" ]]; then
+	command2run='systemctl start etcd'
+	squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'sudo bash -c \"$command2run\"'"
+	echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'sudo bash -c \"$command2run\"'" >> $PARATMP/hopper
+      fi
+    fi
+  done <<< $kubash_hosts_csv_slurped
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $PARATMP/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+  else
+    bash $PARATMP/hopper
+  fi
+  rm -Rf $PARATMP
 }
 
 prep_init_etcd () {
