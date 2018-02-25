@@ -1556,7 +1556,8 @@ finish_etcd () {
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
   command2run="$PSEUDO mkdir -p /etc/kubernetes/pki/etcd"
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
-  command2run="$PSEUDO cp /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/"
+  squawk 15 'cp the etcd pki files'
+  command2run="$PSEUDO cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/"
   ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
 
   if [[ -e $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz ]]; then
