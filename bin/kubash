@@ -2534,6 +2534,12 @@ main () {
       exit 1
     fi
     apparmor_fix_all_provisioning_hosts
+  elif [[ $RAISON == "prepetcd" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    prepetcd $@
   elif [[ $RAISON == "copy" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
