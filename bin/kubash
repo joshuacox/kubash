@@ -1319,7 +1319,6 @@ master_init_join () {
     sudo_command $my_master_port $K8S_su_user $my_master_ip "$command2run"
     squawk 15 'pull pki.tgz from primary master'
     rsync -azve "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
-    sleep 3600
     ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO rm -f /tmp/pki.tgz;$PSEUDO rm -f /tmp/grabpki"
     w8_kubectl
     do_net
@@ -1677,10 +1676,10 @@ prep_init_etcd () {
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/scripts/grabpki $this_user@$this_ip:/tmp/grabpki
-  if [[ "$VERBOSITY" -gt 9 ]]; then
-    squawk 10 'check pki dir'
-    ssh -n -p $K8S_ssh_port $this_user@$this_ip "$PSEUDO ls -lh /etc/kubernetes/pki"
-  fi
+  command2run="bash /tmp/grabpki"
+  sudo_command $my_master_port $K8S_su_user $my_master_ip "$command2run"
+  squawk 15 'pull pki.tgz from primary master'
+  rsync -azve "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
   finish_etcd $this_user $this_ip $this_name
 }
 
