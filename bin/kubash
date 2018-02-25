@@ -1627,10 +1627,10 @@ prep_init_etcd () {
   do_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
   command2run='cd /etc/etcd/pki; cfssl gencert -initca ca-csr.json | cfssljson -bare ca -'
-  ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
+  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
   command2run='cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client'
-  ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
+  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
   rsync -aze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/etcd/pki $KUBASH_CLUSTER_DIR/
   finish_etcd $this_user $this_ip $this_name
@@ -1641,9 +1641,9 @@ prep_etcd () {
   this_ip=$2
   this_name=$3
   command2run='sudo  mkdir -p /etc/etcd/pki'
-  ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
+  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run='sudo  chown $this_user /etc/etcd/pki'
-  ssh -n -p $K8S_ssh_port $this_user@$this_ip \"$command2run\"
+  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/pki $this_user@$this_ip:/etc/etcd/
   finish_etcd $this_user $this_ip $this_name
 }
@@ -1859,8 +1859,8 @@ do_command_in_parallel () {
   do 
     countzero_do_nodes=`expr $countzero_do_nodes + 1`
     squawk 13 " count $countzero_do_nodes"
-    squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"bash -c '$command2run'\""
-    echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"bash -c '$command2run'\""\
+    squawk 15 "do_command $K8S_ssh_port $K8S_su_user $K8S_ip1 \"bash -c '$command2run'\""
+    echo "do_command $K8S_ssh_port $K8S_su_user $K8S_ip1 "bash -c '$command2run'""\
 	      >> $PARATMP/hopper
   done <<< $kubash_hosts_csv_slurped
 
