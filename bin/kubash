@@ -1549,9 +1549,9 @@ finish_etcd () {
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run="sed -i 's/example\.net/'$PEER_NAME'/' /etc/etcd/pki/config.json"
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run="cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json |$PSEUDO cfssljson -bare server"
+  command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json | cfssljson -bare server"
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run="cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json |$PSEUDO cfssljson -bare peer"
+  command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json | cfssljson -bare peer"
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='chown -R etcd:etcd /etc/etcd/pki'
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
@@ -1775,7 +1775,7 @@ do_masters_in_parallel () {
   do_master_count=0
 
   copy_in_parallel_to_role master "$KUBASH_CLUSTER_DIR/pki.tgz" "/tmp/"
-  command2run=cd /;$PSEUDO tar pzxf /tmp/pki.tgz
+  command2run=cd /;tar pzxf /tmp/pki.tgz
   do_command_in_parallel_on_role "master" "$command2run"
   #command2run='sudo  rm /etc/kubernetes/pki/apiserver.crt'
   #do_command_in_parallel_on_role "master" "$command2run"
@@ -1819,7 +1819,7 @@ do_masters_in_parallel () {
   fi
   rm -Rf $do_master_tmp
   if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
-    do_command_in_parallel_on_role "master" "$PSEUDO rm -f /tmp/config.yaml"
+    do_command_in_parallel_on_role "master" "rm -f /tmp/config.yaml"
   fi
   #do_scale_up_kube_dns
 }
@@ -2079,14 +2079,14 @@ do_coreos_initialization () {
   CORETMP=$KUBASH_DIR/tmp
   cd $CORETMP
   
-  do_command_in_parallel_on_os 'coreos' "$PSEUDO mkdir -p /opt/cni/bin"
+  do_command_in_parallel_on_os 'coreos' "mkdir -p /opt/cni/bin"
   wget -c "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz"
   copy_in_parallel_to_os "coreos" $CORETMP/cni-plugins-amd64-${CNI_VERSION}.tgz /tmp/
   #rm $CORETMP/cni-plugins-amd64-${CNI_VERSION}.tgz
-  do_command_in_parallel_on_os "coreos" "$PSEUDO tar -C /opt/cni/bin -xzf /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
-  do_command_in_parallel_on_os "coreos" "$PSEUDO rm -f /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
+  do_command_in_parallel_on_os "coreos" "tar -C /opt/cni/bin -xzf /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
+  do_command_in_parallel_on_os "coreos" "rm -f /tmp/cni-plugins-amd64-${CNI_VERSION}.tgz"
   
-  do_command_in_parallel_on_os "coreos" "$PSEUDO mkdir -p /opt/bin"
+  do_command_in_parallel_on_os "coreos" "mkdir -p /opt/bin"
 
   if [[ -e "$CORETMP/kubelet" ]]; then
     squawk 19 "kubelet has no headers and will not continue skipping for now"
@@ -2095,15 +2095,15 @@ do_coreos_initialization () {
   fi
   # cd /opt/bin
   copy_in_parallel_to_os "coreos" $CORETMP/kubeadm /tmp/
-  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubeadm /opt/bin/"
+  do_command_in_parallel_on_os "coreos" "mv /tmp/kubeadm /opt/bin/"
   #rm $CORETMP/kubeadm
   copy_in_parallel_to_os "coreos" $CORETMP/kubelet /tmp/
-  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubelet /opt/bin/"
+  do_command_in_parallel_on_os "coreos" "mv /tmp/kubelet /opt/bin/"
   #rm $CORETMP/kubelet
   copy_in_parallel_to_os "coreos" $CORETMP/kubectl /tmp/
-  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubectl /opt/bin/"
+  do_command_in_parallel_on_os "coreos" "mv /tmp/kubectl /opt/bin/"
   #rm $CORETMP/kubectl
-  do_command_in_parallel_on_os "coreos" "cd /opt/bin;$PSEUDO chmod +x {kubeadm,kubelet,kubectl}"
+  do_command_in_parallel_on_os "coreos" "cd /opt/bin; chmod +x {kubeadm,kubelet,kubectl}"
   
   if [[ -e "$CORETMP/kubelet.service" ]]; then
     squawk 19 "already retrieved"
@@ -2112,9 +2112,9 @@ do_coreos_initialization () {
     sed -i 's:/usr/bin:/opt/bin:g' $CORETMP/kubelet.service
   fi
   copy_in_parallel_to_os "coreos" $CORETMP/kubelet.service /tmp/kubelet.service
-  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/kubelet.service /etc/systemd/system/kubelet.service"
+  do_command_in_parallel_on_os "coreos" "mv /tmp/kubelet.service /etc/systemd/system/kubelet.service"
   rm $CORETMP/kubelet.service
-  do_command_in_parallel_on_os "coreos" "$PSEUDO mkdir -p /etc/systemd/system/kubelet.service.d"
+  do_command_in_parallel_on_os "coreos" "mkdir -p /etc/systemd/system/kubelet.service.d"
   if [[ -e "$CORETMP/10-kubeadm.conf" ]]; then
     squawk 19 "already retrieved"
   else
@@ -2122,13 +2122,13 @@ do_coreos_initialization () {
     sed -i 's:/usr/bin:/opt/bin:g' $CORETMP/10-kubeadm.conf
   fi
   copy_in_parallel_to_os "coreos" $CORETMP/10-kubeadm.conf /tmp/10-kubeadm.conf
-  do_command_in_parallel_on_os "coreos" "$PSEUDO mv /tmp/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
+  do_command_in_parallel_on_os "coreos" " mv /tmp/10-kubeadm.conf /etc/systemd/system/kubelet.service.d/10-kubeadm.conf"
   rm $CORETMP/10-kubeadm.conf
 
-  do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl restart docker.service ; $PSEUDO systemctl enable docker.service"
+  do_command_in_parallel_on_os "coreos" " systemctl restart docker.service ; systemctl enable docker.service"
 
-  #do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl unmask kubelet.service ; $PSEUDO systemctl restart kubelet.service ; $PSEUDO systemctl enable kubelet.service"
-  do_command_in_parallel_on_os "coreos" "$PSEUDO systemctl restart kubelet.service ; $PSEUDO systemctl enable kubelet.service"
+  #do_command_in_parallel_on_os "coreos" "systemctl unmask kubelet.service ; systemctl restart kubelet.service ; systemctl enable kubelet.service"
+  do_command_in_parallel_on_os "coreos" "systemctl restart kubelet.service ; systemctl enable kubelet.service"
   
   #rmdir $CORETMP
 }
