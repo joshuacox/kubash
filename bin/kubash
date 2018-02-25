@@ -1594,6 +1594,8 @@ finish_etcd () {
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
 
   rm $etctmp
+  command2run='chown -R etcd.etcd /etc/etcd'
+  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='systemctl daemon-reload'
   sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='systemctl start etcd'
