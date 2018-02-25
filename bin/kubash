@@ -1567,6 +1567,8 @@ finish_etcd () {
     cd $KUBASH_DIR/tmp
     wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz 
   fi
+  command2run='sudo useradd etcd'
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   etcd_extract_tmp=$(mktemp -d)
   sudo tar --strip-components=1 -C $etcd_extract_tmp -xzf $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
   rsync -aze "ssh -p $K8S_ssh_port" $etcd_extract_tmp/etcd $this_user@$this_ip:/tmp/
