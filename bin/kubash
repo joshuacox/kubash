@@ -1535,6 +1535,7 @@ grant_users () {
 }
 
 finish_etcd () {
+  squawk 15 'finish_etcd'
   this_user=$1
   PRIVATE_IP=$2
   this_ip=$2
@@ -1692,16 +1693,20 @@ do_etcd () {
   countzero=0
   while IFS="," read -r $csv_columns
   do
-    if [[ "$K8S_role" == "etcd" ]]; then
+    if [[ "$K8S_role" == "primary_master"  ]]; then
       if [[ "$countzero" -eq "0" ]]; then
         countzero=`expr $countzero + 1`
         prep_init_etcd $K8S_su_user $K8S_ip1 $K8S_node
       else
+	      echo 'there should only be one primary'
+	      exit 1
+      fi
+    fi
+    if [[$K8S_role" == "etcd" || "$K8S_role" == "master"  ]]; then
         squawk 33 "$K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_ip1 $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
         squawk 13 "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_su_user $K8S_ip1 $K8S_node"
         echo "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_su_user $K8S_ip1" \
           >> $PARATMP/hopper
-      fi
     fi
   done <<< $kubash_hosts_csv_slurped
 
