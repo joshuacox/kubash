@@ -1577,9 +1577,6 @@ finish_etcd () {
   # Run kubeadm init on master0
 }
 
-setup_keepalived () {
-}
-
 prep_init_etcd () {
   this_user=$1
   this_ip=$2
