@@ -1600,7 +1600,7 @@ prep_init_etcd () {
 
   init_etcd_tmp=$(mktemp -d)
   mkdir $init_etcd_tmp/pki
-  cp $KUBASH_DIR/templates/ca-config.json $init_etcd_tmp/pki/ca-csr.json
+  cp $KUBASH_DIR/templates/ca-config.json $init_etcd_tmp/pki/ca-config.json
   cp $KUBASH_DIR/templates/client.json $init_etcd_tmp/pki/client.json
   jinja2 $KUBASH_DIR/templates/ca-csr.json $KUBASH_CLUSTER_DIR/ca-data.yaml --format=yaml > $init_etcd_tmp/pki/ca-csr.json
   command2run='sudo  mkdir -p /etc/etcd'
