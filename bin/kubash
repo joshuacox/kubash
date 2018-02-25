@@ -607,7 +607,7 @@ provisioner () {
   apparmor_fixed='false'
   if [[ -e "$KUBASH_HOSTS_CSV" ]]; then
     horizontal_rule
-    rm -v $KUBASH_HOSTS_CSV
+    rm $KUBASH_HOSTS_CSV
   fi
   touch $KUBASH_HOSTS_CSV
   while IFS="," read -r $csv_columns
@@ -813,7 +813,7 @@ write_ansible_openshift_hosts () {
   slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   if [[ -e "$KUBASH_ANSIBLE_HOSTS" ]]; then
     horizontal_rule
-    rm -v $KUBASH_ANSIBLE_HOSTS
+    rm $KUBASH_ANSIBLE_HOSTS
     touch $KUBASH_ANSIBLE_HOSTS
   else
     touch $KUBASH_ANSIBLE_HOSTS
@@ -899,7 +899,7 @@ write_ansible_kubespray_hosts () {
   slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   if [[ -e "$KUBASH_ANSIBLE_HOSTS" ]]; then
     horizontal_rule
-    rm -v $KUBASH_ANSIBLE_HOSTS
+    rm $KUBASH_ANSIBLE_HOSTS
     touch $KUBASH_ANSIBLE_HOSTS
   else
     touch $KUBASH_ANSIBLE_HOSTS
@@ -2003,8 +2003,8 @@ preppy () {
 do_decom () {
   if [[ "$ANSWER_YES" == "yes" ]]; then
     decom_kvm
-    rm -v $KUBASH_HOSTS_CSV
-    rm -v $KUBASH_ANSIBLE_HOSTS
+    rm $KUBASH_HOSTS_CSV
+    rm $KUBASH_ANSIBLE_HOSTS
   else
     read -p "This will destroy all VMs defined in the $KUBASH_HOSTS_CSV. Are you sure? [y/N] " -n 1 -r
     echo    # (optional) move to a new line
@@ -2012,9 +2012,9 @@ do_decom () {
     then
       decom_kvm
     fi
-    rm -v $KUBASH_HOSTS_CSV
-    rm -v $KUBASH_ANSIBLE_HOSTS
-    rm -v $KUBASH_CLUSTER_CONFIG
+    rm $KUBASH_HOSTS_CSV
+    rm $KUBASH_ANSIBLE_HOSTS
+    rm $KUBASH_CLUSTER_CONFIG
   fi
 }
 
