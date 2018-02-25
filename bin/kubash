@@ -1541,17 +1541,17 @@ finish_etcd () {
   this_ip=$2
   PEER_NAME=$3
 
-  command2run=cd /etc/etcd/pki; $PSEUDO cfssl print-defaults csr > config.json
+  command2run="cd /etc/etcd/pki; $PSEUDO cfssl print-defaults csr > config.json"
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run='sudo  sed -i '0,/CN/{s/example\.net/'$PEER_NAME'/}' /etc/etcd/pki/config.json'
+  command2run="sudo  sed -i '0,/CN/{s/example\.net/'$PEER_NAME'/}' /etc/etcd/pki/config.json"
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run='sudo  sed -i 's/www\.example\.net/'$PRIVATE_IP'/' /etc/etcd/pki/config.json'
+  command2run="sudo  sed -i 's/www\.example\.net/'$PRIVATE_IP'/' /etc/etcd/pki/config.json"
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run='sudo  sed -i 's/example\.net/'$PEER_NAME'/' /etc/etcd/pki/config.json'
+  command2run="sudo  sed -i 's/example\.net/'$PEER_NAME'/' /etc/etcd/pki/config.json"
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run=cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json |$PSEUDO cfssljson -bare server
+  command2run="cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json |$PSEUDO cfssljson -bare server"
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run=cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json |$PSEUDO cfssljson -bare peer
+  command2run="cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json |$PSEUDO cfssljson -bare peer"
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='sudo  chown -R etcd:etcd /etc/etcd/pki'
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
