@@ -93,6 +93,7 @@ main () {
   cd $KUBASH_DIR
   git submodule update --init --recursive
   make submodules/openebs
+  make jinja2
   $KUBASH_BIN/kubash dotfiles
   check_install helm
   check_install packer

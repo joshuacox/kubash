@@ -44,7 +44,7 @@ $(eval HELM_INSTALL_DIR := "$(KUBASH_BIN)")
 
 reqs: linuxreqs
 
-linuxreqs: $(KUBASH_BIN) kubectl helm minikube
+linuxreqs: $(KUBASH_BIN) kubectl helm minikube jinja2 submodules/openebs
 
 helm: $(KUBASH_BIN)
 	@scripts/kubashnstaller helm
@@ -131,6 +131,7 @@ example:
 	cp -iv hosts.csv.example clusters/default/hosts.csv
 	cp -iv users.csv.example clusters/default/users.csv
 	cp -iv provision.csv.example clusters/default/provision.csv
+	cp -iv ca-data.yaml.example clusters/default/ca-data.yaml
 	cp -iv templates/ca-csr.json clusters/default/
 	cp -iv templates/ca-config.json clusters/default/
 	cp -iv templates/client.json clusters/default/
@@ -284,3 +285,6 @@ cfssl:
 	sudo curl -o /usr/local/bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
 	sudo curl -o /usr/local/bin/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
 	sudo chmod +x /usr/local/bin/cfssl*
+
+jinja2:
+	pip install jinja2 jinja2-cli
