@@ -1,7 +1,7 @@
 #!/bin/bash
 TMP=$(mktemp -d)
-cd /etc/kubernetes
-tar zcf $TMP/pki.tgz pki
+cd /
+tar -czf $TMP/pki.tgz /etc/kubernetes/pki/[sc]a.*"
 chmod 755 $TMP/pki.tgz
 mv $TMP/pki.tgz /tmp/pki.tgz
 rmdir $TMP

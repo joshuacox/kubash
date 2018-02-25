@@ -34,6 +34,7 @@
 : ${OPENSHIFT_ZONE:=baremetal}
 : ${MASTERS_AS_ETCD:='false'}
 : ${BROADCAST_TO_NETWORK:='10.0.23.0/24'}
+: ${INTERFACE_NET:='eth0'}
 
 #set -eu
 
@@ -785,6 +786,11 @@ do_net () {
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   if [[ $K8S_NET == "calico" ]]; then
     kubectl --kubeconfig=$KUBECONFIG apply -f https://docs.projectcalico.org/v2.6/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
+  elif [[ $K8S_NET == "flannel" ]]; then
+    kubectl --kubeconfig=$KUBECONFIG apply -f https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml 
+  elif [[ $K8S_NET == "weavenet" ]]; then
+    VERSION="$(kubectl version | base64 | tr -d '\n')"
+    kubectl --kubeconfig=$KUBECONFIG apply -f "https://cloud.weave.works/k8s/net?k8s-version=${VERSION}"
   fi
 }
 
@@ -1226,6 +1232,39 @@ master_init_join () {
   done <<< $kubash_hosts_csv_slurped
   K8S_load_balancer_ip=$(head -n1 $KUBASH_CLUSTER_DIR/ingress.ip2)
 
+  #keepalived
+  setup_keepalived_tmp=$(mktemp -d)
+
+  MASTER_VIP=$my_master_ip \
+  envsubst < $KUBASH_CLUSTER_DIR/templates/check_apiserver.sh \
+  > $setup_keepalived_tmp/check_apiserver.sh
+  copy_in_parallel_to_role master $setup_keepalived_tmp/check_apiserver.sh "/tmp/"
+  command2run="$PSEUDO mv /tmp/check_apiserver.sh /etc/keepalived/"
+  do_command_in_parallel_on_role "master" "$command2run"
+
+  MASTER_OR_BACKUP=BACKUP \
+  PRIORITY=100 \
+  INTERFACE_NET=$INTERFACE_NET \ 
+  MASTER_VIP=$my_master_ip \
+  envsubst < $KUBASH_CLUSTER_DIR/templates/keepalived.conf
+  > $setup_keepalived_tmp/keepalived.conf
+  copy_in_parallel_to_role master $setup_keepalived_tmp/keepalived.conf "/tmp/"
+  command2run="$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/"
+  do_command_in_parallel_on_role "master" "$command2run"
+  # Then let's overwrite that on our primary master
+  MASTER_OR_BACKUP=MASTER \
+  PRIORITY=101 \
+  INTERFACE_NET=$INTERFACE_NET \ 
+  MASTER_VIP=$my_master_ip \
+  envsubst < $KUBASH_CLUSTER_DIR/templates/keepalived.conf
+  > $setup_keepalived_tmp/keepalived.conf
+  rsync -aze "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $K8S_su_user@$my_master_ip:/tmp/keepalived.conf
+  command2run="$PSEUDO mv /tmp/keepalived.conf /etc/keepalived/"
+  ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+  
+  rm -f $setup_keepalived_tmp/keepalived.conf $setup_keepalived_tmp/check_apiserver.sh
+  rmdir $setup_keepalived_tmp
+
   squawk 0 " master_init_join $my_master_name $my_master_ip $my_master_user $my_master_port"
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
     squawk 1 ' hostnamero'
@@ -1246,6 +1285,8 @@ master_init_join () {
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
       squawk 5 "$my_KUBE_INIT"
       run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
+      command2run="$PSEUDO rm /tmp/config.yaml"
+      ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     else
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
       squawk 5 "$my_KUBE_INIT"
@@ -1257,6 +1298,8 @@ master_init_join () {
       command2run='sudo sed -i "/- kube-apiserver/a\    - --oidc-issuer-url=https://accounts.google.com\n    - --oidc-username-claim=email\n    - --oidc-client-id=" /etc/kubernetes/manifests/kube-apiserver.yaml'
       ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     fi
+    w8_kubectl
+    do_net
     DO_GRAB=true
     master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
     rm -Rf $KUBASH_CLUSTER_DIR/pki
@@ -1264,8 +1307,6 @@ master_init_join () {
     ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO bash /tmp/grabpki"
     rsync -aze "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
     ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO rm -f /tmp/pki.tgz;$PSEUDO rm -f /tmp/grabpki"
-    cd $KUBASH_CLUSTER_DIR/ && tar zpxf pki.tgz && rm pki.tgz
-    w8_kubectl
   fi
 }
 
@@ -1533,6 +1574,9 @@ finish_etcd () {
   # Run kubeadm init on master0
 }
 
+setup_keepalived () {
+}
+
 prep_init_etcd () {
   this_user=$1
   this_ip=$2
@@ -1625,8 +1669,8 @@ do_etcd () {
 
   # Only copy if etcd.line exists as the endpoints will have stuff in it regardless
   if [[ -e "$PARATMP/etcd.line" ]]; then
-    mv -v $PARATMP/etcd.line $KUBASH_CLUSTER_DIR/
-    mv -v $PARATMP/endpoints.lines $KUBASH_CLUSTER_DIR/
+    mv $PARATMP/etcd.line $KUBASH_CLUSTER_DIR/
+    mv $PARATMP/endpoints.lines $KUBASH_CLUSTER_DIR/
   fi
 
   countzero=0
@@ -1685,22 +1729,37 @@ do_masters_in_parallel () {
   squawk 3 " do_masters_in_parallel"
   do_master_count=0
 
-  copy_in_parallel_to_role master "$KUBASH_CLUSTER_DIR/pki" "/tmp/"
-  command2run="$PSEUDO rm -Rf /etc/kubernetes/pki"
+  copy_in_parallel_to_role master "$KUBASH_CLUSTER_DIR/pki.tgz" "/tmp/"
+  command2run="cd /;$PSEUDO tar pzxf /tmp/pki.tgz"
   do_command_in_parallel_on_role "master" "$command2run"
-  command2run="$PSEUDO mv -v /tmp/pki /etc/kubernetes/pki"
-  do_command_in_parallel_on_role "master" "$command2run"
-  command2run="$PSEUDO rm /etc/kubernetes/pki/apiserver.crt"
-  do_command_in_parallel_on_role "master" "$command2run"
+  #command2run="$PSEUDO rm /etc/kubernetes/pki/apiserver.crt"
+  #do_command_in_parallel_on_role "master" "$command2run"
+  if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
+    kubeadmin_config_tmp=$(mktemp)
+    my_master_ip=$my_master_ip \
+    load_balancer_ip=$K8S_load_balancer_ip \
+    ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.lines) \
+    envsubst  < $KUBASH_DIR/tmp/kubeadm-config.yaml
+      > $kubeadmin_config_tmp
+    copy_in_parallel_to_role master "$kubeadmin_config_tmp" "/tmp/config.yaml"
+    rm $kubeadmin_config_tmp
+  fi
 
   do_master_tmp=$(mktemp -d)
   touch $do_master_tmp/hopper
+  touch $do_master_tmp/hopper2
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
-      command2run="kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_ssh_port --node-join-role master"
-      squawk 9 "$command2run"
-      echo "$command2run" >> $do_master_tmp/hopper
+      if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
+        my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
+        squawk 5 "$my_KUBE_INIT"
+        echo "ssh -n $my_master_user@$my_master_ip '$my_KUBE_INIT'" >> $do_master_tmp/hopper
+      else
+        my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
+        squawk 5 "$my_KUBE_INIT"
+        echo "ssh -n $my_master_user@$my_master_ip '$my_KUBE_INIT'" >> $do_master_tmp/hopper
+      fi
     fi
   done <<< $kubash_hosts_csv_slurped
   if [[ "$VERBOSITY" -gt "9" ]] ; then
@@ -1712,6 +1771,9 @@ do_masters_in_parallel () {
     bash $do_master_tmp/hopper
   fi
   rm -Rf $do_master_tmp
+  if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
+    do_command_in_parallel_on_role "master" "$PSEUDO rm -f /tmp/config.yaml"
+  fi
 }
 
 do_nodes () {
@@ -2616,10 +2678,6 @@ main () {
 
   if [[ $DO_GRAB == "true" ]]; then
     do_grab
-  fi
-
-  if [[ $DO_NET == "true" ]]; then
-    do_net
   fi
 
   if [[ $DO_TILLER == "true" ]]; then
