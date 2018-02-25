@@ -6,7 +6,7 @@ Description=etcd - highly-available key value store
 LimitNOFILE=65536
 Restart=on-failure
 Type=notify
-ExecStart=/usr/bin/etcd --config-file /etc/etcd/etcd.conf.yml
+ExecStart=/usr/local/bin/etcd --config-file /etc/etcd/etcd.conf.yml
 User=etcd
 
 [Install]
