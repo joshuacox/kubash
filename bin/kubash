@@ -2074,6 +2074,7 @@ do_command_in_parallel_on_os () {
 do_csv () {
   squawk 13 " do_csv"
   do_etcd
+  start_etcd
   do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     do_masters_in_parallel
