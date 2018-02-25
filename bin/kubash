@@ -1636,12 +1636,12 @@ do_etcd () {
   squawk 3 " do_etcd"
 
   countzero=0
+  touch $PARATMP/endpoints.line
+  echo 'etcd:' >> $PARATMP/endpoints.line
+  echo '  endpoints:' > $PARATMP/endpoints.line
   while IFS="," read -r $csv_columns
   do
-    touch $PARATMP/endpoints.line
-    echo 'etcd:' >> $PARATMP/endpoints.line
-    echo '  endpoints:' > $PARATMP/endpoints.line
-    if [[ "$K8S_role" == "etcd" ]]; then
+    if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
       if [[ "$countzero" -lt "3" ]]; then
 	echo -n "etcd$countzero=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
       fi
@@ -1651,21 +1651,22 @@ do_etcd () {
       echo -n "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
       countzero=`expr $countzero + 1`
     fi
-    echo '  caFile: /etc/kubernetes/pki/etcd/ca.pem' >> $PARATMP/endpoints.line
-    echo '  certFile: /etc/kubernetes/pki/etcd/client.pem' >> $PARATMP/endpoints.line
-    echo '  keyFile: /etc/kubernetes/pki/etcd/client-key.pem' >> $PARATMP/endpoints.line
-    if [[ "$countzero" -lt "3" ]]; then
-      horizontal_rule
-      echo 'not enough etcd nodes'
-      exit 1
-    else
-      if [[ "$((countzero%2))" -eq 0 ]]; then
-        horizontal_rule
-        echo "number of etcd nodes is even which is not supported"
-        exit 1
-      fi
-    fi
   done <<< $kubash_hosts_csv_slurped
+  echo '  caFile: /etc/kubernetes/pki/etcd/ca.pem' >> $PARATMP/endpoints.line
+  echo '  certFile: /etc/kubernetes/pki/etcd/client.pem' >> $PARATMP/endpoints.line
+  echo '  keyFile: /etc/kubernetes/pki/etcd/client-key.pem' >> $PARATMP/endpoints.line
+
+  if [[ "$countzero" -lt "3" ]]; then
+    horizontal_rule
+    echo 'not enough etcd nodes'
+    exit 1
+  else
+    if [[ "$((countzero%2))" -eq 0 ]]; then
+      horizontal_rule
+      echo "number of etcd nodes is even which is not supported"
+      exit 1
+    fi
+  fi
 
   # Only copy if etcd.line exists as the endpoints will have stuff in it regardless
   if [[ -e "$PARATMP/etcd.line" ]]; then
@@ -1792,19 +1793,7 @@ do_masters_in_parallel () {
 }
 
 do_nodes () {
-  squawk 3 " do_nodes"
-  countzero_do_nodes=0
-  while IFS="," read -r $csv_columns
-  do 
-    if [[ "$K8S_role" == "node" ]]; then
-      node_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port
-    else
-      squawk 11 " K8S_role NOT NODE"
-      squawk 11 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_ssh_port"
-    fi
-    countzero_do_nodes=`expr $countzero_do_nodes + 1`
-    squawk 11 " count $countzero_do_nodes"
-  done <<< $kubash_hosts_csv_slurped
+  do_nodes_in_parallel
 }
 
 do_nodes_in_parallel () {
@@ -1982,7 +1971,7 @@ do_command_in_parallel_on_os () {
 
 do_csv () {
   squawk 3 " do_csv"
-  #do_etcd
+  do_etcd
   do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     do_masters_in_parallel
