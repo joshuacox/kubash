@@ -1585,7 +1585,7 @@ finish_etcd () {
   envsubst < $KUBASH_DIR/templates/etcd.conf.yml \
   > $etctmp
   rsync -aze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/tmp/etcd.conf.yml
-  command2run="sudo mv /tmp/etcd.conf /etc/etcd/etcd.conf.yml"
+  command2run="sudo mv /tmp/etcd.conf.yml /etc/etcd/etcd.conf.yml"
   do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
 
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
