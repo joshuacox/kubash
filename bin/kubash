@@ -1205,7 +1205,7 @@ master_join () {
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
     hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
     squawk 13 " kubadm reset"
-    ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSUEDO hostname;$PSUEDO  uname -a;$PSUEDO kubeadm reset"
+    ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSUEDO hostname;$PSUEDO  uname -a"
     run_join=$(cat $KUBASH_DIR/join.sh)
     squawk 11 " run join $run_join"
     ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join"
@@ -1281,8 +1281,7 @@ master_init_join () {
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
     squawk 11 ' hostnamero'
     hostnamero $my_master_name $my_master_ip $my_master_port $my_master_user
-    squawk 13 ' kubeadm reset'
-    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$PSEUDO hostname;$PSEUDO  uname -a;$PSEUDO kubeadm reset"
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$PSEUDO hostname;$PSEUDO  uname -a"
     my_grep='kubeadm join --token'
     squawk 13 'master_init_join kubeadm init'
     if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
