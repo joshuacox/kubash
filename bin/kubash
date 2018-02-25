@@ -843,7 +843,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_ANSIBLE_HOSTS
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
-    elif [[ "$K8S_role" == "init_master" ]]; then
+    elif [[ "$K8S_role" == "primary_master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
     fi
   done <<< "$slurpy"
@@ -855,7 +855,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_ANSIBLE_HOSTS
   do
     if [[ "$K8S_role" = "etcd" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
-    elif [[ "$K8S_role" == "master" || "$K8S_role" == "init_master" ]]; then
+    elif [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
       if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
         echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
       fi
@@ -925,7 +925,7 @@ write_ansible_kubespray_hosts () {
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
-    elif [[ "$K8S_role" == "init_master" ]]; then
+    elif [[ "$K8S_role" == "primary_master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
     fi
   done <<< "$slurpy"
@@ -1156,7 +1156,7 @@ do_grab () {
   do_grab_master_count=0
   while IFS="," read -r $csv_columns
   do
-    if [[ "$K8S_role" == "init_master" ]]; then
+    if [[ "$K8S_role" == "primary_master" ]]; then
       if [[ "$do_grab_master_count" -lt "1" ]]; then
         master_grab_kube_config $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port
       fi
@@ -1642,13 +1642,13 @@ do_etcd () {
   rm -Rf $PARATMP
 }
 
-do_init_master () {
-  squawk 3 " do_init_master"
+do_primary_master () {
+  squawk 3 " do_primary_master"
   do_master_count=0
 
   while IFS="," read -r $csv_columns
   do
-    if [[ "$K8S_role" == "init_master" ]]; then
+    if [[ "$K8S_role" == "primary_master" ]]; then
       if [[ "$do_master_count" -lt "1" ]]; then
         master_init_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port
       else
@@ -1892,7 +1892,7 @@ do_command_in_parallel_on_os () {
 do_csv () {
   squawk 3 " do_csv"
   #do_etcd
-  do_init_master
+  do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     do_masters_in_parallel
     do_nodes_in_parallel
