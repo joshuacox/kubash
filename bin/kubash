@@ -1276,11 +1276,11 @@ master_init_join () {
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$PSEUDO hostname;$PSEUDO  uname -a;$PSEUDO kubeadm reset"
     my_grep='kubeadm join --token'
     squawk 3 ' kubeadm join'
-    if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
+    if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
       kubeadmin_config_tmp=$(mktemp)
       my_master_ip=$my_master_ip \
       load_balancer_ip=$K8S_load_balancer_ip \
-      ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.lines) \
+      ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
       envsubst  < $KUBASH_DIR/tmp/kubeadm-config.yaml
         > $kubeadmin_config_tmp
       rsync -aze "ssh -p $my_master_port" $kubeadmin_config_tmp $this_user@$this_ip:/tmp/config.yaml
@@ -1671,7 +1671,7 @@ do_etcd () {
   # Only copy if etcd.line exists as the endpoints will have stuff in it regardless
   if [[ -e "$PARATMP/etcd.line" ]]; then
     mv $PARATMP/etcd.line $KUBASH_CLUSTER_DIR/
-    mv $PARATMP/endpoints.lines $KUBASH_CLUSTER_DIR/
+    mv $PARATMP/endpoints.line $KUBASH_CLUSTER_DIR/
   fi
 
   countzero=0
@@ -1749,11 +1749,11 @@ do_masters_in_parallel () {
   do_command_in_parallel_on_role "master" "$command2run"
   #command2run="$PSEUDO rm /etc/kubernetes/pki/apiserver.crt"
   #do_command_in_parallel_on_role "master" "$command2run"
-  if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
+  if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
     kubeadmin_config_tmp=$(mktemp)
     my_master_ip=$my_master_ip \
     load_balancer_ip=$K8S_load_balancer_ip \
-    ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.lines) \
+    ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
     envsubst  < $KUBASH_DIR/tmp/kubeadm-config.yaml
       > $kubeadmin_config_tmp
     copy_in_parallel_to_role master "$kubeadmin_config_tmp" "/tmp/config.yaml"
@@ -1766,7 +1766,7 @@ do_masters_in_parallel () {
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
-      if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
+      if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
         my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
         squawk 5 "$my_KUBE_INIT"
         echo "ssh -n $my_master_user@$my_master_ip '$my_KUBE_INIT'" >> $do_master_tmp/hopper
@@ -1786,7 +1786,7 @@ do_masters_in_parallel () {
     bash $do_master_tmp/hopper
   fi
   rm -Rf $do_master_tmp
-  if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.lines" ]]; then
+  if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
     do_command_in_parallel_on_role "master" "$PSEUDO rm -f /tmp/config.yaml"
   fi
   #do_scale_up_kube_dns
