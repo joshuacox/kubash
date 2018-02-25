@@ -1542,24 +1542,24 @@ finish_etcd () {
   PEER_NAME=$3
 
   command2run=cd /etc/etcd/pki; $PSEUDO cfssl print-defaults csr > config.json
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='sudo  sed -i '0,/CN/{s/example\.net/'$PEER_NAME'/}' /etc/etcd/pki/config.json'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='sudo  sed -i 's/www\.example\.net/'$PRIVATE_IP'/' /etc/etcd/pki/config.json'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='sudo  sed -i 's/example\.net/'$PEER_NAME'/' /etc/etcd/pki/config.json'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run=cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json |$PSEUDO cfssljson -bare server
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run=cd /etc/etcd/pki;$PSEUDO cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json |$PSEUDO cfssljson -bare peer
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='sudo  chown -R etcd:etcd /etc/etcd/pki'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='sudo  mkdir -p /etc/kubernetes/pki/etcd'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   squawk 15 'cp the etcd pki files'
   command2run='sudo  cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
 
   if [[ -e $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz ]]; then
     squawk 19 'Etcd binary already downloaded'
@@ -1569,9 +1569,9 @@ finish_etcd () {
   fi
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz $this_user@$this_ip:/tmp/
   command2run='sudo  tar -xzf --strip-components=1 -C /usr/local/bin/ /tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run=touch /etc/etcd.env
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   etctmp=$(mktemp)
   KUBASH_CLUSTER_NAME=$KUBASH_CLUSTER_NAME \
   PEER_NAME=$PEER_NAME \
@@ -1583,13 +1583,13 @@ finish_etcd () {
 
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_CLUSTER_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
   command2run='sudo  cp /tmp/etcd.service /lib/systemd/system/etcd.service'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
 
   rm $etctmp
   command2run='sudo  systemctl daemon-reload'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   command2run='sudo  systemctl start etcd'
-  ssh -n -p $K8S_ssh_port $this_user@$PRIVATE_IP \"$command2run\"
+  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
   # Run kubeadm init on master0
 }
 
@@ -1629,7 +1629,7 @@ prep_init_etcd () {
   command2run='cd /etc/etcd/pki; cfssl gencert -initca ca-csr.json | cfssljson -bare ca -'
   do_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
-  command2run='cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client'
+  command2run='cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client'
   do_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
   rsync -aze "ssh -p $K8S_ssh_port" $this_user@$this_ip:/etc/etcd/pki $KUBASH_CLUSTER_DIR/
@@ -1859,8 +1859,8 @@ do_command_in_parallel () {
   do 
     countzero_do_nodes=`expr $countzero_do_nodes + 1`
     squawk 13 " count $countzero_do_nodes"
-    squawk 15 "do_command $K8S_ssh_port $K8S_su_user $K8S_ip1 \"bash -c '$command2run'\""
-    echo "do_command $K8S_ssh_port $K8S_su_user $K8S_ip1 "bash -c '$command2run'""\
+    squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"bash -c '$command2run'\""
+    echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"bash -c '$command2run'\""
 	      >> $PARATMP/hopper
   done <<< $kubash_hosts_csv_slurped
 
