@@ -1319,6 +1319,11 @@ master_init_join () {
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
       squawk 15 "$my_KUBE_INIT"
       run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
+      if [[ -z "$run_join" ]]; then
+	      horizontal_rule
+	      echo 'kubeadm init failed!'
+	      exit 1
+      fi
       command2run='sudo  rm /tmp/config.yaml'
       ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     else
