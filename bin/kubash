@@ -1529,27 +1529,27 @@ kubeadm2ha_initialize () {
   ansible-playbook \
     -f $PARALLEL_JOBS \
     -i $KUBASH_DIR/gen/hosts \
-    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-images.yml
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-images.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
     -i $KUBASH_DIR/gen/hosts \
-    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-setup.yml
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-setup.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
     -i $KUBASH_DIR/gen/hosts \
-    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-dashboard.yml
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-dashboard.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
     -i $KUBASH_DIR/gen/hosts \
-    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-load-balanced.yml
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-load-balanced.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
     -i $KUBASH_DIR/gen/hosts \
-    $KUBASH_DIR/submodules/kubeadm2ha/ansible/etcd-operator.yml
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/etcd-operator.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
     -i $KUBASH_DIR/gen/hosts \
-    $KUBASH_DIR/submodules/kubeadm2ha/ansible/local-access.yml
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/local-access.yaml
 }
 
 kubespray_initialize () {
