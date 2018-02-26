@@ -22,8 +22,7 @@
 : ${PSEUDO:=sudo -i}
 : ${K8S_user:=root}
 : ${K8S_NET:=calico}
-: ${K8S_ssh_port:=22}
-: ${K8S_su_user:=coopadmin}
+: ${K8S_provisionerPort:=22}
 : ${K8S_SU_PATH:='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin'}
 : ${my_DOMAIN:=example.com}
 : ${GOPATH:=~/.go}
@@ -373,10 +372,10 @@ kvm-decommer-remote () {
 decom_kvm () {
   squawk 11 "decom_kvm"
   # Write all hosts to inventory for id
-  # csv_columns='K8S_node K8S_user K8S_ip1 K8S_ssh_port K8S_role K8S_su_user K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
+  # csv_columns='K8S_node K8S_user K8S_ip1 K8S_provisionerPort K8S_role K8S_provisionerUser K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
   while IFS="," read -r $csv_columns
   do
-    squawk 13 "$K8S_node $K8S_user $K8S_ip1 $K8S_ssh_port $K8S_role $K8S_su_user $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
+    squawk 13 "$K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
     if [[ "$K8S_provisionerHost" == "localhost" ]]; then
       kvm-decommer $K8S_node $K8S_provisionerBasePath 
     else
@@ -519,7 +518,7 @@ qemu-provisioner () {
     chkdir $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node
     if [[ "$K8S_ip2" == '' && "$K8S_ip2" == '' ]]; then
       SSH_AUTHORIZED_KEYS=$SSH_AUTHORIZED_KEYS \
-      K8S_su_user=$K8S_su_user \
+      K8S_provisionerUser=$K8S_provisionerUser \
       K8S_node=$K8S_node \
       envsubst < $KUBASH_DIR/templates/user_data \
       > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data
@@ -527,7 +526,7 @@ qemu-provisioner () {
       K8S_mac2=$K8S_mac2 \
       K8S_ip2=$K8S_ip2 \
       SSH_AUTHORIZED_KEYS=$SSH_AUTHORIZED_KEYS \
-      K8S_su_user=$K8S_su_user \
+      K8S_provisionerUser=$K8S_provisionerUser \
       K8S_node=$K8S_node \
       envsubst < $KUBASH_DIR/templates/user_data_two_interface \
       > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data
@@ -538,7 +537,7 @@ qemu-provisioner () {
       K8S_mac3=$K8S_mac3 \
       K8S_ip3=$K8S_ip3 \
       SSH_AUTHORIZED_KEYS=$SSH_AUTHORIZED_KEYS \
-      K8S_su_user=$K8S_su_user \
+      K8S_provisionerUser=$K8S_provisionerUser \
       K8S_node=$K8S_node \
       envsubst < $KUBASH_DIR/templates/user_data_three_interface \
       > $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data
@@ -711,7 +710,7 @@ refresh_network_addresses () {
       fi
       squawk 15 "adding to $KUBASH_HOSTS_CSV"
       if [[ "$K8S_os" == 'coreos' ]]; then
-        this_K8S_user=$K8S_su_user
+        this_K8S_user=$K8S_provisionerUser
       else
         this_K8S_user=$K8S_user
       fi
@@ -849,7 +848,7 @@ write_ansible_openshift_hosts () {
   # Write all hosts to inventory for id
   while IFS="," read -r $csv_columns
   do
-    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_ssh_port ansible_user=$K8S_user" >> $KUBASH_ANSIBLE_HOSTS
+    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_user" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
@@ -935,7 +934,7 @@ write_ansible_kubespray_hosts () {
   # Write all hosts to inventory for id
   while IFS="," read -r $csv_columns
   do
-    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_ssh_port ansible_user=$K8S_user" >> $KUBASH_ANSIBLE_HOSTS
+    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_user" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
@@ -1087,8 +1086,8 @@ remove_vagrant_user () {
       squawk 19 'coreos so skipping'
     else
       REMMY="userdel -f vagrant && rm -Rf /home/vagrant"
-      squawk 15 "ssh -n -p $K8S_ssh_port $K8S_user@$K8S_ip1 \"$REMMY\""
-      echo "ssh -n -p $K8S_ssh_port $K8S_user@$K8S_ip1 \"$REMMY\""\
+      squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_user@$K8S_ip1 \"$REMMY\""
+      echo "ssh -n -p $K8S_provisionerPort $K8S_user@$K8S_ip1 \"$REMMY\""\
 	      >> $PARATMP/hopper
     fi
   done < $KUBASH_HOSTS_CSV
@@ -1111,9 +1110,9 @@ ping_in_parallel () {
   do
     squawk 11 "$K8S_ip1"
     squawk 13 "$K8S_user"
-    MY_ECHO="echo '$K8S_ip1 $K8S_su_user pong'" 
-    squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"$MY_ECHO\""
-    echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"$MY_ECHO\""\
+    MY_ECHO="echo '$K8S_ip1 $K8S_provisionerUser pong'" 
+    squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"$MY_ECHO\""
+    echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"$MY_ECHO\""\
 	      >> $PARATMP/hopper
   done < $KUBASH_HOSTS_CSV
 
@@ -1135,12 +1134,12 @@ ping () {
     squawk 11 "$K8S_ip1"
     squawk 13 "$K8S_user"
     if [[ "$VERBOSITY" -gt 10 ]]; then
-      ssh -n -p $K8S_ssh_port $K8S_user@$K8S_ip1 'echo pong'
-      squawk 13 "$K8S_su_user"
-      ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'echo pong'
+      ssh -n -p $K8S_provisionerPort $K8S_user@$K8S_ip1 'echo pong'
+      squawk 13 "$K8S_provisionerUser"
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 'echo pong'
     else
-      ssh -n -p $K8S_ssh_port $K8S_user@$K8S_ip1 'touch /tmp/sshpingtest-kubash'
-      ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'touch /tmp/sshpingtest-kubash'
+      ssh -n -p $K8S_provisionerPort $K8S_user@$K8S_ip1 'touch /tmp/sshpingtest-kubash'
+      ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 'touch /tmp/sshpingtest-kubash'
     fi
   done < $KUBASH_HOSTS_CSV
 }
@@ -1203,7 +1202,7 @@ do_grab () {
   do
     if [[ "$K8S_role" == "primary_master" ]]; then
       if [[ "$do_grab_master_count" -lt "1" ]]; then
-        master_grab_kube_config $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port
+        master_grab_kube_config $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort
       fi
       do_grab_master_count=`expr $do_grab_master_count + 1`
     fi
@@ -1503,12 +1502,12 @@ read_csv () {
 
   while IFS="," read -r $csv_columns
   do
-    squawk 15 "$K8S_node $K8S_user $K8S_ip1 $K8S_ssh_port $K8S_role $K8S_su_user $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
+    squawk 15 "$K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
     if [[ "$K8S_role" == "master" ]]; then
       if [[ "$read_master_count" -lt "1" ]]; then
-        echo "master_init_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port"
+        echo "master_init_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort"
       else
-        echo "master_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port"
+        echo "master_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort"
       fi
       read_master_count=`expr $read_master_count + 1`
     fi
@@ -1517,7 +1516,7 @@ read_csv () {
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" || "$K8S_role" == "ingress" ]]; then
-      echo "node_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port"
+      echo "node_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort"
     fi
   done < $KUBASH_HOSTS_CSV
 }
@@ -1572,10 +1571,10 @@ finish_pki_for_masters () {
   this_name=$3
   this_port=$4
   command2run='mkdir -p /etc/kubernetes/pki/etcd'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   squawk 15 'cp the etcd pki files'
   command2run='cp /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
 }
 
 finish_etcd () {
@@ -1586,19 +1585,19 @@ finish_etcd () {
   this_port=$4
 
   command2run="cd /etc/etcd/pki; cfssl print-defaults csr > config.json"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run="sed -i '0,/CN/{s/example\.net/'$this_name'/}' /etc/etcd/pki/config.json"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run="sed -i 's/www\.example\.net/'$this_ip'/' /etc/etcd/pki/config.json"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run="sed -i 's/example\.net/'$this_name'/' /etc/etcd/pki/config.json"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json | cfssljson -bare server"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json | cfssljson -bare peer"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run='chown -R etcd:etcd /etc/etcd/pki'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
 
   if [[ -e $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz ]]; then
     squawk 19 'Etcd binary already downloaded'
@@ -1607,16 +1606,16 @@ finish_etcd () {
     wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz 
   fi
   command2run='sudo useradd etcd'
-  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  do_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   etcd_extract_tmp=$(mktemp -d)
   sudo tar --strip-components=1 -C $etcd_extract_tmp -xzf $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
-  rsync -aze "ssh -p $K8S_ssh_port" $etcd_extract_tmp/etcd $this_user@$this_ip:/tmp/
-  rsync -aze "ssh -p $K8S_ssh_port" $etcd_extract_tmp/etcdctl $this_user@$this_ip:/tmp/
+  rsync -aze "ssh -p $K8S_provisionerPort" $etcd_extract_tmp/etcd $this_user@$this_ip:/tmp/
+  rsync -aze "ssh -p $K8S_provisionerPort" $etcd_extract_tmp/etcdctl $this_user@$this_ip:/tmp/
   rm -Rf $etcd_extract_tmp
   command2run='sudo mv /tmp/etcd /usr/local/bin/'
-  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  do_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run='sudo mv /tmp/etcdctl /usr/local/bin/'
-  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  do_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   etctmp=$(mktemp)
   KUBASH_CLUSTER_NAME=$KUBASH_CLUSTER_NAME \
   PEER_NAME=$this_name \
@@ -1624,21 +1623,21 @@ finish_etcd () {
   ETCD_INITCLUSER_LINE="$(cat $KUBASH_CLUSTER_DIR/etcd.line)" \
   envsubst < $KUBASH_DIR/templates/etcd.conf.yml \
   > $etctmp
-  rsync -aze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/tmp/etcd.conf.yml
+  rsync -aze "ssh -p $K8S_provisionerPort" $etctmp  $this_user@$this_ip:/tmp/etcd.conf.yml
   command2run="sudo mv /tmp/etcd.conf.yml /etc/etcd/etcd.conf.yml"
-  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  do_command $K8S_provisionerPort $this_user $this_ip "$command2run"
 
-  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
+  rsync -aze "ssh -p $K8S_provisionerPort" $KUBASH_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
   command2run='cp /tmp/etcd.service /lib/systemd/system/etcd.service'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
 
   rm $etctmp
   command2run='chown -R etcd.etcd /etc/etcd'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run='chown -R etcd.etcd /var/lib/etcd'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
   command2run='systemctl daemon-reload'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
 }
 
 start_etcd () {
@@ -1660,8 +1659,8 @@ start_etcd () {
     if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
       if [[ "$countzero" -lt "3" ]]; then
 	command2run='systemctl start etcd'
-	squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'sudo bash -c \"$command2run\"'"
-	echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 'sudo bash -c \"$command2run\"'" >> $PARATMP/hopper
+	squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 'sudo bash -c \"$command2run\"'"
+	echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 'sudo bash -c \"$command2run\"'" >> $PARATMP/hopper
       fi
     fi
   done <<< $kubash_hosts_csv_slurped
@@ -1823,7 +1822,7 @@ do_etcd () {
     if [[ "$K8S_role" == "primary_master"  ]]; then
       if [[ "$countzero" -eq "0" ]]; then
         countzero=`expr $countzero + 1`
-        prep_init_etcd $K8S_su_user $K8S_ip1 $K8S_node $K8S_ssh_port
+        prep_init_etcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_provisionerPort
       else
         echo 'there should only be one primary'
         exit 1
@@ -1831,8 +1830,8 @@ do_etcd () {
     fi
     if [[ "$K8S_role" == "etcd" || "$K8S_role" == "master"  ]]; then
         squawk 33 "$K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_ip1 $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
-        squawk 13 "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_su_user $K8S_ip1 $K8S_node $K8S_ssh_port"
-        echo      "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_su_user $K8S_ip1 $K8S_node $K8S_ssh_port" \
+        squawk 13 "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_provisionerPort"
+        echo      "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_provisionerPort" \
           >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
@@ -1859,10 +1858,10 @@ do_primary_master () {
   do
     if [[ "$K8S_role" == "primary_master" ]]; then
       if [[ "$do_master_count" -lt "1" ]]; then
-        master_init_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port
+        master_init_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort
       else
 	echo 'There should only be one init master! Skipping this master'
-        echo "master_init_join $K8S_node $K8S_ip1 $K8S_su_user $K8S_ssh_port"
+        echo "master_init_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort"
       fi
       do_master_count=`expr $do_master_count + 1`
     fi
@@ -1963,11 +1962,11 @@ do_nodes_in_parallel () {
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "node" ]]; then
-      echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_su_user --node-join-port $K8S_ssh_port --node-join-role node" \
+      echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_provisionerUser --node-join-port $K8S_provisionerPort --node-join-role node" \
 	      >> $PARATMP/hopper
     else
       squawk 11 " K8S_role NOT NODE"
-      squawk 11 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_ssh_port"
+      squawk 11 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_provisionerPort"
     fi
     countzero_do_nodes=`expr $countzero_do_nodes + 1`
     squawk 13 " count $countzero_do_nodes"
@@ -1997,8 +1996,8 @@ do_command_in_parallel () {
   do 
     countzero_do_nodes=`expr $countzero_do_nodes + 1`
     squawk 43 " count $countzero_do_nodes"
-    squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""
-    echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""\
+    squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
+    echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
 	      >> $PARATMP/hopper
   done <<< $kubash_hosts_csv_slurped
 
@@ -2015,26 +2014,26 @@ do_command_in_parallel () {
 
 do_command () {
   PARATMP=$(mktemp -d)
-  K8S_ssh_port=$1
-  K8S_su_user=$2
+  K8S_provisionerPort=$1
+  K8S_provisionerUser=$2
   K8S_ip1=$3
   command2run=$4
   touch $PARATMP/hopper
   squawk 13 " do_command $1 $2 $3 $4" 
-  squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"bash -c '$command2run'\""
-  ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 "bash -c '$command2run'"
+  squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"bash -c '$command2run'\""
+  ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 "bash -c '$command2run'"
 }
 
 sudo_command () {
   PARATMP=$(mktemp -d)
-  K8S_ssh_port=$1
-  K8S_su_user=$2
+  K8S_provisionerPort=$1
+  K8S_provisionerUser=$2
   K8S_ip1=$3
   command2run=$4
   touch $PARATMP/hopper
   squawk 13 " do_command $1 $2 $3 $4" 
-  squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""
-  ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 "sudo bash -c '$command2run'"
+  squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
+  ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 "sudo bash -c '$command2run'"
 }
 
 copy_in_parallel_to_role () {
@@ -2053,8 +2052,8 @@ copy_in_parallel_to_role () {
     if [[ "$K8S_role" == "$role2copy2" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 13 " count $countzero_do_nodes"
-      squawk 15 "rsync -aze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"
-      echo "rsync -aze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"\
+      squawk 15 "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
+      echo "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
@@ -2086,8 +2085,8 @@ copy_in_parallel_to_os () {
     if [[ "$K8S_os" == "$os2copy2" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 13 " count $countzero_do_nodes"
-      squawk 15 "rsync -aze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"
-      echo "rsync -aze 'ssh -p $K8S_ssh_port' $file2copy $K8S_su_user@$K8S_ip1:$destination"\
+      squawk 15 "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
+      echo "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
@@ -2118,8 +2117,8 @@ do_command_in_parallel_on_role () {
     if [[ "$K8S_role" == "$role2runiton" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 49 " count $countzero_do_nodes"
-      squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""
-      echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""\
+      squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
+      echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
         >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
@@ -2150,8 +2149,8 @@ do_command_in_parallel_on_os () {
     if [[ "$K8S_os" == "$os2runiton" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 43 " count $countzero_do_nodes"
-      squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""
-      echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""\
+      squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
+      echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
         >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
@@ -2185,7 +2184,7 @@ prep () {
   squawk 15 " prep"
   while IFS="," read -r $csv_columns
   do
-    preppy $K8S_node $K8S_ip1 $K8S_ssh_port
+    preppy $K8S_node $K8S_ip1 $K8S_provisionerPort
   done < $KUBASH_HOSTS_CSV
 }
 
