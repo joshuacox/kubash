@@ -1,8 +1,8 @@
 #!/bin/bash
 TMP=$(mktemp -d)
-tar_file=etcd-pki.tgz
+tar_file=kube-pki.tgz
 cd /
-tar -czf $TMP/$tar_file /etc/etcd/pki
+tar -czf $TMP/$tar_file /etc/kubernetes/pki/etcd/[sc]a.*
 chmod 755 $TMP/$tar_file
 mv $TMP/$tar_file /tmp/$tar_file
 rmdir $TMP

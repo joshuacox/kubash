@@ -32,7 +32,7 @@
 : ${PARALLEL:="parallel"}
 : ${OPENSHIFT_REGION:=lab}
 : ${OPENSHIFT_ZONE:=baremetal}
-: ${MASTERS_AS_ETCD:='false'}
+: ${MASTERS_AS_ETCD:='true'}
 : ${BROADCAST_TO_NETWORK:='10.0.23.0/24'}
 : ${INTERFACE_NET:='eth0'}
 : ${DO_KEEPALIVED:='false'}
@@ -1202,9 +1202,11 @@ master_join () {
   my_node_user=$3
   my_node_port=$4
   squawk 11 " master_join $my_node_name $my_node_ip $my_node_user $my_node_port"
+
+
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
+    finish_pki_for_masters $my_node_user $my_node_ip $my_node_name
     hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
-    squawk 13 " kubadm reset"
     ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSUEDO hostname;$PSUEDO  uname -a"
     run_join=$(cat $KUBASH_DIR/join.sh)
     squawk 11 " run join $run_join"
@@ -1219,6 +1221,8 @@ master_init_join () {
   my_master_ip=$2
   my_master_user=$3
   my_master_port=$4
+
+  finish_pki_for_masters $my_master_user $my_master_ip $my_master_name
 
   if [[ "$K8S_NET" == "calico" ]]; then
     my_KUBE_CIDR="192.168.0.0/16"
@@ -1534,32 +1538,40 @@ grant_users () {
   rm -Rf $PARATMP
 }
 
+finish_pki_for_masters () {
+  squawk 15 'finish_etcd'
+  this_user=$1
+  this_ip=$2
+  this_name=$3
+  this_port=$4
+  command2run='mkdir -p /etc/kubernetes/pki/etcd'
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  squawk 15 'cp the etcd pki files'
+  command2run='cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/'
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+}
+
 finish_etcd () {
   squawk 15 'finish_etcd'
   this_user=$1
-  PRIVATE_IP=$2
   this_ip=$2
-  PEER_NAME=$3
+  this_name=$3
+  this_port=$4
 
   command2run="cd /etc/etcd/pki; cfssl print-defaults csr > config.json"
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run="sed -i '0,/CN/{s/example\.net/'$PEER_NAME'/}' /etc/etcd/pki/config.json"
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run="sed -i 's/www\.example\.net/'$PRIVATE_IP'/' /etc/etcd/pki/config.json"
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run="sed -i 's/example\.net/'$PEER_NAME'/' /etc/etcd/pki/config.json"
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  command2run="sed -i '0,/CN/{s/example\.net/'$this_name'/}' /etc/etcd/pki/config.json"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  command2run="sed -i 's/www\.example\.net/'$this_ip'/' /etc/etcd/pki/config.json"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  command2run="sed -i 's/example\.net/'$this_name'/' /etc/etcd/pki/config.json"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json | cfssljson -bare server"
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json | cfssljson -bare peer"
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run='chown -R etcd:etcd /etc/etcd/pki'
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  command2run='mkdir -p /etc/kubernetes/pki/etcd'
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
-  squawk 15 'cp the etcd pki files'
-  command2run='cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/'
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
   if [[ -e $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz ]]; then
     squawk 19 'Etcd binary already downloaded'
@@ -1568,38 +1580,38 @@ finish_etcd () {
     wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz 
   fi
   command2run='sudo useradd etcd'
-  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
   etcd_extract_tmp=$(mktemp -d)
   sudo tar --strip-components=1 -C $etcd_extract_tmp -xzf $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
   rsync -aze "ssh -p $K8S_ssh_port" $etcd_extract_tmp/etcd $this_user@$this_ip:/tmp/
   rsync -aze "ssh -p $K8S_ssh_port" $etcd_extract_tmp/etcdctl $this_user@$this_ip:/tmp/
   rm -Rf $etcd_extract_tmp
   command2run='sudo mv /tmp/etcd /usr/local/bin/'
-  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run='sudo mv /tmp/etcdctl /usr/local/bin/'
-  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
   etctmp=$(mktemp)
   KUBASH_CLUSTER_NAME=$KUBASH_CLUSTER_NAME \
-  PEER_NAME=$PEER_NAME \
-  PRIVATE_IP=$PRIVATE_IP \
+  PEER_NAME=$this_name \
+  PRIVATE_IP=$this_ip \
   ETCD_INITCLUSER_LINE="$(cat $KUBASH_CLUSTER_DIR/etcd.line)" \
   envsubst < $KUBASH_DIR/templates/etcd.conf.yml \
   > $etctmp
   rsync -aze "ssh -p $K8S_ssh_port" $etctmp  $this_user@$this_ip:/tmp/etcd.conf.yml
   command2run="sudo mv /tmp/etcd.conf.yml /etc/etcd/etcd.conf.yml"
-  do_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  do_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
   rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
   command2run='cp /tmp/etcd.service /lib/systemd/system/etcd.service'
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
 
   rm $etctmp
   command2run='chown -R etcd.etcd /etc/etcd'
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run='chown -R etcd.etcd /var/lib/etcd'
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   command2run='systemctl daemon-reload'
-  sudo_command $K8S_ssh_port $this_user $PRIVATE_IP "$command2run"
+  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
 }
 
 start_etcd () {
@@ -1639,6 +1651,7 @@ prep_init_etcd () {
   this_user=$1
   this_ip=$2
   this_name=$3
+  this_port=$4
 
   init_etcd_tmp=$(mktemp -d)
   mkdir $init_etcd_tmp/pki
@@ -1647,59 +1660,71 @@ prep_init_etcd () {
   jinja2 $KUBASH_DIR/templates/ca-csr.json $KUBASH_CLUSTER_DIR/ca-data.yaml --format=yaml > $init_etcd_tmp/pki/ca-csr.json
   command2run='mkdir -p /etc/etcd'
   squawk 15 "command2run $command2run"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
-  rsync -aze "ssh -p $K8S_ssh_port" $init_etcd_tmp/pki $this_user@$this_ip:/tmp/
+  sudo_command $this_port $this_user $this_ip "$command2run"
+  rsync -aze "ssh -p $this_port" $init_etcd_tmp/pki $this_user@$this_ip:/tmp/
   command2run='rm -Rf /etc/etcd/pki'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run='mv /tmp/pki /etc/etcd/pki'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   rm -Rf $init_etcd_tmp
 
   command2run="chown $this_user /etc/etcd/pki"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
-  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/templates/ca-config.json $this_user@$this_ip:/tmp/ca-config.json
+  sudo_command $this_port $this_user $this_ip "$command2run"
+  rsync -aze "ssh -p $this_port" $KUBASH_DIR/templates/ca-config.json $this_user@$this_ip:/tmp/ca-config.json
   command2run='mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
 
-  squawk 15 "rsync -aze 'ssh -p $K8S_ssh_port' '/usr/local/bin/cfssl' $this_user@$this_ip:/tmp/cfssl"
-  rsync -aze "ssh -p $K8S_ssh_port" '/usr/local/bin/cfssl' $this_user@$this_ip:/tmp/cfssl
+  squawk 15 "rsync -aze 'ssh -p $this_port' '/usr/local/bin/cfssl' $this_user@$this_ip:/tmp/cfssl"
+  rsync -aze "ssh -p $this_port" '/usr/local/bin/cfssl' $this_user@$this_ip:/tmp/cfssl
+  copy_in_parallel_to_role "master" "/usr/local/bin/cfssl" "/tmp/cfssl"
+  copy_in_parallel_to_role "etcd"   "/usr/local/bin/cfssl" "/tmp/cfssl"
   command2run='mv /tmp/cfssl /usr/local/bin/cfssl'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
+  do_command_in_parallel_on_role "etcd"          "$command2run"
+  if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+    do_command_in_parallel_on_role "master"        "$command2run"
+  fi
 
-  squawk 15 "rsync -aze 'ssh -p $K8S_ssh_port' /usr/local/bin/cfssljson $this_user@$this_ip:/tmp/cfssljson"
-  rsync -aze "ssh -p $K8S_ssh_port" /usr/local/bin/cfssljson $this_user@$this_ip:/tmp/cfssljson
+  squawk 15 "rsync -aze 'ssh -p $this_port' /usr/local/bin/cfssljson $this_user@$this_ip:/tmp/cfssljson"
+  rsync -aze "ssh -p $this_port" "/usr/local/bin/cfssljson" $this_user@$this_ip:/tmp/cfssljson
+  copy_in_parallel_to_role "master" "/usr/local/bin/cfssljson" "/tmp/cfssljson"
+  copy_in_parallel_to_role "etcd"   "/usr/local/bin/cfssljson" "/tmp/cfssljson"
   command2run='mv /tmp/cfssljson /usr/local/bin/cfssljson'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
+  do_command_in_parallel_on_role "etcd"          "$command2run"
+  if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+    do_command_in_parallel_on_role "master"        "$command2run"
+  fi
 
   command2run='cd /etc/etcd/pki; cfssl gencert -initca ca-csr.json | cfssljson -bare ca -'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
 
   command2run='cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
 
-  rsync -aze "ssh -p $K8S_ssh_port" $KUBASH_DIR/scripts/grabpki $this_user@$this_ip:/tmp/grabpki
+  rsync -aze "ssh -p $this_port" $KUBASH_DIR/scripts/grabpki $this_user@$this_ip:/tmp/grabpki
   command2run="bash /tmp/grabpki"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
-  squawk 15 'pull pki.tgz from primary master'
-  rsync -azve "ssh -p $K8S_ssh_port" $this_user@$this_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
-  finish_etcd $this_user $this_ip $this_name
+  sudo_command $this_port $this_user $this_ip "$command2run"
+  squawk 15 'pull etcd-pki.tgz from primary master'
+  rsync -aze "ssh -p $this_port" $this_user@$this_ip:/tmp/etcd-pki.tgz $KUBASH_CLUSTER_DIR/
+  squawk 15 'and copy it to master and etcd hosts'
+  copy_in_parallel_to_role "etcd" "$KUBASH_CLUSTER_DIR/etcd-pki.tgz" "/tmp/"
+  copy_in_parallel_to_role "master" "$KUBASH_CLUSTER_DIR/etcd-pki.tgz" "/tmp/"
+  command2run='cd /; tar zxf /tmp/etcd-pki.tgz'
+  do_command_in_parallel_on_role "master"        "$command2run"
+  do_command_in_parallel_on_role "etcd"          "$command2run"
+  command2run='rm /tmp/etcd-pki.tgz'
+  do_command_in_parallel_on_role "master"        "$command2run"
+  do_command_in_parallel_on_role "etcd"          "$command2run"
+  finish_etcd $this_user $this_ip $this_name $this_port
 }
 
 prep_etcd () {
   this_user=$1
   this_ip=$2
   this_name=$3
-  command2run='mkdir -p /etc/etcd'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
-  command2run='rm -Rf /etc/etcd/pki'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
-  squawk 15 "rsync -azve 'ssh -p $K8S_ssh_port'  $KUBASH_CLUSTER_DIR/pki.tgz $this_user@$this_ip:/tmp/"
-  rsync -azve "ssh -p $K8S_ssh_port"  $KUBASH_CLUSTER_DIR/pki.tgz $this_user@$this_ip:/tmp/
-  command2run='cd /; tar zxvf /tmp/pki.tgz'
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
-  command2run="chown -R $this_user /etc/etcd/pki"
-  sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
-  finish_etcd $this_user $this_ip $this_name
+  this_port=$4
+  finish_etcd $this_user $this_ip $this_name $this_port
 }
 
 do_etcd () {
@@ -1713,17 +1738,23 @@ do_etcd () {
   echo '  endpoints:' > $PARATMP/endpoints.line
   while IFS="," read -r $csv_columns
   do
-    if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
-      if [[ "$countzero" -lt "3" ]]; then
-	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
+    if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+      if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
+  	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
+  	echo -n "," >> $PARATMP/etcd.line
+        countzero=`expr $countzero + 1`
       fi
-      if [[ "$countzero" -lt "2" ]]; then
-	echo -n "," >> $PARATMP/etcd.line
+    else
+      if [[ "$K8S_role" == "etcd" ]]; then
+  	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
+  	echo -n "," >> $PARATMP/etcd.line
+        countzero=`expr $countzero + 1`
       fi
-      echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
-      countzero=`expr $countzero + 1`
     fi
+    echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
+    countzero=`expr $countzero + 1`
   done <<< $kubash_hosts_csv_slurped
+  sed -i 's/,$//' $PARATMP/etcd.line
   echo '  caFile: /etc/kubernetes/pki/etcd/ca.pem' >> $PARATMP/endpoints.line
   echo '  certFile: /etc/kubernetes/pki/etcd/client.pem' >> $PARATMP/endpoints.line
   echo '  keyFile: /etc/kubernetes/pki/etcd/client-key.pem' >> $PARATMP/endpoints.line
@@ -1752,7 +1783,7 @@ do_etcd () {
     if [[ "$K8S_role" == "primary_master"  ]]; then
       if [[ "$countzero" -eq "0" ]]; then
         countzero=`expr $countzero + 1`
-        prep_init_etcd $K8S_su_user $K8S_ip1 $K8S_node
+        prep_init_etcd $K8S_su_user $K8S_ip1 $K8S_node $K8S_ssh_port
       else
         echo 'there should only be one primary'
         exit 1
@@ -1760,8 +1791,8 @@ do_etcd () {
     fi
     if [[ "$K8S_role" == "etcd" || "$K8S_role" == "master"  ]]; then
         squawk 33 "$K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_ip1 $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
-        squawk 13 "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_su_user $K8S_ip1 $K8S_node"
-        echo "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_su_user $K8S_ip1" \
+        squawk 13 "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_su_user $K8S_ip1 $K8S_node $K8S_ssh_port"
+        echo      "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_su_user $K8S_ip1 $K8S_node $K8S_ssh_port" \
           >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
