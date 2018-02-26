@@ -337,6 +337,10 @@ rolero () {
   squawk 14 "Result = $result"
 }
 
+hosts_csv_slurp () {
+  kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV|sort -t , -k 18,18n  -k 15,15n)"
+}
+
 kvm-decommer () {
   squawk 15 "kvm-decommer $@"
   REBASED_NODE=$1
@@ -627,9 +631,6 @@ provisioner () {
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   squawk 18 "$slurpy"
   apparmor_fixed='false'
-  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
-  fi
   if [[ -e "$KUBASH_HOSTS_CSV" ]]; then
     horizontal_rule
     rm $KUBASH_HOSTS_CSV
@@ -1349,7 +1350,7 @@ master_init_join () {
   my_master_user=$3
   my_master_port=$4
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
 
   finish_pki_for_masters $my_master_user $my_master_ip $my_master_name
@@ -1525,7 +1526,7 @@ checks () {
 initialize () {
   squawk 11 " initialize"
   check_csv
-  kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+  hosts_csv_slurp
   check_coreos
   process_hosts_csv
 }
@@ -1740,7 +1741,7 @@ finish_etcd () {
 start_etcd () {
 
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   # Run kubeadm init on master0
   PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
@@ -1864,7 +1865,7 @@ do_etcd () {
   touch $PARATMP/hopper
   squawk 13 " do_etcd"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
 
   countzero=0
@@ -1949,7 +1950,7 @@ do_primary_master () {
   do_master_count=0
 
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do
@@ -1977,7 +1978,7 @@ do_scale_up_kube_dns () {
   do_scale_up_kube_dns=0
 
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do
@@ -2013,7 +2014,7 @@ do_masters_in_parallel () {
   touch $do_master_tmp/hopper
   touch $do_master_tmp/hopper2
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do
@@ -2053,7 +2054,7 @@ do_nodes_in_parallel () {
   touch $PARATMP/hopper
   squawk 13 " do_nodes_in_parallel"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   countzero_do_nodes=0
   while IFS="," read -r $csv_columns
@@ -2086,7 +2087,7 @@ do_command_in_parallel () {
   touch $PARATMP/hopper
   squawk 13 " do_command_in_parallel $1"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   countzero_do_nodes=0
   while IFS="," read -r $csv_columns
@@ -2149,7 +2150,7 @@ copy_in_parallel_to_role () {
   touch $PARATMP/hopper
   squawk 13 " do_command_in_parallel"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   countzero_do_nodes=0
   while IFS="," read -r $csv_columns
@@ -2183,7 +2184,7 @@ copy_in_parallel_to_os () {
   squawk 13 " do_command_in_parallel"
   countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do 
@@ -2215,7 +2216,7 @@ do_command_in_parallel_on_role () {
   squawk 13 " do_command_in_parallel"
   countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do 
@@ -2243,7 +2244,7 @@ do_test () {
   squawk 13 " do_command_in_parallel"
   countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do 
@@ -2277,7 +2278,7 @@ do_command_in_parallel_on_os () {
   squawk 13 " do_command_in_parallel"
   countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+    hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do 
