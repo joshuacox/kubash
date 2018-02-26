@@ -1414,7 +1414,7 @@ initialize () {
   check_csv
   kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   check_coreos
-  do_csv
+  process_hosts_csv
 }
 
 kubespray_initialize () {
@@ -2146,8 +2146,8 @@ do_command_in_parallel_on_os () {
   rm -Rf $PARATMP
 }
 
-do_csv () {
-  squawk 13 " do_csv"
+process_hosts_csv () {
+  squawk 13 " process_hosts_csv"
   do_etcd
   start_etcd
   do_primary_master
