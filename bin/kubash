@@ -39,6 +39,23 @@
 : ${ETCD_VERSION:=v3.2.7}
 : ${KUBERNETES_VERSION:=v1.9.3}
 
+net_set () {
+  # Set networking defaults
+  if [[ -e "$KUBASH_CLUSTER_DIR/net_set" ]]; then
+    K8S_NET=$(cat $KUBASH_CLUSTER_DIR/net_set)
+  fi
+  if [[ "$K8S_NET" == "calico" ]]; then
+    my_KUBE_CIDR="192.168.0.0/16"
+  elif [[ "$K8S_NET" == "flannel" ]]; then
+    my_KUBE_CIDR="10.244.0.0/16"
+  else 
+    echo 'unknown pod network'
+    exit 1
+  fi
+}
+
+net_set
+
 #set -eu
 
 export KUBECONFIG=$KUBASH_CLUSTER_CONFIG
@@ -1224,15 +1241,6 @@ master_init_join () {
 
   finish_pki_for_masters $my_master_user $my_master_ip $my_master_name
 
-  if [[ "$K8S_NET" == "calico" ]]; then
-    my_KUBE_CIDR="192.168.0.0/16"
-  elif [[ "$K8S_NET" == "flannel" ]]; then
-    my_KUBE_CIDR="10.244.0.0/16"
-  else 
-    echo 'unknown pod network'
-    exit 1
-  fi
-
   rm -f $KUBASH_CLUSTER_DIR/ingress.ip1
   rm -f $KUBASH_CLUSTER_DIR/ingress.ip2
   rm -f $KUBASH_CLUSTER_DIR/ingress.ip3
@@ -2378,6 +2386,7 @@ main () {
         KUBASH_ANSIBLE_HOSTS=$KUBASH_CLUSTER_DIR/hosts
         KUBASH_PROVISION_CSV=$KUBASH_CLUSTER_DIR/provision.csv
         KUBASH_USERS_CSV=$KUBASH_CLUSTER_DIR/users.csv
+	net_set
         shift 2 ;;
       -c|--csv)
         KUBASH_HOSTS_CSV="$2"

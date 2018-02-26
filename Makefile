@@ -135,6 +135,7 @@ example:
 	cp -iv templates/ca-csr.json clusters/default/
 	cp -iv templates/ca-config.json clusters/default/
 	cp -iv templates/client.json clusters/default/
+	cp -iv net_set.example clusters/default/net_set
 
 pax/ubuntu/builds/ubuntu-16.04.libvirt.box:
 	TMPDIR=/tiamat/tmp packer build -only=qemu kubash-ubuntu-16.04-amd64.json
