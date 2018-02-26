@@ -1014,6 +1014,7 @@ w8_kubedns () {
 
 w8_kubectl () {
   squawk 10 "Wait on the K8S cluster to become available" -n
+  squawk 10 "Errors on the first few tries are normal give it a few minutes to spin up" -n
   sleep 15
   # while loop
   countone_w8_kubectl=1
@@ -1312,6 +1313,7 @@ master_init_join () {
       kubeadmin_config_tmp=$(mktemp)
       my_master_ip=$my_master_ip \
       load_balancer_ip=$K8S_load_balancer_ip \
+      my_KUBE_CIDR=$my_KUBE_CIDR \
       ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
       envsubst  < $KUBASH_DIR/templates/kubeadm-config.yaml \
         > $kubeadmin_config_tmp
