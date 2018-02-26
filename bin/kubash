@@ -859,7 +859,7 @@ write_ansible_kubeadm2ha_hosts () {
     fi
   done <<< "$slurpy"
   echo '' >> $KUBASH_ANSIBLE_HOSTS
-  echo '[secondary-master]'  >> $KUBASH_ANSIBLE_HOSTS
+  echo '[secondary-masters]'  >> $KUBASH_ANSIBLE_HOSTS
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
@@ -915,7 +915,7 @@ write_ansible_kubeadm2ha_hosts () {
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
-  echo '[ingress]'  >> $KUBASH_ANSIBLE_HOSTS
+  echo '[nginx]'  >> $KUBASH_ANSIBLE_HOSTS
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "ingress" ]]; then
@@ -924,6 +924,18 @@ write_ansible_kubeadm2ha_hosts () {
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[nfs-server]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" = "nfs-server" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  cat $KUBASH_DIR/templates/my-cluster.inventory.tail >> $KUBASH_ANSIBLE_HOSTS
 }
 
 write_ansible_openshift_hosts () {
@@ -1528,27 +1540,27 @@ kubeadm2ha_initialize () {
   fi
   ansible-playbook \
     -f $PARALLEL_JOBS \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-images.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-setup.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-dashboard.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-load-balanced.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/kubeadm2ha/ansible/etcd-operator.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/kubeadm2ha/ansible/local-access.yaml
 }
 
@@ -1561,7 +1573,7 @@ kubespray_initialize () {
     write_ansible_kubespray_hosts
   fi
   ansible-playbook \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/kubespray/cluster.yml
 }
 
@@ -1574,10 +1586,10 @@ openshift_initialize () {
     write_ansible_openshift_hosts
   fi
   ansible-playbook \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/openshift-ansible/playbooks/prerequisites.yml
   ansible-playbook \
-    -i $KUBASH_DIR/gen/hosts \
+    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/openshift-ansible/playbooks/deploy_cluster.yml
 }
 
