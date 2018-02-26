@@ -1965,25 +1965,37 @@ do_command_in_parallel () {
 }
 
 do_command () {
+  squawk 13 " do_command $@" 
+  if [[ ! $# -eq 4 ]]; then
+    usage
+    
+    echo "sudo_command $@ <--- arguments does not equal 4!!!" 
+    exit 1
+  fi
   PARATMP=$(mktemp -d)
   K8S_provisionerPort=$1
   K8S_provisionerUser=$2
   K8S_ip1=$3
   command2run=$4
   touch $PARATMP/hopper
-  squawk 13 " do_command $1 $2 $3 $4" 
   squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"bash -c '$command2run'\""
   ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 "bash -c '$command2run'"
 }
 
 sudo_command () {
+  squawk 13 " sudo_command $@" 
+  if [[ ! $# -eq 4 ]]; then
+    usage
+    
+    echo "sudo_command $@ <--- arguments does not equal 4!!!" 
+    exit 1
+  fi
   PARATMP=$(mktemp -d)
   K8S_provisionerPort=$1
   K8S_provisionerUser=$2
   K8S_ip1=$3
   command2run=$4
   touch $PARATMP/hopper
-  squawk 13 " do_command $1 $2 $3 $4" 
   squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
   ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 "sudo bash -c '$command2run'"
 }
