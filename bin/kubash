@@ -1373,8 +1373,7 @@ node_join () {
   squawk 11 " node_join $my_node_name $my_node_ip $my_node_user $my_node_port"
   if [[ "$DO_NODE_JOIN" == "true" ]] ; then
     hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
-    squawk 13 "Kubeadmin reset"
-    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a;$PSEUDO kubeadm reset")
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a")
     squawk 13 "Result is $result"
     squawk 13 "Kubeadmin join"
     run_join=$(cat $KUBASH_DIR/join.sh)
@@ -1657,6 +1656,12 @@ start_etcd () {
     bash $PARATMP/hopper
   fi
   rm -Rf $PARATMP
+}
+
+kubeadm_reset () {
+  squawk 13 "Kubeadmin reset"
+  command2run="PATH=$K8S_SU_PATH kubeadm reset"
+  do_command_in_parallel "$command2run"
 }
 
 prep_init_etcd () {
@@ -2673,6 +2678,12 @@ main () {
       exit 1
     fi
     copy_image_to_all_provisioning_hosts
+  elif [[ $RAISON == "reset" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    kubeadm_reset
   elif [[ $RAISON == "build-all" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
