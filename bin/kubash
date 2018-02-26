@@ -1028,6 +1028,10 @@ w8_kubectl () {
     fi
     countone_w8_kubectl=`expr $countone_w8_kubectl + 1`
     squawk 19 "$countone_w8_kubectl"
+    if [[ "$countone_w8_kubectl" -ge "$countlimit_w8_kubectl"  ]]; then
+	    echo 'Master is not coming up, investigate, breaking'
+	    exit 1
+    fi
     sleep 5
   done
   squawk 10  "."
