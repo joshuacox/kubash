@@ -1537,19 +1537,19 @@ finish_etcd () {
   this_port=$4
 
   command2run="cd /etc/etcd/pki; cfssl print-defaults csr > config.json"
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run="sed -i '0,/CN/{s/example\.net/'$this_name'/}' /etc/etcd/pki/config.json"
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run="sed -i 's/www\.example\.net/'$this_ip'/' /etc/etcd/pki/config.json"
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run="sed -i 's/example\.net/'$this_name'/' /etc/etcd/pki/config.json"
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json | cfssljson -bare server"
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json | cfssljson -bare peer"
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run='chown -R etcd:etcd /etc/etcd/pki'
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
 
   if [[ -e $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz ]]; then
     squawk 19 'Etcd binary already downloaded'
@@ -1557,17 +1557,17 @@ finish_etcd () {
     cd $KUBASH_DIR/tmp
     wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz 
   fi
-  command2run='sudo useradd etcd'
-  do_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  command2run='useradd etcd'
+  sudo_command $this_port $this_user $this_ip "$command2run"
   etcd_extract_tmp=$(mktemp -d)
   sudo tar --strip-components=1 -C $etcd_extract_tmp -xzf $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
-  rsync -aze "ssh -p $K8S_provisionerPort" $etcd_extract_tmp/etcd $this_user@$this_ip:/tmp/
-  rsync -aze "ssh -p $K8S_provisionerPort" $etcd_extract_tmp/etcdctl $this_user@$this_ip:/tmp/
+  rsync -aze "ssh -p $this_port" $etcd_extract_tmp/etcd $this_user@$this_ip:/tmp/
+  rsync -aze "ssh -p $this_port" $etcd_extract_tmp/etcdctl $this_user@$this_ip:/tmp/
   rm -Rf $etcd_extract_tmp
   command2run='sudo mv /tmp/etcd /usr/local/bin/'
-  do_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  do_command $this_port $this_user $this_ip "$command2run"
   command2run='sudo mv /tmp/etcdctl /usr/local/bin/'
-  do_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  do_command $this_port $this_user $this_ip "$command2run"
   etctmp=$(mktemp)
   KUBASH_CLUSTER_NAME=$KUBASH_CLUSTER_NAME \
   PEER_NAME=$this_name \
@@ -1575,21 +1575,21 @@ finish_etcd () {
   ETCD_INITCLUSER_LINE="$(cat $KUBASH_CLUSTER_DIR/etcd.line)" \
   envsubst < $KUBASH_DIR/templates/etcd.conf.yml \
   > $etctmp
-  rsync -aze "ssh -p $K8S_provisionerPort" $etctmp  $this_user@$this_ip:/tmp/etcd.conf.yml
-  command2run="sudo mv /tmp/etcd.conf.yml /etc/etcd/etcd.conf.yml"
-  do_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  rsync -aze "ssh -p $this_port" $etctmp  $this_user@$this_ip:/tmp/etcd.conf.yml
+  command2run="mv /tmp/etcd.conf.yml /etc/etcd/etcd.conf.yml"
+  sudo_command $this_port $this_user $this_ip "$command2run"
 
-  rsync -aze "ssh -p $K8S_provisionerPort" $KUBASH_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
+  rsync -aze "ssh -p $this_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_ip:/tmp/etcd.service
   command2run='cp /tmp/etcd.service /lib/systemd/system/etcd.service'
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
 
   rm $etctmp
   command2run='chown -R etcd.etcd /etc/etcd'
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run='chown -R etcd.etcd /var/lib/etcd'
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
   command2run='systemctl daemon-reload'
-  sudo_command $K8S_provisionerPort $this_user $this_ip "$command2run"
+  sudo_command $this_port $this_user $this_ip "$command2run"
 }
 
 start_etcd () {
@@ -1967,37 +1967,33 @@ do_command_in_parallel () {
 do_command () {
   squawk 13 " do_command $@" 
   if [[ ! $# -eq 4 ]]; then
-    usage
-    
     echo "sudo_command $@ <--- arguments does not equal 4!!!" 
     exit 1
   fi
   PARATMP=$(mktemp -d)
-  K8S_provisionerPort=$1
-  K8S_provisionerUser=$2
-  K8S_ip1=$3
+  this_port=$1
+  this_user=$2
+  this_ip=$3
   command2run=$4
   touch $PARATMP/hopper
-  squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"bash -c '$command2run'\""
-  ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 "bash -c '$command2run'"
+  squawk 15 "ssh -n -p $this_port $this_user@$this_ip \"bash -c '$command2run'\""
+  ssh -n -p $this_port $this_user@$this_ip "bash -c '$command2run'"
 }
 
 sudo_command () {
   squawk 13 " sudo_command $@" 
   if [[ ! $# -eq 4 ]]; then
-    usage
-    
     echo "sudo_command $@ <--- arguments does not equal 4!!!" 
     exit 1
   fi
   PARATMP=$(mktemp -d)
-  K8S_provisionerPort=$1
-  K8S_provisionerUser=$2
-  K8S_ip1=$3
+  this_port=$1
+  this_user=$2
+  this_ip=$3
   command2run=$4
   touch $PARATMP/hopper
-  squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
-  ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 "sudo bash -c '$command2run'"
+  squawk 15 "ssh -n -p $this_port $this_user@$this_ip \"sudo bash -c '$command2run'\""
+  ssh -n -p $this_port $this_user@$this_ip "sudo bash -c '$command2run'"
 }
 
 copy_in_parallel_to_role () {
