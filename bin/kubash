@@ -1743,15 +1743,16 @@ do_etcd () {
   	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
   	echo -n "," >> $PARATMP/etcd.line
         countzero=`expr $countzero + 1`
+        echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
       fi
     else
       if [[ "$K8S_role" == "etcd" ]]; then
   	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
   	echo -n "," >> $PARATMP/etcd.line
         countzero=`expr $countzero + 1`
+        echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
       fi
     fi
-    echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
     countzero=`expr $countzero + 1`
   done <<< $kubash_hosts_csv_slurped
   sed -i 's/,$//' $PARATMP/etcd.line
