@@ -1571,7 +1571,7 @@ finish_pki_for_masters () {
   command2run='mkdir -p /etc/kubernetes/pki/etcd'
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
   squawk 15 'cp the etcd pki files'
-  command2run='cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/'
+  command2run='cp /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/'
   sudo_command $K8S_ssh_port $this_user $this_ip "$command2run"
 }
 
