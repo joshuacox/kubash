@@ -38,6 +38,9 @@
 : ${ETCD_VERSION:=v3.2.16}
 : ${KUBERNETES_VERSION:=v1.9.3}
 
+#set -eu
+set -e
+
 net_set () {
   # Set networking defaults
   if [[ -e "$KUBASH_CLUSTER_DIR/net_set" ]]; then
@@ -55,7 +58,6 @@ net_set () {
 
 net_set
 
-#set -eu
 
 export KUBECONFIG=$KUBASH_CLUSTER_CONFIG
 # Rasion d'etre
