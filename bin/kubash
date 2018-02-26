@@ -64,8 +64,6 @@ RAISON=false
 # global vars
 ANSWER_YES=no
 print_help=no
-DO_HOSTS=no
-DO_PREP=no
 
 # prep the columns strings for csv input
 user_csv_columns="user_email user_role"
@@ -1189,12 +1187,6 @@ dotfiles_install () {
   check_if_line_exists || add_line_to
 }
 
-linux_install () {
-  squawk 11 " linux_install"
-  cd $TMP
-  dotfiles_install
-}
-
 do_grab () {
   squawk 11 " do_grab"
   do_grab_master_count=0
@@ -1338,7 +1330,6 @@ master_init_join () {
       command2run='sudo sed -i "/- kube-apiserver/a\    - --oidc-issuer-url=https://accounts.google.com\n    - --oidc-username-claim=email\n    - --oidc-client-id=" /etc/kubernetes/manifests/kube-apiserver.yaml'
       ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     fi
-    DO_GRAB=true
     master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port
     sudo_command $my_master_port $my_master_user $my_master_ip "$command2run"
     w8_kubectl
@@ -1363,21 +1354,18 @@ master_grab_kube_config () {
   my_master_port=$4
   squawk 11 ' refresh-kube-config'
   squawk 13 " master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port"
-  if [[ "$DO_GRAB" == "true" ]] ; then
-    squawk 15 "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
-    ssh -n -p $my_master_port $my_master_user@$my_master_ip "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
+  squawk 15 "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
+  ssh -n -p $my_master_port $my_master_user@$my_master_ip "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
 
-    chkdir $HOME/.kube
-    squawk 13 ' grab config'
-    rm -f $KUBASH_CLUSTER_CONFIG
-    ssh -n -p $my_master_port $my_master_user@$my_master_ip 'cat .kube/config' > $KUBASH_CLUSTER_CONFIG
-    sed -i "s/^  name: kubernetes$/  name: $KUBASH_CLUSTER_NAME/" $KUBASH_CLUSTER_CONFIG
-    sed -i "s/^    cluster: kubernetes$/    cluster: $KUBASH_CLUSTER_NAME/" $KUBASH_CLUSTER_CONFIG
+  chkdir $HOME/.kube
+  squawk 13 ' grab config'
+  rm -f $KUBASH_CLUSTER_CONFIG
+  ssh -n -p $my_master_port $my_master_user@$my_master_ip 'cat .kube/config' > $KUBASH_CLUSTER_CONFIG
+  sed -i "s/^  name: kubernetes$/  name: $KUBASH_CLUSTER_NAME/" $KUBASH_CLUSTER_CONFIG
+  sed -i "s/^    cluster: kubernetes$/    cluster: $KUBASH_CLUSTER_NAME/" $KUBASH_CLUSTER_CONFIG
 
-    sudo chmod 600 $KUBASH_CLUSTER_CONFIG
-    sudo chown -R $USER. $KUBASH_CLUSTER_CONFIG
-    DO_GRAB=false
-  fi
+  sudo chmod 600 $KUBASH_CLUSTER_CONFIG
+  sudo chown -R $USER. $KUBASH_CLUSTER_CONFIG
 }
 
 node_join () {
@@ -1420,44 +1408,6 @@ checks () {
   check_cmd 'sed'
 }
 
-do_install () {
-  squawk 11 " do_install"
-  UNAME=$(uname)
-
-  if [[ "$UNAME" == "CYGWIN_NT-10.0" ]] ; then
-    PLATFORM="os.cygwin.x86_64"
-    echo "WARNING: Cygwin is not supported at this time!"
-    exit 1
-  fi
-
-  if [[ "$UNAME" == "Linux" ]] ; then
-    squawk 11 " $UNAME is a Supported OS"
-  elif [[ "$UNAME" == "Darwin" || "$UNAME" = "FreeBSD" ]] ; then
-      echo " $UNAME is not a Supported OS"
-      exit 1
-  else
-    echo " $UNAME is not a Supported OS"
-    echo "Sorry, this OS is not supported yet via this installer."
-    exit 1
-  fi
-
-  if [[ "$UNAME" == "Linux" ]] ; then
-    ### Linux ###
-    LINUX_ARCH=$(uname -m)
-    if [[ "${LINUX_ARCH}" == "x86_64" ]] ; then
-      PLATFORM="os.linux.x86_64"
-    else
-      echo "Unusable architecture: ${LINUX_ARCH}"
-      echo "ReactioNstall only supports x86_64 for now on Linux."
-      exit 1
-    fi
-  fi
-
-  # make reqs
-  if [[ "$PLATFORM" == "os.linux.x86_64" ]] ; then
-    linux_install
-  fi
-}
 
 initialize () {
   squawk 11 " initialize"
@@ -2134,6 +2084,36 @@ do_command_in_parallel_on_role () {
   rm -Rf $PARATMP
 }
 
+do_test () {
+  squawk 13 " do_command_in_parallel"
+  countzero_do_nodes=0
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+  fi
+  while IFS="," read -r $csv_columns
+  do 
+    echo "K8S_node=$K8S_node
+K8S_role=$K8S_role
+K8S_cpuCount=$K8S_cpuCount
+K8S_Memory=$K8S_Memory
+K8S_network1=$K8S_network1
+K8S_mac1=$K8S_mac1
+K8S_ip1=$K8S_ip1
+K8S_provisionerHost=$K8S_provisionerHost
+K8S_provisionerUser=$K8S_provisionerUser
+K8S_provisionerPort=$K8S_provisionerPort
+K8S_provisionerBasePath=$K8S_provisionerBasePath
+K8S_os=$K8S_os
+K8S_virt=$K8S_virt
+K8S_network2=$K8S_network2
+K8S_mac2=$K8S_mac2
+K8S_ip2=$K8S_ip2
+K8S_network3=$K8S_network3
+K8S_mac3=$K8S_mac3
+K8S_ip3=$K8S_ipv3"
+  done <<< $kubash_hosts_csv_slurped
+}
+
 do_command_in_parallel_on_os () {
   PARATMP=$(mktemp -d)
   os2runiton=$1
@@ -2545,7 +2525,7 @@ main () {
       usage
       exit 1
     fi
-        DO_GRAB=true
+        do_grab
   elif [[ $RAISON == "grant" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
@@ -2565,7 +2545,7 @@ main () {
       usage
       exit 1
     fi
-        DO_OPENEBS=true
+        do_openebs
   elif [[ $RAISON == "genmac" ]]; then
     genmac
   elif [[ $RAISON == "dry" ]]; then
@@ -2573,10 +2553,8 @@ main () {
       usage
       exit 1
     fi
-        DO_HOSTS=true
-        DO_PING=true
-        DO_CSV=true
         VERBOSITY=`expr $VERBOSITY + 1`
+        do_test
   elif [[ $RAISON == "hosts" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
@@ -2597,21 +2575,32 @@ main () {
       usage
       exit 1
     fi
-      DO_SHOW=true
-      VERBOSITY=`expr $VERBOSITY + 1`
+      VERBOSITY=`expr $VERBOSITY + 10`
+      read_csv
+  elif [[ $RAISON == "test" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+      VERBOSITY=`expr $VERBOSITY + 10`
+      do_test
   elif [[ $RAISON == "ping" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
-      DO_PING=true
+    if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+      ping_in_parallel
+    else
+      ping
+    fi
   elif [[ $RAISON == "aping" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
-      DO_HOSTS=true
-      DO_APING=true
+      write_ansible_hosts
+      ansible-ping
   elif [[ $RAISON == "monitoring" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
@@ -2653,23 +2642,20 @@ main () {
       init_usage
       exit 1
     fi
-        DO_CSV=true
-        DO_NET=true
-        DO_PING=true
-        DO_GRAB=true
-        DO_HOSTS=true
-        DO_TILLER=true
-        DO_INSTALL=true
-        DO_MASTER_JOIN=true
+      DO_MASTER_JOIN=true
+      initializer
+      do_grab
+      write_ansible_hosts
+      do_tiller
   elif [[ $RAISON == "nodes" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage
       exit 1
     fi
-        DO_CSV=true
-        DO_PING=true
-        DO_HOSTS=true
-        DO_NODE_JOIN=true
+      DO_NODE_JOIN=true
+      initializer
+      do_grab
+      write_ansible_hosts
   elif [[ $RAISON == "init" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage
@@ -2677,15 +2663,11 @@ main () {
     fi
     if [[ -z "$initializer" ]]; then
       initializer=kubeadm
-      DO_CSV=true
-      DO_NET=true
-      DO_PING=true
-      DO_GRAB=true
-      DO_HOSTS=true
-      DO_INSTALL=true
-      do_dotfiles=true
       DO_NODE_JOIN=true
       DO_MASTER_JOIN=true
+      initializer
+      do_grab
+      write_ansible_hosts
     elif [[ "$initializer" == "kubespray" ]]; then
       kubespray_initialize
       exit 0
@@ -2698,7 +2680,7 @@ main () {
       init_usage
       exit 1
     fi
-        DO_TILLER=true
+    do_tiller
   elif [[ $RAISON == "refresh" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
@@ -2858,50 +2840,6 @@ main () {
   if [[ $print_help == "true" ]]; then
     usage
     exit 1
-  fi
-
-  if [[ $DO_HOSTS == "true" ]]; then
-    write_ansible_hosts
-  fi
-
-  if [[ $DO_PREP == "true" ]]; then
-    prep
-  fi
-
-  if [[ $DO_PING == "true" ]]; then
-    if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-      ping_in_parallel
-    else
-      ping
-    fi
-  fi
-
-  if [[ $DO_APING == "true" ]]; then
-    ansible-ping
-  fi
-
-  if [[ $DO_SHOW == "true" ]]; then
-    read_csv
-  fi
-
-  if [[ $DO_INSTALL == "true" ]]; then
-    do_install
-  fi
-
-  if [[ $DO_CSV == "true" ]]; then
-    initialize
-  fi
-
-  if [[ $DO_GRAB == "true" ]]; then
-    do_grab
-  fi
-
-  if [[ $DO_TILLER == "true" ]]; then
-    do_tiller
-  fi
-
-  if [[ $DO_OPENEBS == "true" ]]; then
-    do_openebs
   fi
 
   exit 0
