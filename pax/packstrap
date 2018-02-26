@@ -1,4 +1,30 @@
 #!/bin/sh -eux
+TMP=$(mktemp -d)
+
+cat <<EOF > $TMP/inventory 
+localhost ansible_connection=local
+
+[nodes]
+localhost
+
+[primary-master]
+localhost
+
+[secondary-masters]
+localhost
+
+[masters]
+localhost
+
+[minions]
+localhost
+
+[nginx]
+localhost
+
+[nfs-server]
+localhost
+EOF
 
 echo 'export GOPATH=$HOME/.go
 export PATH=${GOPATH//://bin:}/bin:$PATH' \
@@ -11,6 +37,11 @@ if [ "$KUBEADM_INSTALL" = "openshift" ]; then
 elif [ "$KUBEADM_INSTALL" = "kubespray" ]; then
   # leaving clean for now, let ansible initialize
   echo 'Sticking to defaults for kubespray'
+elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
+  cd $TMP
+  git clone --depth=1 https://github.com/joshuacox/kubeadm2ha.git
+  cd kubeaadm2ha
+  ansible_playbook -i $TMP/inventory cluster-images.yaml
 elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   curl https://raw.githubusercontent.com/joshuacox/roustabout/master/KubadmNstall|bash
   swapoff --all

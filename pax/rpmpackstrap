@@ -4,6 +4,31 @@ PRE_INSTALL_PKGS='epel-release'
 INSTALL_PKGS='docker ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct iscsi-initiator-utils yum-utils'
 
 cd $TMP
+cat <<EOF > $TMP/inventory 
+localhost ansible_connection=local
+
+[nodes]
+localhost
+
+[primary-master]
+localhost
+
+[secondary-masters]
+localhost
+
+[masters]
+localhost
+
+[minions]
+localhost
+
+[nginx]
+localhost
+
+[nfs-server]
+localhost
+EOF
+
 wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum install -y epel-release-latest-7.noarch.rpm
 
@@ -21,6 +46,11 @@ if [ "$KUBEADM_INSTALL" = "openshift" ]; then
 elif [ "$KUBEADM_INSTALL" = "kubespray" ]; then
   # leaving clean for now, let ansible initialize
   echo 'Sticking to default centos'
+elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
+  cd $TMP
+  git clone --depth=1 https://github.com/joshuacox/kubeadm2ha.git
+  cd kubeaadm2ha
+  ansible_playbook -i $TMP/inventory cluster-images.yaml
 else
   curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
   swapoff --all
