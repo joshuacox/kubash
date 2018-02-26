@@ -2643,7 +2643,7 @@ main () {
       exit 1
     fi
       DO_MASTER_JOIN=true
-      initializer
+      initialize
       do_grab
       write_ansible_hosts
       do_tiller
@@ -2653,7 +2653,7 @@ main () {
       exit 1
     fi
       DO_NODE_JOIN=true
-      initializer
+      initialize
       do_grab
       write_ansible_hosts
   elif [[ $RAISON == "init" ]]; then
@@ -2665,7 +2665,7 @@ main () {
       initializer=kubeadm
       DO_NODE_JOIN=true
       DO_MASTER_JOIN=true
-      initializer
+      initialize
       do_grab
       write_ansible_hosts
     elif [[ "$initializer" == "kubespray" ]]; then
