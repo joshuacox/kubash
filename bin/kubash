@@ -122,6 +122,8 @@ provision - provision individual nodes
 
 init - initialize the cluster
 
+reset - reset the cluster with `kubeadm reset` on all hosts
+
 decommission - tear down the cluster and decommission nodes
 
 show - show the analyzed input of the hosts file

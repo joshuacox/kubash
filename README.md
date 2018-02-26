@@ -61,6 +61,8 @@ kubash COMMAND
 
 [init](./docs/init.md) - initialize the cluster
 
+[reset](./docs/reset.md) - reset the cluster by running `kubeadm reset` on all the hosts
+
 [decommission](./docs/decommission.md) - /tear down the cluster and decommission nodes
 
 [copy](./docs/copy.md) - copy the built images to the provisioning hosts
