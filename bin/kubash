@@ -35,7 +35,7 @@
 : ${BROADCAST_TO_NETWORK:='10.0.23.0/24'}
 : ${INTERFACE_NET:='eth0'}
 : ${DO_KEEPALIVED:='false'}
-: ${ETCD_VERSION:=v3.2.7}
+: ${ETCD_VERSION:=v3.2.16}
 : ${KUBERNETES_VERSION:=v1.9.3}
 
 net_set () {
@@ -832,6 +832,100 @@ write_ansible_hosts () {
   write_ansible_kubespray_hosts
 }
 
+write_ansible_kubeadm2ha_hosts () {
+  squawk 11 " Make a hosts file for kubeadm2ha ansible"
+  # Make a fresh hosts file
+  slurpy="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
+  if [[ -e "$KUBASH_ANSIBLE_HOSTS" ]]; then
+    horizontal_rule
+    rm $KUBASH_ANSIBLE_HOSTS
+    touch $KUBASH_ANSIBLE_HOSTS
+  else
+    touch $KUBASH_ANSIBLE_HOSTS
+  fi
+  # Write all hosts to inventory for id
+  while IFS="," read -r $csv_columns
+  do
+    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_user" >> $KUBASH_ANSIBLE_HOSTS
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[primary-master]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "primary_master" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+  echo '[secondary-master]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "master" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+  echo '[masters]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "master" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    elif [[ "$K8S_role" == "primary_master" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[etcd]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" = "etcd" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    elif [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
+      if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+        echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+      fi
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[minions]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "node" ]]; then
+      echo "$K8S_node $openshift_labels" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[nodes]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "node" ]]; then
+      echo "$K8S_node $openshift_labels" >> $KUBASH_ANSIBLE_HOSTS
+    elif [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
+      echo "$K8S_node $openshift_labels" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[ingress]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" = "ingress" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+}
+
 write_ansible_openshift_hosts () {
   squawk 11 " Make a hosts file for openshift ansible"
   # Make a fresh hosts file
@@ -1422,6 +1516,40 @@ initialize () {
   kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV)"
   check_coreos
   process_hosts_csv
+}
+
+kubeadm2ha_initialize () {
+  squawk 11 "kubeadm2ha initialize"
+  check_csv
+  if [[ -e "$KUBASH_ANSIBLE_HOSTS" ]]; then
+    squawk 11 'Hosts file found, not overwriting'
+  else
+    write_ansible_kubeadm2ha_hosts
+  fi
+  ansible-playbook \
+    -f $PARALLEL_JOBS \
+    -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-images.yml
+  ansible-playbook \
+    -f $PARALLEL_JOBS \
+    -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-setup.yml
+  ansible-playbook \
+    -f $PARALLEL_JOBS \
+    -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-dashboard.yml
+  ansible-playbook \
+    -f $PARALLEL_JOBS \
+    -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-load-balanced.yml
+  ansible-playbook \
+    -f $PARALLEL_JOBS \
+    -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/etcd-operator.yml
+  ansible-playbook \
+    -f $PARALLEL_JOBS \
+    -i $KUBASH_DIR/gen/hosts \
+    $KUBASH_DIR/submodules/kubeadm2ha/ansible/local-access.yml
 }
 
 kubespray_initialize () {
@@ -2660,8 +2788,6 @@ main () {
       DO_MASTER_JOIN=true
       initialize
       do_grab
-      write_ansible_hosts
-      do_tiller
   elif [[ $RAISON == "nodes" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage
@@ -2670,7 +2796,6 @@ main () {
       DO_NODE_JOIN=true
       initialize
       do_grab
-      write_ansible_hosts
   elif [[ $RAISON == "init" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage
@@ -2680,16 +2805,25 @@ main () {
       initializer=kubeadm
       DO_NODE_JOIN=true
       DO_MASTER_JOIN=true
+      kubeadm_reset
       initialize
       do_grab
-      write_ansible_hosts
     elif [[ "$initializer" == "kubespray" ]]; then
       kubespray_initialize
       exit 0
     elif [[ "$initializer" == "openshift" ]]; then
       openshift_initialize
       exit 0
+    elif [[ "$initializer" == "kubeadm2ha" ]]; then
+      kubeadm2ha_initialize
+      exit 0
     fi
+  elif [[ $RAISON == "extras" ]]; then
+    if [[ $print_help == "true" ]]; then
+      init_usage
+      exit 1
+    fi
+    do_tiller
   elif [[ $RAISON == "tiller" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage
