@@ -1938,14 +1938,14 @@ do_command_in_parallel () {
   PARATMP=$(mktemp -d)
   command2run=$1
   touch $PARATMP/hopper
-  squawk 13 " do_command_in_parallel"
+  squawk 13 " do_command_in_parallel $1"
   countzero_do_nodes=0
   while IFS="," read -r $csv_columns
   do 
     countzero_do_nodes=`expr $countzero_do_nodes + 1`
-    squawk 13 " count $countzero_do_nodes"
+    squawk 43 " count $countzero_do_nodes"
     squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""
-    echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""
+    echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""\
 	      >> $PARATMP/hopper
   done <<< $kubash_hosts_csv_slurped
 
@@ -2055,9 +2055,9 @@ do_command_in_parallel_on_role () {
   do 
     if [[ "$K8S_role" == "$role2runiton" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
-      squawk 13 " count $countzero_do_nodes"
-      squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"$command2run\""
-      echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"$command2run\""\
+      squawk 49 " count $countzero_do_nodes"
+      squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""
+      echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""\
         >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
@@ -2084,9 +2084,9 @@ do_command_in_parallel_on_os () {
   do 
     if [[ "$K8S_os" == "$os2runiton" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
-      squawk 13 " count $countzero_do_nodes"
-      squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"$command2run\""
-      echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"$command2run\""\
+      squawk 43 " count $countzero_do_nodes"
+      squawk 15 "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""
+      echo "ssh -n -p $K8S_ssh_port $K8S_su_user@$K8S_ip1 \"sudo bash -c '$command2run'\""\
         >> $PARATMP/hopper
     fi
   done <<< $kubash_hosts_csv_slurped
