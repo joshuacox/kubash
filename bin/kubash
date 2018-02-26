@@ -1305,6 +1305,7 @@ master_init_join () {
     squawk 13 'master_init_join kubeadm init'
     if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
       kubeadmin_config_tmp=$(mktemp)
+      KUBERNETES_VERSION=$KUBERNETES_VERSION \
       my_master_ip=$my_master_ip \
       load_balancer_ip=$K8S_load_balancer_ip \
       my_KUBE_CIDR=$my_KUBE_CIDR \

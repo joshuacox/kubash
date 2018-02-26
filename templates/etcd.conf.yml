@@ -98,10 +98,10 @@ client-transport-security:
   ca-file:
 
   # Path to the client server TLS cert file.
-  cert-file: "/etc/etcd/pki/server.pem"
+  cert-file: "/etc/etcd/pki/client.pem"
 
   # Path to the client server TLS key file.
-  key-file: "/etc/etcd/pki/server-key.pem"
+  key-file: "/etc/etcd/pki/client-key.pem"
 
   # Enable client cert authentication.
   client-cert-auth: true
