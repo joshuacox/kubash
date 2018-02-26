@@ -24,7 +24,7 @@ chmod 600 $TMP/keys /root/.ssh/authorized_keys
 ls -lh /root/.ssh
 #cat /root/.ssh/authorized_keys
 
-useradd $K8S_SU_USER
+useradd -s /bin/bash $K8S_SU_USER
 groupadd -rf docker
 gpasswd -a $K8S_SU_USER docker
 groupadd -rf sudo
