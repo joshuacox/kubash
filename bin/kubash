@@ -1494,7 +1494,9 @@ read_csv () {
 check_csv () {
   squawk 14 " check_csv"
   if [[ ! -e $KUBASH_HOSTS_CSV ]]; then
-    echo "$KUBASH_HOSTS_CSV file not found.  You must provision a cluster first, and specify a valid a valid cluster with the --clustername option and place your provision.csv file in its directory!"
+    horizontal_rule
+    echo "$KUBASH_HOSTS_CSV file not found!"
+    echo "You must provision a cluster first, and specify a valid a valid cluster with the --clustername option and place your provision.csv file in its directory!"
     exit 1
   fi
 }
