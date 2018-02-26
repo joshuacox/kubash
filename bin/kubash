@@ -1285,7 +1285,7 @@ master_init_join () {
     MASTER_VIP=$my_master_ip \
     envsubst < $KUBASH_DIR/templates/keepalived.conf
     > $setup_keepalived_tmp/keepalived.conf
-    rsync -aze "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $K8S_su_user@$my_master_ip:/tmp/keepalived.conf
+    rsync -aze "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $my_master_user@$my_master_ip:/tmp/keepalived.conf
     command2run='sudo  mv /tmp/keepalived.conf /etc/keepalived/'
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     
@@ -1307,7 +1307,7 @@ master_init_join () {
       ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
       envsubst  < $KUBASH_DIR/templates/kubeadm-config.yaml \
         > $kubeadmin_config_tmp
-      rsync -aze "ssh -p $my_master_port" $kubeadmin_config_tmp  $K8S_su_user@$my_master_ip:/tmp/config.yaml
+      rsync -aze "ssh -p $my_master_port" $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml
       squawk 16 "kubedmin_config_tmp =\n $(cat $kubeadmin_config_tmp)"
       rm $kubeadmin_config_tmp
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
@@ -1327,9 +1327,19 @@ master_init_join () {
       ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     fi
     DO_GRAB=true
-    master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
-    sudo_command $my_master_port $K8S_su_user $my_master_ip "$command2run"
+    master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port
+    sudo_command $my_master_port $my_master_user $my_master_ip "$command2run"
     w8_kubectl
+    rsync -aze "ssh -p $my_master_port" $KUBASH_DIR/scripts/grabkubepki $my_master_user@$my_master_ip:/tmp/grabkubepki
+    command2run="bash /tmp/grabkubepki"
+    sudo_command $this_port $this_user $this_ip "$command2run"
+    rsync -aze "ssh -p $my_master_port" $my_master_user@$my_master_ip:/tmp/kube-pki.tgz $KUBASH_CLUSTER_DIR/
+    squawk 15 'and copy it to master and etcd hosts'
+    copy_in_parallel_to_role "master" "$KUBASH_CLUSTER_DIR/kube-pki.tgz" "/tmp/"
+    command2run='cd /; tar zxf /tmp/kube-pki.tgz'
+    do_command_in_parallel_on_role "master"        "$command2run"
+    command2run='rm /tmp/kube-pki.tgz'
+    do_command_in_parallel_on_role "master"        "$command2run"
     do_net
   fi
 }
