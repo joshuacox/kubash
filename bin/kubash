@@ -849,7 +849,7 @@ write_ansible_kubeadm2ha_hosts () {
   # Write all hosts to inventory for id
   while IFS="," read -r $csv_columns
   do
-    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_user" >> $KUBASH_ANSIBLE_HOSTS
+    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_provisionerUser" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
@@ -955,7 +955,7 @@ write_ansible_openshift_hosts () {
   # Write all hosts to inventory for id
   while IFS="," read -r $csv_columns
   do
-    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_user" >> $KUBASH_ANSIBLE_HOSTS
+    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_provisionerUser" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
@@ -1041,7 +1041,7 @@ write_ansible_kubespray_hosts () {
   # Write all hosts to inventory for id
   while IFS="," read -r $csv_columns
   do
-    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_user" >> $KUBASH_ANSIBLE_HOSTS
+    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_provisionerUser" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
@@ -2725,30 +2725,30 @@ main () {
       usage
       exit 1
     fi
-	squawk 15 'Adjusting dotfiles'
-        dotfiles_install
-	exit 0
+    squawk 15 'Adjusting dotfiles'
+    dotfiles_install
+    exit 0
   elif [[ $RAISON == "show" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
-      VERBOSITY=`expr $VERBOSITY + 10`
-      read_csv
+    VERBOSITY=`expr $VERBOSITY + 10`
+    read_csv
   elif [[ $RAISON == "test" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
-      VERBOSITY=`expr $VERBOSITY + 10`
-      do_test
+    VERBOSITY=`expr $VERBOSITY + 10`
+    do_test
   elif [[ $RAISON == "ping" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
     if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-      ping_in_parallel
+    ping_in_parallel
     else
       ping
     fi
@@ -2757,14 +2757,14 @@ main () {
       usage
       exit 1
     fi
-      write_ansible_hosts
-      ansible-ping
+    write_ansible_hosts
+    ansible-ping
   elif [[ $RAISON == "monitoring" ]]; then
     if [[ $print_help == "true" ]]; then
       usage
       exit 1
     fi
-      activate_monitoring
+    activate_monitoring
   elif [[ $RAISON == "prep" ]]; then
     prep
   elif [[ $RAISON == "provision" ]]; then
@@ -2800,24 +2800,24 @@ main () {
       init_usage
       exit 1
     fi
-      DO_MASTER_JOIN=true
-      initialize
-      do_grab
+    DO_MASTER_JOIN=true
+    initialize
+    do_grab
   elif [[ $RAISON == "nodes" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage
       exit 1
     fi
-      DO_NODE_JOIN=true
-      initialize
-      do_grab
+    DO_NODE_JOIN=true
+    initialize
+    do_grab
   elif [[ $RAISON == "init" ]]; then
     if [[ $print_help == "true" ]]; then
       init_usage
       exit 1
     fi
     if [[ -z "$initializer" ]]; then
-      initializer=kubeadm
+     initializer=kubeadm
       DO_NODE_JOIN=true
       DO_MASTER_JOIN=true
       kubeadm_reset
