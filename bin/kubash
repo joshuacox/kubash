@@ -1328,14 +1328,7 @@ master_init_join () {
     fi
     DO_GRAB=true
     master_grab_kube_config $my_master_name $my_master_ip $K8S_su_user $my_master_port
-    rm -Rf $KUBASH_CLUSTER_DIR/pki.tgz
-    rsync -aze "ssh -p $my_master_port" $KUBASH_DIR/scripts/grabpki $K8S_su_user@$my_master_ip:/tmp/grabpki
-    ssh -n -p $my_master_port $K8S_su_user@$my_master_ip 
-    command2run="bash /tmp/grabpki"
     sudo_command $my_master_port $K8S_su_user $my_master_ip "$command2run"
-    squawk 15 'pull pki.tgz from primary master'
-    rsync -azve "ssh -p $my_master_port" $K8S_su_user@$my_master_ip:/tmp/pki.tgz $KUBASH_CLUSTER_DIR/
-    ssh -n -p $my_master_port $K8S_su_user@$my_master_ip "$PSEUDO rm -f /tmp/pki.tgz;$PSEUDO rm -f /tmp/grabpki"
     w8_kubectl
     do_net
   fi
@@ -1869,9 +1862,6 @@ do_masters_in_parallel () {
   squawk 13 " do_masters_in_parallel"
   do_master_count=0
 
-  copy_in_parallel_to_role master "$KUBASH_CLUSTER_DIR/pki.tgz" "/tmp/"
-  command2run='cd /;tar pzxf /tmp/pki.tgz'
-  do_command_in_parallel_on_role "master" "$command2run"
   #command2run='sudo  rm /etc/kubernetes/pki/apiserver.crt'
   #do_command_in_parallel_on_role "master" "$command2run"
   if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
