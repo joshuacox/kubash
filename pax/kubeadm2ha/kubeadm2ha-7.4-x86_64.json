@@ -206,11 +206,11 @@
     }
   ],
   "variables": {
-    "box_basename": "kubeadm2a-7.4",
+    "box_basename": "kubeadm2ha-7.4",
     "build_timestamp": "{{isotime \"20060102150405\"}}",
     "keys_to_add": "{{ env `KEYS_TO_ADD`}}",
     "keys_url": "{{ env `KEYS_URL`}}",
-    "kubeadm_install": "kubeadm2a",
+    "kubeadm_install": "kubeadm2ha",
     "k8s_su_user": "{{ env `K8S_SU_USER`}}",
     "cpus": "1",
     "disk_size": "65536",
@@ -227,9 +227,9 @@
     "memory": "1024",
     "mirror": "http://mirrors.kernel.org/centos",
     "mirror_directory": "7.4.1708/isos/x86_64",
-    "name": "kubeadm2a-7.4",
+    "name": "kubeadm2ha-7.4",
     "no_proxy": "{{env `no_proxy`}}",
-    "template": "kubeadm2a-7.4-x86_64",
+    "template": "kubeadm2ha-7.4-x86_64",
     "version": "TIMESTAMP"
   }
 }
