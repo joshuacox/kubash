@@ -676,6 +676,7 @@ refresh_network_addresses () {
       if [[ "$K8S_networkDiscovery" == "virsh" ]]; then
         if [[ "$K8S_provisionerHost" == "localhost" ]]; then
           countzero=0
+	  set +e
           while [[ -z "$this_node_ip" ]]; do
             squawk 17 "checking for IP address"
             squawk 18 "$PSEUDO virsh domifaddr $K8S_node --full"
@@ -685,9 +686,11 @@ refresh_network_addresses () {
             fi
 	    ((countzero++))
           done
+	  set -e
         else
           countzero=0
           this_node_ip=''
+	  set +e
           while [[ "$this_node_ip" == '' ]]; do
             squawk 17 "checking for IP address"
             squawk 18 "$PSEUDO virsh domifaddr $K8S_node --full"
@@ -697,10 +700,12 @@ refresh_network_addresses () {
             fi
 	    ((countzero++))
           done
+	  set -e
         fi
       elif [[ "$K8S_networkDiscovery" == "arp" ]]; then
           countzero=0
 	  this_node_ip=$(arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
+	  set +e
           while [[ -z "$this_node_ip" ]]; do
 	    squawk 12 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
 	    NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
@@ -711,6 +716,7 @@ refresh_network_addresses () {
             fi
 	    ((countzero++))
           done
+	  set -e
       fi
       squawk 15 "adding to $KUBASH_HOSTS_CSV"
       if [[ "$K8S_os" == 'coreos' ]]; then
