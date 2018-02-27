@@ -56,7 +56,7 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
   cd $TMP
   git clone --depth=1 https://github.com/joshuacox/kubeadm2ha.git
   cd kubeadm2ha
-  ansible_playbook -i $TMP/inventory cluster-images.yaml
+  ansible-playbook -i $TMP/inventory cluster-images.yaml
 else
   curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
   swapoff --all
