@@ -58,8 +58,11 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
   cd $TMP
   git clone --depth=1 https://github.com/joshuacox/kubeadm2ha.git
   cd kubeadm2ha/ansible
+  systemctl restart docker
   ansible-playbook -i $TMP/inventory cluster-images.yaml
 else
+  # Defaults to using kubeadm method
+  systemctl restart docker
   curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
   kubeadm init
   kubeadm reset

@@ -66,8 +66,9 @@ apt-get install -yqq docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head
     go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
   fi
 
-service open-iscsi restart
 apt-mark hold docker-ce
+service open-iscsi restart
+systemctl restart docker
 
 swapoff --all
 
