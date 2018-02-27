@@ -2146,8 +2146,8 @@ do_command () {
   this_host=$3
   command2run=$4
   if [[ "$KVM_builderHost" == "localhost" ]]; then
-    squawk 15 "sudo bash -c '$command2run'"
-    sudo bash -c "$command2run"
+    squawk 15 "bash -c '$command2run'"
+    bash -c "$command2run"
   else
     squawk 15 "ssh -n -p $this_port $this_user@$this_host \"bash -c '$command2run'\""
     ssh -n -p $this_port $this_user@$this_host "bash -c '$command2run'"
@@ -2155,11 +2155,11 @@ do_command () {
 }
 
 sudo_command () {
-  squawk 13 " sudo_command $@" 
   if [[ ! $# -eq 4 ]]; then
     echo "sudo_command $@ <--- arguments does not equal 4!!!" 
     exit 1
   fi
+  squawk 13 " sudo_command '$1' '$2' '$3 '$4'" 
   this_port=$1
   this_user=$2
   this_host=$3
@@ -2168,8 +2168,8 @@ sudo_command () {
     squawk 15 "sudo bash -c '$command2run'"
     sudo bash -c "$command2run"
   else
-    squawk 15 "ssh -n -p $this_port $this_user@$this_host \"sudo bash -c '$command2run'\""
-    ssh -n -p $this_port $this_user@$this_host "sudo bash -c '$command2run'"
+    squawk 15 "ssh -n -p $this_port $this_user@$this_host \"$PSEUDO bash -l -c '$command2run'\""
+    ssh -n -p $this_port $this_user@$this_host "$PSEUDO bash -l -c '$command2run'"
   fi
 }
 
@@ -2478,10 +2478,11 @@ coreos_build  () {
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
   command2run="bunzip2 coreos_production_qemu_image.img.bz2"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
+  sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 
   TARGET_FILE="$KVM_builderTMP/coreos_production_qemu_image.img"
   DESTINATION_FILE="$KVM_builderBasePath/$target_os-$KVM_BASE_IMG"
-  command2run="$PSEUDO $MV_CMD $TARGET_FILE $DESTINATION_FILE"
+  command2run="$MV_CMD $TARGET_FILE $DESTINATION_FILE"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 }
 
@@ -2493,9 +2494,9 @@ packer_build  () {
   chkdir $KVM_builderTMP
 
   if [[ $VERBOSITY -gt '1' ]]; then
-    LN_CMD='ln -sv'
+    LN_CMD='ln -fsv'
   else
-    LN_CMD='ln -s'
+    LN_CMD='ln -fs'
   fi
   if [[ $VERBOSITY -gt '1' ]]; then
     if [[ "$ANSWER_YES" == "yes" ]]; then
@@ -2511,7 +2512,7 @@ packer_build  () {
     fi
   fi
 
-  command2run="cd $KUBASH_DIR/pax;if [ ! -e $KUBASH_DIR/pax/build ]; then $LN_CMD $KVM_builderDir $KUBASH_DIR/pax/builds; fi"
+  command2run="cd $KUBASH_DIR/pax;if [ ! -e "$KUBASH_DIR/pax/build" ]; then $LN_CMD $KVM_builderDir $KUBASH_DIR/pax/builds; fi"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 
   cd $KUBASH_DIR/pax/$target_os
@@ -2525,9 +2526,9 @@ packer_build  () {
     PACKER_LOG=0
   fi
   squawk 12 "TMPDIR=$KVM_builderTMP packer build -only=$build_virt $debug_flag $target_build.json"
-  pacher_build_cmd=packer build -only=$build_virt $debug_flag $target_build.json
-  command2run="PACKER_LOG=$PACKER_LOG TMPDIR=$KVM_builderTMP  $packer_build_cmd"
-  sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
+  packer_build_cmd="packer build -only=$build_virt $debug_flag $target_build.json"
+  command2run="cd $KUBASH_DIR/pax/$target_os; PACKER_LOG=$PACKER_LOG TMPDIR=$KVM_builderTMP $packer_build_cmd"
+  do_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 
   TARGET_FILE=$KVM_builderDir/packer-$target_build-$build_virt/$target_build 
   DESTINATION_FILE=$KVM_builderBasePath/$target_os-$KVM_BASE_IMG
