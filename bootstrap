@@ -78,6 +78,8 @@ main () {
   check_cmd curl
   check_cmd uname
   check_cmd go
+  check_cmd make
+  check_cmd ct
   check_cmd parallel
   check_cmd 'grep'
   check_cmd 'sed'
