@@ -53,7 +53,7 @@ $(KUBASH_BIN)/helm: SHELL:=/bin/bash
 $(KUBASH_BIN)/helm:
 	@echo 'Installing helm'
 	$(eval TMP := $(shell mktemp -d --suffix=HELMTMP))
-	curl -Lo $(TMP)/helmget --silent https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get
+	curl -sLo $(TMP)/helmget --silent https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get
 	HELM_INSTALL_DIR=$(HELM_INSTALL_DIR) \
 	sudo -E bash -l $(TMP)/helmget
 	rm $(TMP)/helmget
@@ -66,7 +66,7 @@ $(KUBASH_BIN)/kubectl:
 	@echo 'Installing kubectl'
 	$(eval TMP := $(shell mktemp -d --suffix=KUBECTLTMP))
 	cd $(TMP) \
-	&& curl -LO https://storage.googleapis.com/kubernetes-release/release/$(MY_KUBE_VERSION)/bin/linux/amd64/kubectl \
+	&& curl -sLO https://storage.googleapis.com/kubernetes-release/release/$(MY_KUBE_VERSION)/bin/linux/amd64/kubectl \
 	&& chmod +x kubectl \
 	&& sudo mv -v kubectl $(KUBASH_BIN)/
 	rmdir $(TMP)
@@ -83,7 +83,7 @@ $(KUBASH_BIN)/minikube:
 	mkdir $(HOME)/.kube || true
 	touch $(HOME)/.kube/config
 	cd $(TMP) \
-	&& curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube $(KUBASH_BIN)/
+	&& curl -sLo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube $(KUBASH_BIN)/
 	rmdir $(TMP)
 
 vanity:
@@ -273,7 +273,7 @@ $(KUBASH_BIN)/ct:
 	$(eval TMP := $(shell mktemp -d --suffix=CTTMP))
 	$(eval CT_VERSION := v0.7.0)
 	cd $(TMP) \
-	&& curl -L -o ct \
+	&& curl -sL -o ct \
 	https://github.com/coreos/container-linux-config-transpiler/releases/download/$(CT_VERSION)/ct-$(CT_VERSION)-x86_64-unknown-linux-gnu \
 	&& chmod +x ct \
 	&& mv ct $(KUBASH_BIN)/
@@ -283,8 +283,8 @@ submodules/openebs:
 	cd submodules; git clone https://github.com/openebs/openebs.git
 
 cfssl:
-	sudo curl -o $(KUBASH_BIN)/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
-	sudo curl -o $(KUBASH_BIN)/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+	sudo curl -s -o $(KUBASH_BIN)/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+	sudo curl -s -o $(KUBASH_BIN)/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
 	sudo chmod +x $(KUBASH_BIN)/cfssl*
 
 jinja2:
