@@ -214,7 +214,9 @@
       "ssh_password": "vagrant",
       "ssh_port": 22,
       "ssh_username": "vagrant",
+      "net_device": "virtio-net",
       "ssh_wait_timeout": "10000s",
+      "net_device": "virtio",
       "type": "qemu",
       "vm_name": "{{ user `template` }}",
       "qemuargs": [
