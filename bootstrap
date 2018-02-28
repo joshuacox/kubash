@@ -79,7 +79,6 @@ main () {
   check_cmd uname
   check_cmd go
   check_cmd make
-  check_cmd ct
   check_cmd parallel
   check_cmd 'grep'
   check_cmd 'sed'
@@ -100,6 +99,7 @@ main () {
   check_install helm
   check_install packer
   check_install oc
+  check_install ct
   #check_install crictl
   echo 'logout and log back in, or source your RC files'
 }
