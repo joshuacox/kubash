@@ -469,13 +469,13 @@ qemu-provisioner () {
     if [[ "$K8S_mac2" == '' ]]; then
       $K8S_mac2=$(kubash genmac)
     fi
-    SECOND_NIC="--network=$K8S_network2,mac=$K8S_mac2,model=virtio"
+    SECOND_NIC="--network=$K8S_network2,mac=$K8S_mac2,model=rtl8139"
   fi
   if [[ ! -z "$K8S_network3" ]]; then
     if [[ "$K8S_mac3" == '' ]]; then
       $K8S_mac3=$(kubash genmac)
     fi
-    THIRD_NIC="--network=$K8S_network3,mac=$K8S_mac3,model=virtio"
+    THIRD_NIC="--network=$K8S_network3,mac=$K8S_mac3,model=rtl8139"
   fi
   
   squawk 17 "K8S_node=$1
@@ -564,7 +564,7 @@ qemu-provisioner () {
   	--hvm \
   	--os-variant=virtio26 \
   	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
-  	--network=$K8S_network1,mac=$K8S_mac1,model=virtio \
+  	--network=$K8S_network1,mac=$K8S_mac1,model=rtl8139 \
   	$SECOND_NIC \
   	$THIRD_NIC \
 	--print-xml
@@ -582,7 +582,7 @@ qemu-provisioner () {
   	--hvm \
   	--os-variant=virtio26 \
   	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
-  	--network=$K8S_network1,mac=$K8S_mac1,model=virtio \
+  	--network=$K8S_network1,mac=$K8S_mac1,model=rtl8139 \
   	$SECOND_NIC \
   	$THIRD_NIC"
   fi
