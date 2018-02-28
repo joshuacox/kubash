@@ -267,25 +267,25 @@ fail_tests:
 	@echo 'These are tests which fail and can be considered future fixes'
 	bats .fails.bats
 
-ct: /usr/local/bin/ct
+ct: $(KUBASH_BIN)/ct
 
-/usr/local/bin/ct:
+$(KUBASH_BIN)/ct:
 	$(eval TMP := $(shell mktemp -d --suffix=CTTMP))
 	$(eval CT_VERSION := v0.7.0)
 	cd $(TMP) \
 	&& curl -L -o ct \
 	https://github.com/coreos/container-linux-config-transpiler/releases/download/$(CT_VERSION)/ct-$(CT_VERSION)-x86_64-unknown-linux-gnu \
 	&& chmod +x ct \
-	&& mv ct /usr/local/bin/
+	&& mv ct $(KUBASH_BIN)/
 	rm -Rf $(TMP)
 
 submodules/openebs:
 	cd submodules; git clone https://github.com/openebs/openebs.git
 
 cfssl:
-	sudo curl -o /usr/local/bin/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
-	sudo curl -o /usr/local/bin/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
-	sudo chmod +x /usr/local/bin/cfssl*
+	sudo curl -o $(KUBASH_BIN)/cfssl https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+	sudo curl -o $(KUBASH_BIN)/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+	sudo chmod +x $(KUBASH_BIN)/cfssl*
 
 jinja2:
 	pip install jinja2 jinja2-cli

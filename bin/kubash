@@ -1833,10 +1833,10 @@ prep_init_etcd () {
   command2run='mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json'
   sudo_command $this_port $this_user $this_host "$command2run"
 
-  squawk 15 "rsync -aze 'ssh -p $this_port' '/usr/local/bin/cfssl' $this_user@$this_host:/tmp/cfssl"
-  rsync -aze "ssh -p $this_port" '/usr/local/bin/cfssl' $this_user@$this_host:/tmp/cfssl
-  copy_in_parallel_to_role "master" "/usr/local/bin/cfssl" "/tmp/cfssl"
-  copy_in_parallel_to_role "etcd"   "/usr/local/bin/cfssl" "/tmp/cfssl"
+  squawk 15 "rsync -aze 'ssh -p $this_port' '$(KUBASH_BIN)/cfssl' $this_user@$this_host:/tmp/cfssl"
+  rsync -aze "ssh -p $this_port" "$(KUBASH_BIN)/cfssl" $this_user@$this_host:/tmp/cfssl
+  copy_in_parallel_to_role "master" "$(KUBASH_BIN)/cfssl" "/tmp/cfssl"
+  copy_in_parallel_to_role "etcd"   "$(KUBASH_BIN)/cfssl" "/tmp/cfssl"
   command2run='mv /tmp/cfssl /usr/local/bin/cfssl'
   sudo_command $this_port $this_user $this_host "$command2run"
   do_command_in_parallel_on_role "etcd"          "$command2run"
@@ -1844,10 +1844,10 @@ prep_init_etcd () {
     do_command_in_parallel_on_role "master"        "$command2run"
   fi
 
-  squawk 15 "rsync -aze 'ssh -p $this_port' /usr/local/bin/cfssljson $this_user@$this_host:/tmp/cfssljson"
-  rsync -aze "ssh -p $this_port" "/usr/local/bin/cfssljson" $this_user@$this_host:/tmp/cfssljson
-  copy_in_parallel_to_role "master" "/usr/local/bin/cfssljson" "/tmp/cfssljson"
-  copy_in_parallel_to_role "etcd"   "/usr/local/bin/cfssljson" "/tmp/cfssljson"
+  squawk 15 "rsync -aze 'ssh -p $this_port' $(KUBASH_BIN)/cfssljson $this_user@$this_host:/tmp/cfssljson"
+  rsync -aze "ssh -p $this_port" "$(KUBASH_BIN)/cfssljson" $this_user@$this_host:/tmp/cfssljson
+  copy_in_parallel_to_role "master" "$(KUBASH_BIN)/cfssljson" "/tmp/cfssljson"
+  copy_in_parallel_to_role "etcd"   "$(KUBASH_BIN)/cfssljson" "/tmp/cfssljson"
   command2run='mv /tmp/cfssljson /usr/local/bin/cfssljson'
   sudo_command $this_port $this_user $this_host "$command2run"
   do_command_in_parallel_on_role "etcd"          "$command2run"
