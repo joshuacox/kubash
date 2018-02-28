@@ -67,6 +67,7 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   kubeadm reset
 else
   # Defaults to nothing barebones
+  echo 'barebone'
 fi
 
 #pip install --upgrade pip
