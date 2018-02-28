@@ -672,7 +672,6 @@ refresh_network_addresses () {
         K8S_networkDiscovery=virsh
       else
         K8S_networkDiscovery=arp
-        sudo check_cmd arp
       fi
       if [[ "$K8S_networkDiscovery" == "virsh" ]]; then
         if [[ "$K8S_provisionerHost" == "localhost" ]]; then
@@ -705,13 +704,13 @@ refresh_network_addresses () {
         fi
       elif [[ "$K8S_networkDiscovery" == "arp" ]]; then
           countzero=0
-	  this_node_ip=$(arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
+	  this_node_ip=$($PSEUDO arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
 	  set +e
           while [[ -z "$this_node_ip" ]]; do
 	    squawk 12 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
-	    NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
+	    NMAP_OUTPUT=$($PSEUDO nmap -p 22 $BROADCAST_TO_NETWORK)
 	    squawk 11 "arp -n|grep $K8S_mac1|awk '{print \$1}'"
-	    this_node_ip=$(arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
+	    this_node_ip=$($PSEUDO arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
 	    if [[ "$countzero" -gt 2 ]]; then
     	      sleep 8
             fi
