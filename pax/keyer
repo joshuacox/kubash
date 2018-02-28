@@ -6,7 +6,17 @@ cd $TMP
 
 # Keyer
 touch $TMP/keys
-if [ ! -z  "$KEYS_URL" ]; then
+if [ ! -z "$KUBASH_SET_ROOT_PW" ]; then
+	echo "$KUBASH_SET_ROOT_PW" |passwd foo --stdin
+else
+  echo 'no root passwd given, not setting'
+fi
+if [ ! -z "$KUBASH_SET_SU_PW" ]; then
+	echo "$K8S_SU_USER:$KUBASH_SET_SU_PW" | chpasswd
+else
+  echo 'no su passwd given, not setting'
+fi
+if [ ! -z "$KEYS_URL" ]; then
   curl --silent -L "$KEYS_URL"  >> $TMP/keys 
 else
   echo 'no KEYS_URL given'

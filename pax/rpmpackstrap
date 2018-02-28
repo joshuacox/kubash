@@ -60,12 +60,13 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
   cd kubeadm2ha/ansible
   systemctl restart docker
   ansible-playbook -i $TMP/inventory cluster-images.yaml
-else
-  # Defaults to using kubeadm method
+elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   systemctl restart docker
   curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
   kubeadm init
   kubeadm reset
+else
+  # Defaults to nothing barebones
 fi
 
 #pip install --upgrade pip

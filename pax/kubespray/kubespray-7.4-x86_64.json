@@ -193,6 +193,8 @@
         "KEYS_URL={{user `keys_url`}}",
         "http_proxy={{user `http_proxy`}}",
         "https_proxy={{user `https_proxy`}}",
+        "KUBASH_SET_ROOT_PW={{user `root_password_to_set`}}",
+        "KUBASH_SET_SU_PW={{user `su_password_to_set`}}",
         "K8S_SU_USER={{user `k8s_su_user`}}",
         "no_proxy={{user `no_proxy`}}"
       ],
@@ -211,6 +213,8 @@
     "build_timestamp": "{{isotime \"20060102150405\"}}",
     "keys_to_add": "{{ env `KEYS_TO_ADD`}}",
     "keys_url": "{{ env `KEYS_URL`}}",
+    "root_password_to_set": "{{ env `KUBASH_SET_ROOT_PW`}}",
+    "su_password_to_set": "{{ env `KUBASH_SET_SU_PW`}}",
     "kubeadm_install": "kubespray",
     "k8s_su_user": "{{ env `K8S_SU_USER`}}",
     "cpus": "1",
