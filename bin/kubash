@@ -1914,7 +1914,6 @@ do_etcd () {
         echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
       fi
     fi
-    countzero=`expr $countzero + 1`
   done <<< $kubash_hosts_csv_slurped
   sed -i 's/,$//' $PARATMP/etcd.line
   echo '  caFile: /etc/kubernetes/pki/etcd/ca.pem' >> $PARATMP/endpoints.line
@@ -1923,12 +1922,12 @@ do_etcd () {
 
   if [[ "$countzero" -lt "3" ]]; then
     horizontal_rule
-    echo 'not enough etcd nodes'
+    echo 'not enough etcd nodes, [$countzero] '
     exit 1
   else
     if [[ "$((countzero%2))" -eq 0 ]]; then
       horizontal_rule
-      echo "number of etcd nodes is even which is not supported"
+      echo "number of etcd nodes, [$countzero] is even which is not supported"
       exit 1
     fi
   fi
