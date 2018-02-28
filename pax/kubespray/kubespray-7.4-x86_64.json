@@ -149,7 +149,7 @@
       "ssh_port": 22,
       "ssh_username": "vagrant",
       "ssh_wait_timeout": "10000s",
-      "net_device": "rtl8139",
+      "net_device": "virtio-net",
       "type": "qemu",
       "vm_name": "{{ user `template` }}"
     }
