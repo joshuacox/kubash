@@ -709,7 +709,9 @@ refresh_network_addresses () {
           while [[ -z "$this_node_ip" ]]; do
 	    squawk 12 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
 	    NMAP_OUTPUT=$(sudo nmap -p 22 $BROADCAST_TO_NETWORK)
-	    squawk 11 'arp -n|grep $K8S_mac1|awk  "{print $1}"'
+	    squawk 11 'arp -n|grep ' -n
+	    squawk 11 "$K8S_mac1" -n
+	    squawk 11 '|awk  "{print $1}"'
 	    this_node_ip=$(arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
 	    if [[ "$countzero" -gt 2 ]]; then
     	      sleep 8
@@ -1538,6 +1540,7 @@ checks () {
   check_cmd uname
   check_cmd envsubst
   check_cmd ct
+  check_cmd arp
   check_cmd jinja2
   check_cmd expr
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
