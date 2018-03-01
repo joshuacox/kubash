@@ -2798,7 +2798,7 @@ main () {
       exit 1
     fi
     provisioner
-    sleep 30
+    sleep 15
     refresh_network_addresses
     prep
     remove_vagrant_user
