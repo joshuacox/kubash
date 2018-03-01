@@ -1573,10 +1573,6 @@ kubeadm2ha_initialize () {
   ansible-playbook \
     -f $PARALLEL_JOBS \
     -i $KUBASH_ANSIBLE_HOSTS \
-    $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-images.yaml
-  ansible-playbook \
-    -f $PARALLEL_JOBS \
-    -i $KUBASH_ANSIBLE_HOSTS \
     $KUBASH_DIR/submodules/kubeadm2ha/ansible/cluster-setup.yaml
   ansible-playbook \
     -f $PARALLEL_JOBS \
