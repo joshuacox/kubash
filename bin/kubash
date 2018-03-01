@@ -355,33 +355,28 @@ provision_csv_slurp () {
 }
 
 kvm-decommer () {
-  squawk 15 "kvm-decommer $@"
-  REBASED_NODE=$1
-  NODE_PATH=$2
-
-  $PSEUDO virsh destroy $REBASED_NODE
-  $PSEUDO virsh undefine $REBASED_NODE
-
-  # Create VM for node
-  $PSEUDO rm $NODE_PATH/$REBASED_NODE.qcow2
-}
-
-kvm-decommer-remote () {
   squawk 15 "kvm-decommer-remote $@"
   REBASED_NODE=$1
   THRU_USER=$2
   THRU_HOST=$3
   THRU_PORT=$4
   NODE_PATH=$5
-  squawk 18 "ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO virsh destroy $REBASED_NODE
-  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO virsh undefine $REBASED_NODE
-  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO rm $KVM_builderBasePath/$REBASED_NODE.qcow2"
-
-  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO virsh destroy $REBASED_NODE"
-  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO virsh undefine $REBASED_NODE"
-
-  # Create VM for node
-  ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO rm $NODE_PATH/$REBASED_NODE.qcow2"
+  if [[ "$THRU_HOST" == "localhost" ]]; then
+    $PSEUDO virsh destroy $REBASED_NODE
+    $PSEUDO virsh undefine $REBASED_NODE
+    # Create VM for node
+    $PSEUDO rm $NODE_PATH/$REBASED_NODE.qcow2
+  else
+    squawk 18 "ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO virsh destroy $REBASED_NODE
+    ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO virsh undefine $REBASED_NODE
+    ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT $PSEUDO rm $KVM_builderBasePath/$REBASED_NODE.qcow2"
+  
+    ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO virsh destroy $REBASED_NODE"
+    ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO virsh undefine $REBASED_NODE"
+  
+    # Create VM for node
+    ssh -n $THRU_USER@$THRU_HOST -p $THRU_PORT "$PSEUDO rm $NODE_PATH/$REBASED_NODE.qcow2"
+  fi
 }
 
 decom_kvm () {
@@ -390,25 +385,15 @@ decom_kvm () {
   squawk 44 "slurpy -----> $(echo $kubash_provision_csv_slurped)"
   # Write all hosts to inventory for id
   # csv_columns='K8S_node K8S_user K8S_ip1 K8S_provisionerPort K8S_role K8S_provisionerUser K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
-  squawk 15 "decom_kvm loop starting"
+  squawk 25 "decom_kvm loop starting"
   while IFS="," read -r $csv_columns
   do
-    squawk 33 "$K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
-    if [[ "$K8S_provisionerHost" == "localhost" ]]; then
-      squawk 23 "kvm-decommer $K8S_node $K8S_provisionerBasePath"
-      set +e
-      kvm-decommer $K8S_node $K8S_provisionerBasePath 
-      set -e
-      squawk 23 "kvm-decommer $K8S_node $K8S_provisionerBasePath"
-    else
-      squawk 23 "kvm-decommer-remote $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort $K8S_provisionerBasePath"
-      set +e
-      kvm-decommer-remote $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort $K8S_provisionerBasePath 
-      set -e
-    fi
-    squawk 16 "Loop $K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
+    squawk 36 "Loop $K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
+    set +e
+    kvm-decommer $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort $K8S_provisionerBasePath 
+    set -e
   done <<< "$kubash_provision_csv_slurped"
-  squawk 16 'Looped through all hosts to be decommissioned'
+  squawk 26 'Looped through all hosts to be decommissioned'
 }
 
 vbox-provisioner () {
