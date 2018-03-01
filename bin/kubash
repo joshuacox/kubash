@@ -388,7 +388,7 @@ decom_kvm () {
     else
       kvm-decommer-remote $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort $K8S_provisionerBasePath 
     fi
-  done < $KUBASH_HOSTS_CSV
+  done < $KUBASH_PROVISION_CSV
 }
 
 vbox-provisioner () {
