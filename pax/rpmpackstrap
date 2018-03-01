@@ -34,6 +34,8 @@ net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
 sysctl --system
+iptables -F
+iptables-save
 
 wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum install -y epel-release-latest-7.noarch.rpm
@@ -44,6 +46,9 @@ yum repolist enabled
 
 yum install -y $PRE_INSTALL_PKGS
 yum install -y $INSTALL_PKGS
+
+pip install --upgrade pip
+pip install docker-py
 
 swapoff --all
 
@@ -69,8 +74,6 @@ else
   # Defaults to nothing barebones
   echo 'barebone'
 fi
-
-#pip install --upgrade pip
 
 #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
 sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
