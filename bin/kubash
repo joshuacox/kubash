@@ -719,6 +719,7 @@ refresh_network_addresses () {
 	    if [[ "$countzero" -gt 2 ]]; then
     	      sleep 8
             fi
+	    sleep 2
 	    ((countzero++))
           done
 	  set -e
