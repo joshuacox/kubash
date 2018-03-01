@@ -385,11 +385,12 @@ kvm-decommer-remote () {
 }
 
 decom_kvm () {
-  squawk 11 "decom_kvm"
+  squawk 11 "decom_kvm starting"
   provision_csv_slurp
   $squawk 44 "slurpy -----> $(echo $kubash_provision_csv_slurped)"
   # Write all hosts to inventory for id
   # csv_columns='K8S_node K8S_user K8S_ip1 K8S_provisionerPort K8S_role K8S_provisionerUser K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
+  squawk 15 "decom_kvm loop starting"
   while IFS="," read -r $csv_columns
   do
     squawk 33 "$K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
