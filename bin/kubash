@@ -391,14 +391,16 @@ decom_kvm () {
       set +e
       kvm-decommer $K8S_node $K8S_provisionerBasePath 
       set -e
+      squawk 23 "kvm-decommer $K8S_node $K8S_provisionerBasePath"
     else
       squawk 23 "kvm-decommer-remote $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort $K8S_provisionerBasePath"
       set +e
       kvm-decommer-remote $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort $K8S_provisionerBasePath 
       set -e
     fi
-    squawk 16 'Looped through all hosts to be decommissioned'
+    squawk 16 "Loop $K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
   done <<< $slurpy
+  squawk 16 'Looped through all hosts to be decommissioned'
 }
 
 vbox-provisioner () {
