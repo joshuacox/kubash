@@ -68,8 +68,8 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
 elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   systemctl restart docker
   curl -s https://raw.githubusercontent.com/joshuacox/roustabout/master/RHkubeNstall|bash
-  kubeadm init
-  kubeadm reset
+  #kubeadm init
+  #kubeadm reset
 else
   # Defaults to nothing barebones
   echo 'barebone'
