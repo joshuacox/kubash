@@ -351,7 +351,6 @@ hosts_csv_slurp () {
 provision_csv_slurp () {
   # Get rid of commented lines, and sort on the second and third mac address fields
   # This ensures hosts with more net interfaces are set after hosts with less interfaces
-  #kubash_provision_csv_slurped="$(grep -v '^#' $KUBASH_PROVISION_CSV|sort -t , -k 18,18n  -k 15,15n)"
   kubash_provision_csv_slurped="$(grep -v '^#' $KUBASH_PROVISION_CSV|sort -t , -k 18,18n  -k 15,15n)"
 }
 
@@ -391,7 +390,7 @@ decom_kvm () {
   squawk 44 "slurpy -----> $(echo $kubash_provision_csv_slurped)"
   # Write all hosts to inventory for id
   # csv_columns='K8S_node K8S_user K8S_ip1 K8S_provisionerPort K8S_role K8S_provisionerUser K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     squawk 33 "$K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
     if [[ "$K8S_provisionerHost" == "localhost" ]]; then
@@ -661,7 +660,7 @@ provisioner () {
     rm $KUBASH_HOSTS_CSV
   fi
   touch $KUBASH_HOSTS_CSV
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
       if [[ "$apparmor_fixed" == 'false' && "$K8S_os" == "coreos" ]]; then
         #apparmor_fix_all_provisioning_hosts
@@ -685,7 +684,7 @@ refresh_network_addresses () {
   squawk 18 "$slurpy"
   rm $KUBASH_HOSTS_CSV
   touch $KUBASH_HOSTS_CSV
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
       net_type=$(echo $K8S_network1|cut -f1 -d=)
       if [[ "$net_type" == "network" ]]; then
@@ -890,7 +889,7 @@ write_ansible_kubeadm2ha_hosts () {
     touch $KUBASH_ANSIBLE_HOSTS
   fi
   # Write all hosts to inventory for id
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_provisionerUser" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
@@ -898,7 +897,7 @@ write_ansible_kubeadm2ha_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[primary-master]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "primary_master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -906,7 +905,7 @@ write_ansible_kubeadm2ha_hosts () {
   done <<< "$slurpy"
   echo '' >> $KUBASH_ANSIBLE_HOSTS
   echo '[secondary-masters]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -914,7 +913,7 @@ write_ansible_kubeadm2ha_hosts () {
   done <<< "$slurpy"
   echo '' >> $KUBASH_ANSIBLE_HOSTS
   echo '[masters]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -926,7 +925,7 @@ write_ansible_kubeadm2ha_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[etcd]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "etcd" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -940,7 +939,7 @@ write_ansible_kubeadm2ha_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[minions]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" ]]; then
       echo "$K8S_node $openshift_labels" >> $KUBASH_ANSIBLE_HOSTS
@@ -950,7 +949,7 @@ write_ansible_kubeadm2ha_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[nodes]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" ]]; then
       echo "$K8S_node $openshift_labels" >> $KUBASH_ANSIBLE_HOSTS
@@ -962,7 +961,7 @@ write_ansible_kubeadm2ha_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[nginx]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "ingress" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -972,7 +971,7 @@ write_ansible_kubeadm2ha_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[nfs-server]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "nfs-server" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -996,7 +995,7 @@ write_ansible_openshift_hosts () {
     touch $KUBASH_ANSIBLE_HOSTS
   fi
   # Write all hosts to inventory for id
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_provisionerUser" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
@@ -1023,7 +1022,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_ANSIBLE_HOSTS
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[masters]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -1035,7 +1034,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_ANSIBLE_HOSTS
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[etcd]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "etcd" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -1050,7 +1049,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_ANSIBLE_HOSTS
 
   openshift_labels="openshift_node_labels=\"{'region': '$OPENSHIFT_REGION', 'zone': '$OPENSHIFT_ZONE'}\" openshift_schedulable=true"
   echo '[nodes]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" ]]; then
       echo "$K8S_node $openshift_labels" >> $KUBASH_ANSIBLE_HOSTS
@@ -1060,7 +1059,7 @@ osm_default_node_selector="region=lab"' >> $KUBASH_ANSIBLE_HOSTS
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[ingress]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "ingress" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -1082,7 +1081,7 @@ write_ansible_kubespray_hosts () {
     touch $KUBASH_ANSIBLE_HOSTS
   fi
   # Write all hosts to inventory for id
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_provisionerPort ansible_user=$K8S_provisionerUser" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
@@ -1090,7 +1089,7 @@ write_ansible_kubespray_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[kubernetes-kubeminions]' >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -1105,7 +1104,7 @@ write_ansible_kubespray_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[kubernetes-kubemasters]' >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -1122,7 +1121,7 @@ write_ansible_kubespray_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[ingress]'  >> $KUBASH_ANSIBLE_HOSTS
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "ingress" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
@@ -1227,7 +1226,7 @@ remove_vagrant_user () {
   PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   squawk 12 ' Remove vagrant user from all hosts using ssh'
   touch $PARATMP/hopper
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     squawk 11 "$K8S_ip1"
     squawk 13 "$K8S_user"
@@ -1256,7 +1255,7 @@ remove_vagrant_user () {
 ping_in_parallel () {
   PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   squawk 12 ' Pinging all hosts using ssh'
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     squawk 11 "$K8S_ip1"
     squawk 13 "$K8S_user"
@@ -1279,7 +1278,7 @@ ping_in_parallel () {
 
 ping () {
   squawk 12 ' Pinging all hosts using ssh'
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     squawk 11 "$K8S_ip1"
     squawk 13 "$K8S_user"
@@ -1342,7 +1341,7 @@ dotfiles_install () {
 do_grab () {
   squawk 11 " do_grab"
   do_grab_master_count=0
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "primary_master" ]]; then
       if [[ "$do_grab_master_count" -lt "1" ]]; then
@@ -1356,7 +1355,7 @@ do_grab () {
 check_coreos () {
   squawk 11 " check_coreos"
   do_coreos_init_count=0
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_os" == "coreos" ]]; then
       if [[ "$do_coreos_init_count" -lt "1" ]]; then
@@ -1403,7 +1402,7 @@ master_init_join () {
   rm -f $KUBASH_CLUSTER_DIR/ingress.ip1
   rm -f $KUBASH_CLUSTER_DIR/ingress.ip2
   rm -f $KUBASH_CLUSTER_DIR/ingress.ip3
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "ingress" ]]; then
       echo "$K8S_ip1" >> $KUBASH_CLUSTER_DIR/ingress.ip1
@@ -1643,7 +1642,7 @@ read_csv () {
   squawk 11 " read_csv"
   read_master_count=0
 
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     squawk 15 "$K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
     if [[ "$K8S_role" == "master" ]]; then
@@ -1656,7 +1655,7 @@ read_csv () {
     fi
   done < $KUBASH_HOSTS_CSV
 
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" || "$K8S_role" == "ingress" ]]; then
       echo "node_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort"
@@ -1797,7 +1796,7 @@ start_etcd () {
   touch $PARATMP/endpoints.line
   echo 'etcd:' >> $PARATMP/endpoints.line
   echo '  endpoints:' > $PARATMP/endpoints.line
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
       if [[ "$countzero" -lt "3" ]]; then
@@ -1917,7 +1916,7 @@ do_etcd () {
   touch $PARATMP/endpoints.line
   echo 'etcd:' >> $PARATMP/endpoints.line
   echo '  endpoints:' > $PARATMP/endpoints.line
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
       if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
@@ -1959,7 +1958,7 @@ do_etcd () {
   fi
 
   countzero=0
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "primary_master"  ]]; then
       if [[ "$countzero" -eq "0" ]]; then
@@ -1996,7 +1995,7 @@ do_primary_master () {
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "primary_master" ]]; then
       if [[ "$do_master_count" -lt "1" ]]; then
@@ -2024,7 +2023,7 @@ do_scale_up_kube_dns () {
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
     do_scale_up_kube_dns=`expr $do_scale_up_kube_dns + 1`
@@ -2060,7 +2059,7 @@ do_masters_in_parallel () {
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
@@ -2101,7 +2100,7 @@ do_nodes_in_parallel () {
     hosts_csv_slurp
   fi
   countzero_do_nodes=0
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "node" ]]; then
       echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_provisionerUser --node-join-port $K8S_provisionerPort --node-join-role node" \
@@ -2134,7 +2133,7 @@ do_command_in_parallel () {
     hosts_csv_slurp
   fi
   countzero_do_nodes=0
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do 
     countzero_do_nodes=`expr $countzero_do_nodes + 1`
     squawk 43 " count $countzero_do_nodes"
@@ -2203,7 +2202,7 @@ copy_in_parallel_to_role () {
     hosts_csv_slurp
   fi
   countzero_do_nodes=0
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "$role2copy2" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
@@ -2236,7 +2235,7 @@ copy_in_parallel_to_os () {
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_os" == "$os2copy2" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
@@ -2268,7 +2267,7 @@ do_command_in_parallel_on_role () {
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "$role2runiton" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
@@ -2296,7 +2295,7 @@ do_test () {
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do 
     echo "K8S_node=$K8S_node
 K8S_role=$K8S_role
@@ -2330,7 +2329,7 @@ do_command_in_parallel_on_os () {
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_os" == "$os2runiton" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
@@ -2368,7 +2367,7 @@ process_hosts_csv () {
 
 prep () {
   squawk 15 " prep"
-  while IFS="," read -r "$csv_columns"
+  while IFS="," read -r $csv_columns
   do
     preppy $K8S_node $K8S_ip1 $K8S_provisionerPort
   done < $KUBASH_HOSTS_CSV
