@@ -348,6 +348,12 @@ hosts_csv_slurp () {
   kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV|sort -t , -k 18,18n  -k 15,15n)"
 }
 
+provision_csv_slurp () {
+  # Get rid of commented lines, and sort on the second and third mac address fields
+  # This ensures hosts with more net interfaces are set after hosts with less interfaces
+  kubash_provision_csv_slurped="$(grep -v '^#' $KUBASH_PROVISION_CSV|sort -t , -k 18,18n  -k 15,15n)"
+}
+
 kvm-decommer () {
   squawk 15 "kvm-decommer $@"
   REBASED_NODE=$1
@@ -380,8 +386,8 @@ kvm-decommer-remote () {
 
 decom_kvm () {
   squawk 11 "decom_kvm"
-  slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
-  squawk 44 "slurpy -----> $(echo $slurpy)"
+  provision_csv_slurp
+  squawk 44 "slurpy -----> $(echo $kubash_provision_csv_slurped)"
   # Write all hosts to inventory for id
   # csv_columns='K8S_node K8S_user K8S_ip1 K8S_provisionerPort K8S_role K8S_provisionerUser K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
   while IFS="," read -r $csv_columns
@@ -400,7 +406,7 @@ decom_kvm () {
       set -e
     fi
     squawk 16 "Loop $K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
-  done <<< $slurpy
+  done <<< $kubash_provision_csv_slurped
   squawk 16 'Looped through all hosts to be decommissioned'
 }
 
