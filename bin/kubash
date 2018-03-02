@@ -343,12 +343,14 @@ rolero () {
 }
 
 hosts_csv_slurp () {
+  squawk 45 "slurp hosts.csv"
   # Get rid of commented lines, and sort on the second and third mac address fields
   # This ensures hosts with more net interfaces are set after hosts with less interfaces
   kubash_hosts_csv_slurped="$(grep -v '^#' $KUBASH_HOSTS_CSV|sort -t , -k 18,18n  -k 15,15n)"
 }
 
 provision_csv_slurp () {
+  squawk 45 "slurp provision.csv"
   # Get rid of commented lines, and sort on the second and third mac address fields
   # This ensures hosts with more net interfaces are set after hosts with less interfaces
   kubash_provision_csv_slurped="$(grep -v '^#' $KUBASH_PROVISION_CSV|sort -t , -k 18,18n  -k 15,15n)"
