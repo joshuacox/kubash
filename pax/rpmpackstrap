@@ -84,3 +84,6 @@ systemctl start docker
 # remove temp
 cd
 rm -Rf $TMP
+
+echo 'PATH=/usr/local/bin:$PATH' >> /root/.bash_profile
+

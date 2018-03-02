@@ -44,6 +44,7 @@ mkdir -p /home/$K8S_SU_USER/.ssh
 cp $TMP/keys /home/$K8S_SU_USER/.ssh/authorized_keys
 chmod 600 /home/$K8S_SU_USER/.ssh/authorized_keys
 chmod 700 /home/$K8S_SU_USER/.ssh
+echo 'PATH=/usr/local/bin:$PATH' >> /home/$K8S_SU_USER/.bash_profile
 chown -R $K8S_SU_USER. /home/$K8S_SU_USER
 
 rm -Rf $TMP

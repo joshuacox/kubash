@@ -1864,6 +1864,14 @@ prep_init_etcd () {
     do_command_in_parallel_on_role "master"        "$command2run"
   fi
 
+  # Hack, delete after rebuild
+  command2run="echo 'PATH=/usr/local/bin:$PATH' >> /root/.bash_profile"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  do_command_in_parallel_on_role "etcd"          "$command2run"
+  if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+    do_command_in_parallel_on_role "master"        "$command2run"
+  fi
+
   command2run='cd /etc/etcd/pki; cfssl gencert -initca ca-csr.json | cfssljson -bare ca -'
   sudo_command $this_port $this_user $this_host "$command2run"
 
