@@ -1398,7 +1398,7 @@ master_init_join () {
       echo "$K8S_ip2" >> $KUBASH_CLUSTER_DIR/ingress.ip2
       echo "$K8S_ip3" >> $KUBASH_CLUSTER_DIR/ingress.ip3
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
   K8S_load_balancer_ip=$(head -n1 $KUBASH_CLUSTER_DIR/ingress.ip2)
 
   if [[ "DO_KEEPALIVED" == 'true' ]]; then
@@ -1790,7 +1790,7 @@ start_etcd () {
 	echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 'sudo bash -c \"$command2run\"'" >> $PARATMP/hopper
       fi
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -1920,7 +1920,7 @@ do_etcd () {
         echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
       fi
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
   sed -i 's/,$//' $PARATMP/etcd.line
   echo '  caFile: /etc/kubernetes/pki/etcd/ca.pem' >> $PARATMP/endpoints.line
   echo '  certFile: /etc/kubernetes/pki/etcd/client.pem' >> $PARATMP/endpoints.line
@@ -1962,7 +1962,7 @@ do_etcd () {
         echo      "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_provisionerPort" \
           >> $PARATMP/hopper
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -1993,7 +1993,7 @@ do_primary_master () {
       fi
       ((do_master_count++))
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 }
 
 do_masters () {
@@ -2015,7 +2015,7 @@ do_scale_up_kube_dns () {
     if [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
     ((do_scale_up_kube_dns++))
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   kubectl scale --replicas=$do_scale_up_kube_dns -n kube-system  deployment/kube-dns
 }
@@ -2059,7 +2059,7 @@ do_masters_in_parallel () {
         echo "ssh -n $my_master_user@$my_master_ip '$my_KUBE_INIT'" >> $do_master_tmp/hopper
       fi
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $do_master_tmp/hopper
   fi
@@ -2098,7 +2098,7 @@ do_nodes_in_parallel () {
     fi
     ((countzero_do_nodes++))
     squawk 13 " count $countzero_do_nodes"
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -2127,7 +2127,7 @@ do_command_in_parallel () {
     squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
     echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
 	      >> $PARATMP/hopper
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -2198,7 +2198,7 @@ copy_in_parallel_to_role () {
       echo "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -2231,7 +2231,7 @@ copy_in_parallel_to_os () {
       echo "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -2263,7 +2263,7 @@ do_command_in_parallel_on_role () {
       echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
         >> $PARATMP/hopper
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
@@ -2303,7 +2303,7 @@ K8S_ip2=$K8S_ip2
 K8S_network3=$K8S_network3
 K8S_mac3=$K8S_mac3
 K8S_ip3=$K8S_ipv3"
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 }
 
 do_command_in_parallel_on_os () {
@@ -2325,7 +2325,7 @@ do_command_in_parallel_on_os () {
       echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
         >> $PARATMP/hopper
     fi
-  done <<< $kubash_hosts_csv_slurped
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $PARATMP/hopper
