@@ -746,8 +746,8 @@ copy_image_to_all_provisioning_hosts () {
 
   uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f8,9,10,11,12,13|sort|uniq)"
   squawk 18 "$uniq_hosts"
-  PARATMP=$(mktemp -d)
-  touch $PARATMP/hopper
+  copy_image_tmp_para=$(mktemp -d)
+  touch $copy_image_tmp_para/hopper
   while IFS="," read -r $uniq_hosts_list_columns
   do
     squawk 19 " $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt"
@@ -757,11 +757,11 @@ copy_image_to_all_provisioning_hosts () {
           squawk 19 'builder and provisioner are the same path here'
         else
           squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-          echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+          echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $copy_image_tmp_para/hopper
         fi
       else
         squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-        echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+        echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $copy_image_tmp_para/hopper
       fi
     else
       if [[ "$K8S_provisionerHost" == "$KVM_builderHost" ]]; then
@@ -769,55 +769,55 @@ copy_image_to_all_provisioning_hosts () {
           squawk 19 'builder and provisioner are the same path here'
         else
           squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-          echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+          echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $copy_image_tmp_para/hopper
         fi
       else
         squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-        echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+        echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $copy_image_tmp_para/hopper
       fi
     fi
   done <<< "$uniq_hosts"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $copy_image_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $copy_image_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $copy_image_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $copy_image_tmp_para
 }
 
 apparmor_fix_all_provisioning_hosts () {
   squawk 10 "apparmor_fix_all_provisioning_hosts"
   uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f7,8,9,10,11,12|sort|uniq)"
   squawk 18 "$uniq_hosts"
-  PARATMP=$(mktemp -d)
-  touch $PARATMP/hopper
+  apparmor_tmp_para=$(mktemp -d)
+  touch $apparmor_tmp_para/hopper
   #CURLY="bash $(curl -Ls https://raw.githubusercontent.com/kubash/kubash/master/scripts/libvirtarmor)"
   CURLY="curl -Ls https://raw.githubusercontent.com/kubash/kubash/master/scripts/libvirtarmor|bash"
   #"K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
   while IFS="," read -r $uniq_hosts_list_columns
   do
     if [[ "$K8S_provisionerHost" = 'localhost' ]]; then
-      echo "$CURLY" >> $PARATMP/hopper
+      echo "$CURLY" >> $apparmor_tmp_para/hopper
     else
       squawk 19 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost \"$CURLY\""
       echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost \"$CURLY\"" \
-        >> $PARATMP/hopper
+        >> $apparmor_tmp_para/hopper
     fi
   done <<< "$uniq_hosts"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $apparmor_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $apparmor_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $apparmor_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $apparmor_tmp_para
 }
 
 do_nginx_ingress () {
@@ -1215,9 +1215,9 @@ w8_node () {
 }
 
 remove_vagrant_user () {
-  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  remove_vagrant_user_tmp_para=$(mktemp -d)
   squawk 12 ' Remove vagrant user from all hosts using ssh'
-  touch $PARATMP/hopper
+  touch $remove_vagrant_user_tmp_para/hopper
   while IFS="," read -r $csv_columns
   do
     squawk 11 "$K8S_ip1"
@@ -1229,23 +1229,23 @@ remove_vagrant_user () {
       REMMY="userdel -f vagrant && rm -Rf /home/vagrant"
       squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_user@$K8S_ip1 \"$REMMY\""
       echo "ssh -n -p $K8S_provisionerPort $K8S_user@$K8S_ip1 \"$REMMY\""\
-	      >> $PARATMP/hopper
+	      >> $remove_vagrant_user_tmp_para/hopper
     fi
   done < $KUBASH_HOSTS_CSV
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $remove_vagrant_user_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $remove_vagrant_user_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $remove_vagrant_user_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $remove_vagrant_user_tmp_para
 }
 
 ping_in_parallel () {
-  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  ping_tmp_para=$(mktemp -d --suffix='.para.tmp')
   squawk 12 ' Pinging all hosts using ssh'
   while IFS="," read -r $csv_columns
   do
@@ -1254,18 +1254,18 @@ ping_in_parallel () {
     MY_ECHO="echo '$K8S_ip1 $K8S_provisionerUser pong'" 
     squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"$MY_ECHO\""
     echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"$MY_ECHO\""\
-	      >> $PARATMP/hopper
+	      >> $ping_tmp_para/hopper
   done < $KUBASH_HOSTS_CSV
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $ping_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $ping_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $ping_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $ping_tmp_para
 }
 
 ping () {
@@ -1673,25 +1673,25 @@ grant () {
 }
 
 grant_users () {
-  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
-  touch $PARATMP/hopper
+  grant_users_tmp_para=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  touch $grant_users_tmp_para/hopper
   slurpy="$(grep -v '^#' $KUBASH_USERS_CSV)"
   # user_csv_columns="user_email user_role"
   while IFS="," read -r $user_csv_columns
   do
     squawk 19 "user_name=$user_name user_email=$user_email user_role=$user_role"
-    echo "kubash -n $KUBASH_CLUSTER_NAME grant $user_name $user_email $user_role" >> $PARATMP/hopper
+    echo "kubash -n $KUBASH_CLUSTER_NAME grant $user_name $user_email $user_role" >> $grant_users_tmp_para/hopper
   done <<< "$slurpy"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $grant_users_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $grant_users_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $grant_users_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $grant_users_tmp_para
 }
 
 finish_pki_for_masters () {
@@ -1776,34 +1776,34 @@ start_etcd () {
     hosts_csv_slurp
   fi
   # Run kubeadm init on master0
-  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
-  touch $PARATMP/hopper
+  start_etcd_tmp_para=$(mktemp -d --suffix='.para.tmp' 2>/dev/null)
+  touch $start_etcd_tmp_para/hopper
   squawk 13 " do_etcd"
 
   countzero=0
-  touch $PARATMP/endpoints.line
-  echo 'etcd:' >> $PARATMP/endpoints.line
-  echo '  endpoints:' > $PARATMP/endpoints.line
+  touch $start_etcd_tmp_para/endpoints.line
+  echo 'etcd:' >> $start_etcd_tmp_para/endpoints.line
+  echo '  endpoints:' > $start_etcd_tmp_para/endpoints.line
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
       if [[ "$countzero" -lt "3" ]]; then
 	command2run='systemctl start etcd'
 	squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 'sudo bash -c \"$command2run\"'"
-	echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 'sudo bash -c \"$command2run\"'" >> $PARATMP/hopper
+	echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 'sudo bash -c \"$command2run\"'" >> $start_etcd_tmp_para/hopper
       fi
     fi
   done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $start_etcd_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $start_etcd_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $start_etcd_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $start_etcd_tmp_para
 }
 
 kubeadm_reset () {
@@ -1913,41 +1913,41 @@ prep_etcd () {
 }
 
 do_etcd () {
-  PARATMP=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
-  touch $PARATMP/hopper
+  do_etcd_tmp_para=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  touch $do_etcd_tmp_para/hopper
   squawk 13 " do_etcd"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
 
   countzero=0
-  touch $PARATMP/endpoints.line
-  echo 'etcd:' >> $PARATMP/endpoints.line
-  echo '  endpoints:' > $PARATMP/endpoints.line
+  touch $do_etcd_tmp_para/endpoints.line
+  echo 'etcd:' >> $do_etcd_tmp_para/endpoints.line
+  echo '  endpoints:' > $do_etcd_tmp_para/endpoints.line
   while IFS="," read -r $csv_columns
   do
     if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
   	squawk 36 "$K8S_node=https://$K8S_ip1:2380  <-- $K8S_role"
-  	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
-  	echo -n "," >> $PARATMP/etcd.line
+  	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $do_etcd_tmp_para/etcd.line
+  	echo -n "," >> $do_etcd_tmp_para/etcd.line
 	((++countzero))
-        echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
+        echo "  - https://$K8S_ip1:2379" >> $do_etcd_tmp_para/endpoints.line
       fi
     else
       if [[ "$K8S_role" == 'etcd' ]]; then
   	squawk 36 "$K8S_node=https://$K8S_ip1:2380  <-- $K8S_role"
-  	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
-  	echo -n "," >> $PARATMP/etcd.line
+  	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $do_etcd_tmp_para/etcd.line
+  	echo -n "," >> $do_etcd_tmp_para/etcd.line
 	((++countzero))
-        echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
+        echo "  - https://$K8S_ip1:2379" >> $do_etcd_tmp_para/endpoints.line
       fi
     fi
   done <<< "$kubash_hosts_csv_slurped"
-  sed -i 's/,$//' $PARATMP/etcd.line
-  echo '  caFile: /etc/kubernetes/pki/etcd/ca.pem' >> $PARATMP/endpoints.line
-  echo '  certFile: /etc/kubernetes/pki/etcd/client.pem' >> $PARATMP/endpoints.line
-  echo '  keyFile: /etc/kubernetes/pki/etcd/client-key.pem' >> $PARATMP/endpoints.line
+  sed -i 's/,$//' $do_etcd_tmp_para/etcd.line
+  echo '  caFile: /etc/kubernetes/pki/etcd/ca.pem' >> $do_etcd_tmp_para/endpoints.line
+  echo '  certFile: /etc/kubernetes/pki/etcd/client.pem' >> $do_etcd_tmp_para/endpoints.line
+  echo '  keyFile: /etc/kubernetes/pki/etcd/client-key.pem' >> $do_etcd_tmp_para/endpoints.line
 
   if [[ "$countzero" -lt "3" ]]; then
     horizontal_rule
@@ -1962,13 +1962,14 @@ do_etcd () {
   fi
 
   # Only copy if etcd.line exists as the endpoints will have stuff in it regardless
-  if [[ -e "$PARATMP/etcd.line" ]]; then
-    mv $PARATMP/etcd.line $KUBASH_CLUSTER_DIR/
-    mv $PARATMP/endpoints.line $KUBASH_CLUSTER_DIR/
+  if [[ -e "$do_etcd_tmp_para/etcd.line" ]]; then
+    mv $do_etcd_tmp_para/etcd.line $KUBASH_CLUSTER_DIR/
+    mv $do_etcd_tmp_para/endpoints.line $KUBASH_CLUSTER_DIR/
   fi
 
   countzero=0
-  touch $PARATMP/hopper
+  prepTMP=$(mktemp -d)
+  touch $prepTMP/hopper
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "primary_master"  ]]; then
@@ -1983,19 +1984,20 @@ do_etcd () {
     if [[ "$K8S_role" == "etcd" || "$K8S_role" == "master"  ]]; then
         squawk 33 "$K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_ip1 $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
         squawk 13 "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_provisionerPort"
-        echo      "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_provisionerPort" >> $PARATMP/hopper
+        touch $prepTMP/hopper
+        echo      "kubash -n $KUBASH_CLUSTER_NAME prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_provisionerPort" >> $prepTMP/hopper
     fi
   done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $prepTMP/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $prepTMP/hopper
   else
-    bash $PARATMP/hopper
+    bash $prepTMP/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $prepTMP
 }
 
 do_primary_master () {
@@ -2103,8 +2105,8 @@ do_nodes () {
 }
 
 do_nodes_in_parallel () {
-  PARATMP=$(mktemp -d)
-  touch $PARATMP/hopper
+  do_nodes_tmp_para=$(mktemp -d)
+  touch $do_nodes_tmp_para/hopper
   squawk 13 " do_nodes_in_parallel"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
@@ -2114,7 +2116,7 @@ do_nodes_in_parallel () {
   do 
     if [[ "$K8S_role" == "node" ]]; then
       echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_provisionerUser --node-join-port $K8S_provisionerPort --node-join-role node" \
-	      >> $PARATMP/hopper
+	      >> $do_nodes_tmp_para/hopper
     else
       squawk 11 " K8S_role NOT NODE"
       squawk 11 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_provisionerPort"
@@ -2124,20 +2126,20 @@ do_nodes_in_parallel () {
   done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $do_nodes_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $do_nodes_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $do_nodes_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $do_nodes_tmp_para
 }
 
 do_command_in_parallel () {
-  PARATMP=$(mktemp -d)
+  do_command_tmp_para=$(mktemp -d)
   command2run=$1
-  touch $PARATMP/hopper
+  touch $do_command_tmp_para/hopper
   squawk 13 " do_command_in_parallel $1"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     squawk 57 'slurp empty'
@@ -2153,18 +2155,18 @@ do_command_in_parallel () {
     squawk 43 " count $countzero_do_nodes"
     squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
     echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
-	      >> $PARATMP/hopper
+	      >> $do_command_tmp_para/hopper
   done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $do_command_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $do_command_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $do_command_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $do_command_tmp_para
 }
 
 do_command () {
@@ -2206,11 +2208,11 @@ sudo_command () {
 }
 
 copy_in_parallel_to_role () {
-  PARATMP=$(mktemp -d)
+  copy_in_to_role_tmp_para=$(mktemp -d)
   role2copy2=$1
   file2copy=$2
   destination=$3
-  touch $PARATMP/hopper
+  touch $copy_in_to_role_tmp_para/hopper
   squawk 13 " do_command_in_parallel"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
@@ -2223,27 +2225,27 @@ copy_in_parallel_to_role () {
       squawk 13 " count $countzero_do_nodes"
       squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
       echo "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
-        >> $PARATMP/hopper
+        >> $copy_in_to_role_tmp_para/hopper
     fi
   done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $copy_in_to_role_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $copy_in_to_role_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $copy_in_to_role_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $copy_in_to_role_tmp_para
 }
 
 copy_in_parallel_to_os () {
-  PARATMP=$(mktemp -d)
+  copy_in_to_os_tmp_para=$(mktemp -d)
   os2copy2=$1
   file2copy=$2
   destination=$3
-  touch $PARATMP/hopper
+  touch $copy_in_to_os_tmp_para/hopper
   squawk 13 " do_command_in_parallel"
   countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
@@ -2256,26 +2258,26 @@ copy_in_parallel_to_os () {
       squawk 13 " count $countzero_do_nodes"
       squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
       echo "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
-        >> $PARATMP/hopper
+        >> $copy_in_to_os_tmp_para/hopper
     fi
   done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $copy_in_to_os_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $copy_in_to_os_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $copy_in_to_os_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $copy_in_to_os_tmp_para
 }
 
 do_command_in_parallel_on_role () {
-  PARATMP=$(mktemp -d)
+  do_command_on_role_tmp_para=$(mktemp -d)
   role2runiton=$1
   command2run=$2
-  touch $PARATMP/hopper
+  touch $do_command_on_role_tmp_para/hopper
   squawk 13 " do_command_in_parallel"
   countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
@@ -2288,19 +2290,19 @@ do_command_in_parallel_on_role () {
       squawk 49 " count $countzero_do_nodes"
       squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
       echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
-        >> $PARATMP/hopper
+        >> $do_command_on_role_tmp_para/hopper
     fi
   done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $do_command_on_role_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $do_command_on_role_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $do_command_on_role_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $do_command_on_role_tmp_para
 }
 
 do_test () {
@@ -2334,10 +2336,10 @@ K8S_ip3=$K8S_ipv3"
 }
 
 do_command_in_parallel_on_os () {
-  PARATMP=$(mktemp -d)
+  do_command_on_os_tmp_para=$(mktemp -d)
   os2runiton=$1
   command2run=$2
-  touch $PARATMP/hopper
+  touch $do_command_on_os_tmp_para/hopper
   squawk 13 " do_command_in_parallel"
   countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
@@ -2350,19 +2352,19 @@ do_command_in_parallel_on_os () {
       squawk 43 " count $countzero_do_nodes"
       squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
       echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
-        >> $PARATMP/hopper
+        >> $do_command_on_os_tmp_para/hopper
     fi
   done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
-    cat $PARATMP/hopper
+    cat $do_command_on_os_tmp_para/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $PARATMP/hopper
+    $PARALLEL  -j $PARALLEL_JOBS -- < $do_command_on_os_tmp_para/hopper
   else
-    bash $PARATMP/hopper
+    bash $do_command_on_os_tmp_para/hopper
   fi
-  rm -Rf $PARATMP
+  rm -Rf $do_command_on_os_tmp_para
 }
 
 process_hosts_csv () {
