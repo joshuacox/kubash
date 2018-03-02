@@ -1762,9 +1762,9 @@ finish_etcd () {
   sudo_command $this_port $this_user $this_host "$command2run"
 
   rm $etctmp
-  command2run='chown -R etcd.etcd /etc/etcd'
+  command2run='mkdir -p /etc/etcd; chown -R etcd.etcd /etc/etcd'
   sudo_command $this_port $this_user $this_host "$command2run"
-  command2run='chown -R etcd.etcd /var/lib/etcd'
+  command2run='mkdir -p /var/lib/etcd; chown -R etcd.etcd /var/lib/etcd'
   sudo_command $this_port $this_user $this_host "$command2run"
   command2run='systemctl daemon-reload'
   sudo_command $this_port $this_user $this_host "$command2run"
