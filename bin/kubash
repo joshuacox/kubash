@@ -40,11 +40,12 @@
 : ${DO_KEEPALIVED:='false'}
 : ${ETCD_VERSION:=v3.2.16}
 : ${KUBERNETES_VERSION:=v1.9.3}
+: ${KUBASH_RSYNC_OPTS:='-aze'}
 
 # Leaving these off as their behavior can be unpredictable
 # best only turn them on for debugging
 #set -eu
-#set -e
+set -e
 
 net_set () {
   # Set networking defaults
@@ -623,8 +624,8 @@ qemu-provisioner () {
       sed -i "/<\/devices>/a <qemu:commandline>\n  <qemu:arg value='-fw_cfg'/>\n  <qemu:arg value='name=opt/com.coreos/config,file=$K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.ign'/>\n</qemu:commandline>" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
 
       squawk 15 "sync the cluster directory"
-      squawk 19 "rsync -aze 'ssh -p$K8S_provisionerPort' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/"
-      rsync -aze "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/
+      squawk 19 "rsync $KUBASH_RSYNC_OPTS 'ssh -p$K8S_provisionerPort' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/"
+      rsync $KUBASH_RSYNC_OPTS "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/
 
       virshcmd2run="$PSEUDO virsh define $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
       squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
@@ -755,24 +756,24 @@ copy_image_to_all_provisioning_hosts () {
         if [[ "$(realpath $KVM_builderBasePath)" == "$(realpath $K8S_provisionerBasePath)" ]]; then
           squawk 19 'builder and provisioner are the same path here'
         else
-          squawk 17 "rsync -aze \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-          echo "rsync -aze \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+          squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
+          echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
         fi
       else
-        squawk 17 "rsync -aze \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-        echo "rsync -aze \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+        squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
+        echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
       fi
     else
       if [[ "$K8S_provisionerHost" == "$KVM_builderHost" ]]; then
         if [[ "$KVM_builderBasePath" == "$K8S_provisionerBasePath" ]]; then
           squawk 19 'builder and provisioner are the same path here'
         else
-          squawk 17 "rsync -aze \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-          echo "rsync -aze \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+          squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
+          echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
         fi
       else
-        squawk 17 "rsync -aze \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-        echo "rsync -aze \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
+        squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
+        echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $PARATMP/hopper
       fi
     fi
   done <<< "$uniq_hosts"
@@ -1430,7 +1431,7 @@ master_init_join () {
     MASTER_VIP=$my_master_ip \
     envsubst < $KUBASH_DIR/templates/keepalived.conf
     > $setup_keepalived_tmp/keepalived.conf
-    rsync -aze "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $my_master_user@$my_master_ip:/tmp/keepalived.conf
+    rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $my_master_user@$my_master_ip:/tmp/keepalived.conf
     command2run='sudo  mv /tmp/keepalived.conf /etc/keepalived/'
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     
@@ -1454,8 +1455,8 @@ master_init_join () {
       ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
       envsubst  < $KUBASH_DIR/templates/kubeadm-config.yaml \
         > $kubeadmin_config_tmp
-      squawk 29 "rsync -aze 'ssh -p $my_master_port' $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml"
-      rsync -aze "ssh -p $my_master_port" $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml
+      squawk 29 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $my_master_port' $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml"
+      rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml
       squawk 16 "kubedmin_config_tmp =\n $(cat $kubeadmin_config_tmp)"
       rm $kubeadmin_config_tmp
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
@@ -1482,10 +1483,10 @@ master_init_join () {
     master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port
     sudo_command $my_master_port $my_master_user $my_master_ip "$command2run"
     w8_kubectl
-    rsync -aze "ssh -p $my_master_port" $KUBASH_DIR/scripts/grabkubepki $my_master_user@$my_master_ip:/tmp/grabkubepki
+    rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $KUBASH_DIR/scripts/grabkubepki $my_master_user@$my_master_ip:/tmp/grabkubepki
     command2run="bash /tmp/grabkubepki"
     sudo_command $this_port $this_user $this_host "$command2run"
-    rsync -aze "ssh -p $my_master_port" $my_master_user@$my_master_ip:/tmp/kube-pki.tgz $KUBASH_CLUSTER_DIR/
+    rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $my_master_user@$my_master_ip:/tmp/kube-pki.tgz $KUBASH_CLUSTER_DIR/
     squawk 15 'and copy it to master and etcd hosts'
     copy_in_parallel_to_role "master" "$KUBASH_CLUSTER_DIR/kube-pki.tgz" "/tmp/"
     command2run='cd /; tar zxf /tmp/kube-pki.tgz'
@@ -1738,8 +1739,8 @@ finish_etcd () {
   sudo_command $this_port $this_user $this_host "$command2run"
   etcd_extract_tmp=$(mktemp -d)
   sudo tar --strip-components=1 -C $etcd_extract_tmp -xzf $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
-  rsync -aze "ssh -p $this_port" $etcd_extract_tmp/etcd $this_user@$this_host:/tmp/
-  rsync -aze "ssh -p $this_port" $etcd_extract_tmp/etcdctl $this_user@$this_host:/tmp/
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $etcd_extract_tmp/etcd $this_user@$this_host:/tmp/
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $etcd_extract_tmp/etcdctl $this_user@$this_host:/tmp/
   rm -Rf $etcd_extract_tmp
   command2run='sudo mv /tmp/etcd /usr/local/bin/'
   do_command $this_port $this_user $this_host "$command2run"
@@ -1752,11 +1753,11 @@ finish_etcd () {
   ETCD_INITCLUSER_LINE="$(cat $KUBASH_CLUSTER_DIR/etcd.line)" \
   envsubst < $KUBASH_DIR/templates/etcd.conf.yml \
   > $etctmp
-  rsync -aze "ssh -p $this_port" $etctmp  $this_user@$this_host:/tmp/etcd.conf.yml
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $etctmp  $this_user@$this_host:/tmp/etcd.conf.yml
   command2run="mv /tmp/etcd.conf.yml /etc/etcd/etcd.conf.yml"
   sudo_command $this_port $this_user $this_host "$command2run"
 
-  rsync -aze "ssh -p $this_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_host:/tmp/etcd.service
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_host:/tmp/etcd.service
   command2run='cp /tmp/etcd.service /lib/systemd/system/etcd.service'
   sudo_command $this_port $this_user $this_host "$command2run"
 
@@ -1825,7 +1826,7 @@ prep_init_etcd () {
   command2run='mkdir -p /etc/etcd'
   squawk 15 "command2run $command2run"
   sudo_command $this_port $this_user $this_host "$command2run"
-  rsync -aze "ssh -p $this_port" $init_etcd_tmp/pki $this_user@$this_host:/tmp/
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $init_etcd_tmp/pki $this_user@$this_host:/tmp/
   command2run='rm -Rf /etc/etcd/pki'
   sudo_command $this_port $this_user $this_host "$command2run"
   command2run='mv /tmp/pki /etc/etcd/pki'
@@ -1834,12 +1835,12 @@ prep_init_etcd () {
 
   command2run="chown $this_user /etc/etcd/pki"
   sudo_command $this_port $this_user $this_host "$command2run"
-  rsync -aze "ssh -p $this_port" $KUBASH_DIR/templates/ca-config.json $this_user@$this_host:/tmp/ca-config.json
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $KUBASH_DIR/templates/ca-config.json $this_user@$this_host:/tmp/ca-config.json
   command2run='mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json'
   sudo_command $this_port $this_user $this_host "$command2run"
 
-  squawk 15 "rsync -aze 'ssh -p $this_port' '$(KUBASH_BIN)/cfssl' $this_user@$this_host:/tmp/cfssl"
-  rsync -aze "ssh -p $this_port" "$(KUBASH_BIN)/cfssl" $this_user@$this_host:/tmp/cfssl
+  squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' '$(KUBASH_BIN)/cfssl' $this_user@$this_host:/tmp/cfssl"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" "$(KUBASH_BIN)/cfssl" $this_user@$this_host:/tmp/cfssl
   copy_in_parallel_to_role "master" "$(KUBASH_BIN)/cfssl" "/tmp/cfssl"
   copy_in_parallel_to_role "etcd"   "$(KUBASH_BIN)/cfssl" "/tmp/cfssl"
   command2run='mv /tmp/cfssl /usr/local/bin/cfssl'
@@ -1849,8 +1850,8 @@ prep_init_etcd () {
     do_command_in_parallel_on_role "master"        "$command2run"
   fi
 
-  squawk 15 "rsync -aze 'ssh -p $this_port' $(KUBASH_BIN)/cfssljson $this_user@$this_host:/tmp/cfssljson"
-  rsync -aze "ssh -p $this_port" "$(KUBASH_BIN)/cfssljson" $this_user@$this_host:/tmp/cfssljson
+  squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' $(KUBASH_BIN)/cfssljson $this_user@$this_host:/tmp/cfssljson"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" "$(KUBASH_BIN)/cfssljson" $this_user@$this_host:/tmp/cfssljson
   copy_in_parallel_to_role "master" "$(KUBASH_BIN)/cfssljson" "/tmp/cfssljson"
   copy_in_parallel_to_role "etcd"   "$(KUBASH_BIN)/cfssljson" "/tmp/cfssljson"
   command2run='mv /tmp/cfssljson /usr/local/bin/cfssljson'
@@ -1866,11 +1867,11 @@ prep_init_etcd () {
   command2run='cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client'
   sudo_command $this_port $this_user $this_host "$command2run"
 
-  rsync -aze "ssh -p $this_port" $KUBASH_DIR/scripts/grabpki $this_user@$this_host:/tmp/grabpki
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $KUBASH_DIR/scripts/grabpki $this_user@$this_host:/tmp/grabpki
   command2run="bash /tmp/grabpki"
   sudo_command $this_port $this_user $this_host "$command2run"
   squawk 15 'pull etcd-pki.tgz from primary master'
-  rsync -aze "ssh -p $this_port" $this_user@$this_host:/tmp/etcd-pki.tgz $KUBASH_CLUSTER_DIR/
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $this_user@$this_host:/tmp/etcd-pki.tgz $KUBASH_CLUSTER_DIR/
   squawk 15 'and copy it to master and etcd hosts'
   copy_in_parallel_to_role "etcd" "$KUBASH_CLUSTER_DIR/etcd-pki.tgz" "/tmp/"
   copy_in_parallel_to_role "master" "$KUBASH_CLUSTER_DIR/etcd-pki.tgz" "/tmp/"
@@ -2200,8 +2201,8 @@ copy_in_parallel_to_role () {
     if [[ "$K8S_role" == "$role2copy2" ]]; then
       ((++countzero_do_nodes))
       squawk 13 " count $countzero_do_nodes"
-      squawk 15 "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
-      echo "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
+      squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
+      echo "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
   done <<< "$kubash_hosts_csv_slurped"
@@ -2233,8 +2234,8 @@ copy_in_parallel_to_os () {
     if [[ "$K8S_os" == "$os2copy2" ]]; then
       countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 13 " count $countzero_do_nodes"
-      squawk 15 "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
-      echo "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
+      squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
+      echo "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
         >> $PARATMP/hopper
     fi
   done <<< "$kubash_hosts_csv_slurped"
@@ -2667,6 +2668,10 @@ main () {
         break;;
     esac
   done
+
+  if [[ "$VERBOSITY" -gt 0 ]]; then
+    KUBASH_RSYNC_OPTS:='-azve'
+  fi
 
   chkdir $KUBASH_CLUSTERS_DIR
 
