@@ -1826,7 +1826,10 @@ prep_init_etcd () {
   command2run='mkdir -p /etc/etcd'
   squawk 15 "command2run $command2run"
   sudo_command $this_port $this_user $this_host "$command2run"
+  squawk 25 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' $init_etcd_tmp/pki $this_user@$this_host:/tmp/"
   rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $init_etcd_tmp/pki $this_user@$this_host:/tmp/
+  command2run='ls -lh /tmp/pki'
+  sudo_command $this_port $this_user $this_host "$command2run"
   command2run='rm -Rf /etc/etcd/pki'
   sudo_command $this_port $this_user $this_host "$command2run"
   command2run='mv /tmp/pki /etc/etcd/pki'
