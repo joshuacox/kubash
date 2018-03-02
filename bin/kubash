@@ -2160,7 +2160,7 @@ do_command () {
   this_user=$2
   this_host=$3
   command2run=$4
-  if [[ "$KVM_builderHost" == "localhost" ]]; then
+  if [[ "$this_host" == "localhost" ]]; then
     squawk 15 "bash -c '$command2run'"
     bash -c "$command2run"
   else
@@ -2179,7 +2179,7 @@ sudo_command () {
   this_user=$2
   this_host=$3
   command2run=$4
-  if [[ "$KVM_builderHost" == "localhost" ]]; then
+  if [[ "$this_host" == "localhost" ]]; then
     squawk 15 "sudo bash -c '$command2run'"
     sudo bash -c "$command2run"
   else
