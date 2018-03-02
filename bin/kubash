@@ -41,8 +41,10 @@
 : ${ETCD_VERSION:=v3.2.16}
 : ${KUBERNETES_VERSION:=v1.9.3}
 
+# Leaving these off as their behavior can be unpredictable
+# best only turn them on for debugging
 #set -eu
-set -e
+#set -e
 
 net_set () {
   # Set networking defaults
@@ -691,7 +693,7 @@ refresh_network_addresses () {
 	    if [[ "$countzero" -gt 2 ]]; then
     	      sleep 2
             fi
-	    ((countzero++))
+	    ((++countzero))
           done
 	  set -e
         else
@@ -705,7 +707,7 @@ refresh_network_addresses () {
 	    if [[ "$countzero" -gt 2 ]]; then
     	      sleep 2
             fi
-	    ((countzero++))
+	    ((++countzero))
           done
 	  set -e
         fi
@@ -722,7 +724,7 @@ refresh_network_addresses () {
     	      sleep 8
             fi
 	    sleep 2
-	    ((countzero++))
+	    ((++countzero))
           done
 	  set -e
       fi
@@ -1143,7 +1145,7 @@ w8_kubedns () {
         squawk 10 "$RESULT"
         break
     fi
-    ((countone++))
+    ((++countone))
     sleep 3
   done
   
@@ -1168,10 +1170,10 @@ w8_kubectl () {
     squawk 13 "Result is $result"
     if [[ "$result" ]]; then
       squawk 15 "Result nailed $result"
-      ((countone_w8_kubectl++))
+      ((++countone_w8_kubectl))
       break
     fi
-    ((countone_w8_kubectl++))
+    ((++countone_w8_kubectl))
     squawk 19 "$countone_w8_kubectl"
     if [[ "$countone_w8_kubectl" -ge "$countlimit_w8_kubectl"  ]]; then
 	    echo 'Master is not coming up, investigate, breaking'
@@ -1200,10 +1202,10 @@ w8_node () {
     squawk 13 "Result is $result"
     if [[ "$result" ]]; then
       squawk 15 "Result nailed $result"
-      ((countone_w8_node++))
+      ((++countone_w8_node))
       break
     fi
-    ((countone_w8_node++))
+    ((++countone_w8_node))
     squawk 19 "$countone_w8_node"
     sleep 3
   done
@@ -1336,7 +1338,7 @@ do_grab () {
       if [[ "$do_grab_master_count" -lt "1" ]]; then
         master_grab_kube_config $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort
       fi
-      ((do_grab_master_count++))
+      ((++do_grab_master_count))
     fi
   done < $KUBASH_HOSTS_CSV
 }
@@ -1351,7 +1353,7 @@ check_coreos () {
         do_coreos_initialization
 	break
       fi
-      ((do_coreos_init_count++))
+      ((++do_coreos_init_count))
     fi
   done < $KUBASH_HOSTS_CSV
 }
@@ -1636,7 +1638,7 @@ read_csv () {
       else
         echo "master_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort"
       fi
-      ((read_master_count++))
+      ((++read_master_count))
     fi
   done < $KUBASH_HOSTS_CSV
 
@@ -1908,7 +1910,7 @@ do_etcd () {
   	squawk 36 "$K8S_node=https://$K8S_ip1:2380  <-- $K8S_role"
   	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
   	echo -n "," >> $PARATMP/etcd.line
-	((countzero++))
+	((++countzero))
         echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
       fi
     else
@@ -1916,7 +1918,7 @@ do_etcd () {
   	squawk 36 "$K8S_node=https://$K8S_ip1:2380  <-- $K8S_role"
   	echo -n "$K8S_node=https://$K8S_ip1:2380" >> $PARATMP/etcd.line
   	echo -n "," >> $PARATMP/etcd.line
-	((countzero++))
+	((++countzero))
         echo "  - https://$K8S_ip1:2379" >> $PARATMP/endpoints.line
       fi
     fi
@@ -1949,7 +1951,7 @@ do_etcd () {
   do
     if [[ "$K8S_role" == "primary_master"  ]]; then
       if [[ "$countzero" -eq "0" ]]; then
-	((countzero++))
+	((++countzero))
         prep_init_etcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_provisionerPort
       else
         echo 'there should only be one primary'
@@ -1991,7 +1993,7 @@ do_primary_master () {
 	echo 'There should only be one init master! Skipping this master'
         echo "master_init_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_provisionerPort"
       fi
-      ((do_master_count++))
+      ((++do_master_count))
     fi
   done <<< "$kubash_hosts_csv_slurped"
 }
@@ -2013,7 +2015,7 @@ do_scale_up_kube_dns () {
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
-    ((do_scale_up_kube_dns++))
+    ((++do_scale_up_kube_dns))
     fi
   done <<< "$kubash_hosts_csv_slurped"
 
@@ -2096,7 +2098,7 @@ do_nodes_in_parallel () {
       squawk 11 " K8S_role NOT NODE"
       squawk 11 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_provisionerPort"
     fi
-    ((countzero_do_nodes++))
+    ((++countzero_do_nodes))
     squawk 13 " count $countzero_do_nodes"
   done <<< "$kubash_hosts_csv_slurped"
 
@@ -2126,7 +2128,7 @@ do_command_in_parallel () {
   squawk 66 'Start while loop'
   while IFS="," read -r $csv_columns
   do 
-    ((countzero_do_nodes++))
+    ((++countzero_do_nodes))
     squawk 43 " count $countzero_do_nodes"
     squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
     echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
@@ -2196,7 +2198,7 @@ copy_in_parallel_to_role () {
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "$role2copy2" ]]; then
-      ((countzero_do_nodes++))
+      ((++countzero_do_nodes))
       squawk 13 " count $countzero_do_nodes"
       squawk 15 "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
       echo "rsync -aze 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
