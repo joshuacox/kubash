@@ -1741,7 +1741,7 @@ finish_etcd () {
   sudo tar --strip-components=1 -C $etcd_extract_tmp -xzf $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
   rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $etcd_extract_tmp/etcd $this_user@$this_host:/tmp/
   rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $etcd_extract_tmp/etcdctl $this_user@$this_host:/tmp/
-  rm -Rf $etcd_extract_tmp
+  $PSEUDO rm -Rf $etcd_extract_tmp
   command2run='sudo mv /tmp/etcd /usr/local/bin/'
   do_command $this_port $this_user $this_host "$command2run"
   command2run='sudo mv /tmp/etcdctl /usr/local/bin/'
