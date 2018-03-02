@@ -2117,9 +2117,13 @@ do_command_in_parallel () {
   touch $PARATMP/hopper
   squawk 13 " do_command_in_parallel $1"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    squawk 57 'slurp empty'
     hosts_csv_slurp
+  else
+    squawk 57 "host slurp $(echo $kubash_hosts_csv_slurped)"
   fi
   countzero_do_nodes=0
+  squawk 66 'Start while loop'
   while IFS="," read -r $csv_columns
   do 
     ((countzero_do_nodes++))
