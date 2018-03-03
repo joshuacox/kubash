@@ -2072,6 +2072,7 @@ do_masters_in_parallel () {
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
+      hostnamero $K8S_node $K8S_ip1 $K8S_provisionerPort $K8S_provisionerUser
       if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
         my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
         squawk 15 "$my_KUBE_INIT"
