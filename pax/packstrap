@@ -68,8 +68,8 @@ else
   snap install --classic go
 fi
 export GOPATH=$HOME/.go
-go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
-mv $HOME/go/bin/crictl /usr/local/bin/
+#go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
+#mv $HOME/go/bin/crictl /usr/local/bin/
 
 apt-mark hold docker-ce
 service open-iscsi restart

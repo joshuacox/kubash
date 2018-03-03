@@ -82,8 +82,8 @@ systemctl enable docker
 systemctl start docker
 
 export GOPATH=$HOME/.go
-go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
-mv $HOME/go/bin/crictl /usr/local/bin/
+#go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
+#mv $HOME/go/bin/crictl /usr/local/bin/
 
 echo 'PATH=/usr/local/bin:$PATH' >> /root/.bash_profile
 
