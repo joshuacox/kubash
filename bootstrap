@@ -100,6 +100,7 @@ main () {
   check_cmd ssh
   check_cmd ansible
   check_cmd curl
+  check_cmd unzip
   check_cmd uname
   check_cmd go
   check_cmd pip
