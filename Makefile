@@ -95,12 +95,8 @@ crictl: $(KUBASH_BIN)
 $(KUBASH_BIN)/crictl: SHELL:=/bin/bash
 $(KUBASH_BIN)/crictl:
 	@echo 'Installing cri-tools'
-	$(eval TMP := $(shell mktemp -d --suffix=CRITMP))
-	cd $(TMP) \
-	  && git clone --depth=1 https://github.com/kubernetes-incubator/cri-tools.git
-	cd $(TMP)/cri-tools \
-	  && sudo make && sudo make install
-	rmdir $(TMP)
+	go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
+	cp $HOME/go/bin/crictl $(KUBASH_BIN)/
 
 # force this to install as centos has another packer from the cracklib-dicts package
 packer: $(KUBASH_BIN) $(KUBASH_BIN)/packer

@@ -123,12 +123,12 @@ main () {
   make jinja2
   $KUBASH_BIN/kubash dotfiles
   check_install helm
-  check_install packer
   check_install oc
   check_install ct
-  # This will be copied to the masters and needs to exist in .kubash/bin/
+  # These need to exist in .kubash/bin/
   make cfssl
-  #check_install crictl
+  make packer
+  check_install crictl
   echo 'logout and log back in, or source your RC files'
 }
 
