@@ -2068,17 +2068,18 @@ do_masters_in_parallel () {
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
+  #csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_network1 K8S_mac1 K8S_ip1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
       if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
         my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
         squawk 15 "$my_KUBE_INIT"
-        echo "ssh -n $my_master_user@$my_master_ip '$my_KUBE_INIT'" >> $do_master_tmp/hopper
+        echo "ssh -n $K8S_provisionerUser@$K8S_ip1 '$my_KUBE_INIT'" >> $do_master_tmp/hopper
       else
         my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
         squawk 15 "$my_KUBE_INIT"
-        echo "ssh -n $my_master_user@$my_master_ip '$my_KUBE_INIT'" >> $do_master_tmp/hopper
+        echo "ssh -n $K8S_provisionerUser@$K8S_ip1 '$my_KUBE_INIT'" >> $do_master_tmp/hopper
       fi
     fi
   done <<< "$kubash_hosts_csv_slurped"
