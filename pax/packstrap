@@ -39,7 +39,7 @@ export PATH=${GOPATH//://bin:}/bin:$PATH' \
 >> .bashrc
 
 apt-get update
-apt-get install -y \
+apt-get install -yqq \
 $DEB_PRE_PACKAGES_TO_INSTALL
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 add-apt-repository \
@@ -61,12 +61,14 @@ apt-get update
 apt-get install -yqq docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}')
 
 # test snap
-  if ! test_cmd_loc="$(type -p "snap")" || [ -z "$test_cmd_loc" ]; then
-    echo "snap was not found in your path! skipping"
-  else
-    snap install --classic go
-    go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
-  fi
+if ! test_cmd_loc="$(type -p "snap")" || [ -z "$test_cmd_loc" ]; then
+  echo "snap was not found in your path! skipping"
+  apt-get install -yqq golang
+else
+  snap install --classic go
+fi
+go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
+mv /root/go/bin/crictl /usr/local/bin/
 
 apt-mark hold docker-ce
 service open-iscsi restart
