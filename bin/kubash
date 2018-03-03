@@ -2408,9 +2408,9 @@ do_decom () {
     if [[ $REPLY =~ ^[Yy]$ ]]
     then
       decom_kvm
-      rm $KUBASH_HOSTS_CSV
-      rm $KUBASH_ANSIBLE_HOSTS
-      rm $KUBASH_CLUSTER_CONFIG
+      rm -f $KUBASH_HOSTS_CSV
+      rm -f $KUBASH_ANSIBLE_HOSTS
+      rm -f $KUBASH_CLUSTER_CONFIG
     fi
   fi
 }
