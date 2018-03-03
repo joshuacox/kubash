@@ -1861,10 +1861,9 @@ prep_init_etcd () {
   if [[ "$DO_CRICTL" == 'true' ]]; then
     squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' '${KUBASH_BIN}/crictl' $this_user@$this_host:/tmp/crictl"
     rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" "${KUBASH_BIN}/crictl" $this_user@$this_host:/tmp/crictl
-    copy_in_parallel_to_role "master" "${KUBASH_BIN}/crictl" "/tmp/crictl"
+    copy_in_parallel_to_all "${KUBASH_BIN}/crictl" "/tmp/crictl"
     command2run='mv /tmp/crictl /usr/local/bin/crictl'
-    sudo_command $this_port $this_user $this_host "$command2run"
-    do_command_in_parallel_on_role "master"        "$command2run"
+    do_command_in_parallel "$command2run"
   fi
 
   squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' '${KUBASH_BIN}/cfssl' $this_user@$this_host:/tmp/cfssl"
@@ -2234,21 +2233,46 @@ sudo_command () {
   fi
 }
 
+copy_in_parallel_to_all () {
+  copy_in_to_all_tmp_para=$(mktemp -d)
+  file2copy=$1
+  destination=$2
+  touch $copy_in_to_all_tmp_para/hopper
+  squawk 13 " copy_in_parallel_to_all"
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    hosts_csv_slurp
+  fi
+  while IFS="," read -r $csv_columns
+  do 
+    squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
+    echo "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
+      >> $copy_in_to_all_tmp_para/hopper
+  done <<< "$kubash_hosts_csv_slurped"
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $copy_in_to_all_tmp_para/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $copy_in_to_all_tmp_para/hopper
+  else
+    bash $copy_in_to_all_tmp_para/hopper
+  fi
+  rm -Rf $copy_in_to_all_tmp_para
+}
+
 copy_in_parallel_to_role () {
   copy_in_to_role_tmp_para=$(mktemp -d)
   role2copy2=$1
   file2copy=$2
   destination=$3
   touch $copy_in_to_role_tmp_para/hopper
-  squawk 13 " do_command_in_parallel"
+  squawk 13 " copy_in_parallel_to_role"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
-  countzero_do_nodes=0
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "$role2copy2" ]]; then
-      ((++countzero_do_nodes))
       squawk 13 " count $countzero_do_nodes"
       squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
       echo "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
@@ -2273,15 +2297,13 @@ copy_in_parallel_to_os () {
   file2copy=$2
   destination=$3
   touch $copy_in_to_os_tmp_para/hopper
-  squawk 13 " do_command_in_parallel"
-  countzero_do_nodes=0
+  squawk 13 " copy_in_parallel_to_os"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_os" == "$os2copy2" ]]; then
-      countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 13 " count $countzero_do_nodes"
       squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"
       echo "rsync $KUBASH_RSYNC_OPTS 'ssh -p $K8S_provisionerPort' $file2copy $K8S_provisionerUser@$K8S_ip1:$destination"\
@@ -2306,14 +2328,12 @@ do_command_in_parallel_on_role () {
   command2run=$2
   touch $do_command_on_role_tmp_para/hopper
   squawk 13 " do_command_in_parallel"
-  countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_role" == "$role2runiton" ]]; then
-      countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 49 " count $countzero_do_nodes"
       squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
       echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
@@ -2334,7 +2354,6 @@ do_command_in_parallel_on_role () {
 
 do_test () {
   squawk 13 " do_command_in_parallel"
-  countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
@@ -2368,14 +2387,12 @@ do_command_in_parallel_on_os () {
   command2run=$2
   touch $do_command_on_os_tmp_para/hopper
   squawk 13 " do_command_in_parallel"
-  countzero_do_nodes=0
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
   while IFS="," read -r $csv_columns
   do 
     if [[ "$K8S_os" == "$os2runiton" ]]; then
-      countzero_do_nodes=`expr $countzero_do_nodes + 1`
       squawk 43 " count $countzero_do_nodes"
       squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""
       echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"sudo bash -c '$command2run'\""\
