@@ -99,11 +99,11 @@ $(KUBASH_BIN)/crictl:
 	cd $(TMP) \
 	  && git clone --depth=1 https://github.com/kubernetes-incubator/cri-tools.git
 	cd $(TMP)/cri-tools \
-	  && make && sudo make install
+	  && sudo make && sudo make install
 	rmdir $(TMP)
 
-packer: $(KUBASH_BIN)
-	@scripts/kubashnstaller packer
+# force this to install as centos has another packer from the cracklib-dicts package
+packer: $(KUBASH_BIN) $(KUBASH_BIN)/packer
 
 $(KUBASH_BIN)/packer: SHELL:=/bin/bash
 $(KUBASH_BIN)/packer:
