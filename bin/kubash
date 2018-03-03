@@ -39,6 +39,7 @@
 : ${BROADCAST_TO_NETWORK:='10.0.23.0/24'}
 : ${INTERFACE_NET:='eth0'}
 : ${DO_KEEPALIVED:='false'}
+: ${DO_CRICTL:='false'}
 : ${ETCD_VERSION:=v3.2.16}
 : ${KUBERNETES_VERSION:=v1.9.3}
 : ${KUBASH_RSYNC_OPTS:='-aze'}
