@@ -1,7 +1,7 @@
 #!/bin/sh -eux
 TMP=$(mktemp -d)
 : ${PRE_INSTALL_PKGS:='epel-release'}
-: ${INSTALL_PKGS:='golang ebtools ethtool keepalived ntp docker rsync ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct iscsi-initiator-utils yum-utils'}
+: ${INSTALL_PKGS:='golang ebtables ethtool keepalived ntp docker rsync ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct iscsi-initiator-utils yum-utils'}
 
 cd $TMP
 cat <<EOF > $TMP/inventory 
@@ -81,8 +81,9 @@ sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/
 systemctl enable docker
 systemctl start docker
 
+export GOPATH=$HOME/.go
 go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
-mv /root/go/bin/crictl /usr/local/bin/
+mv $HOME/go/bin/crictl /usr/local/bin/
 
 echo 'PATH=/usr/local/bin:$PATH' >> /root/.bash_profile
 

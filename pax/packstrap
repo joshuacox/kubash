@@ -1,6 +1,6 @@
 #!/bin/sh -eux
 TMP=$(mktemp -d)
-: ${DEB_PRE_PACKAGES_TO_INSTALL:='apt-transport-https ca-certificates curl ebtools ethtool keepalived open-iscsi ntp software-properties-common'}
+: ${DEB_PRE_PACKAGES_TO_INSTALL:='apt-transport-https ca-certificates curl ebtables ethtool keepalived open-iscsi ntp software-properties-common'}
 : ${DEB_PACKAGES_TO_INSTALL:='rsync net-tools dnsutils python-pip vim htop iotop iftop'}
 
 cat <<EOF > $TMP/inventory 
@@ -67,8 +67,9 @@ if ! test_cmd_loc="$(type -p "snap")" || [ -z "$test_cmd_loc" ]; then
 else
   snap install --classic go
 fi
+export GOPATH=$HOME/.go
 go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
-mv /root/go/bin/crictl /usr/local/bin/
+mv $HOME/go/bin/crictl /usr/local/bin/
 
 apt-mark hold docker-ce
 service open-iscsi restart
