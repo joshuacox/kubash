@@ -1842,6 +1842,16 @@ prep_init_etcd () {
   command2run='mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json'
   sudo_command $this_port $this_user $this_host "$command2run"
 
+  # crictl
+  if [[ "$DO_CRICTL" == 'true' ]]; then
+    squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' '${KUBASH_BIN}/crictl' $this_user@$this_host:/tmp/crictl"
+    rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" "${KUBASH_BIN}/crictl" $this_user@$this_host:/tmp/crictl
+    copy_in_parallel_to_role "master" "${KUBASH_BIN}/crictl" "/tmp/crictl"
+    command2run='mv /tmp/crictl /usr/local/bin/crictl'
+    sudo_command $this_port $this_user $this_host "$command2run"
+    do_command_in_parallel_on_role "master"        "$command2run"
+  fi
+
   squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' '${KUBASH_BIN}/cfssl' $this_user@$this_host:/tmp/cfssl"
   rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" "${KUBASH_BIN}/cfssl" $this_user@$this_host:/tmp/cfssl
   copy_in_parallel_to_role "master" "${KUBASH_BIN}/cfssl" "/tmp/cfssl"
