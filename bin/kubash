@@ -11,6 +11,7 @@
 : ${KUBASH_USERS_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/users.csv}
 : ${KUBASH_INGRESS_NAME:='kubashingress'}
 : ${KUBASH_OIDC_AUTH:='false'}
+: ${KUBEADMIN_IGNORE_PREFLIGHT_CHECKS:='--ignore-preflight-errors cri'}
 : ${VERBOSITY:=0}
 : ${KVM_builderBasePath:=/var/lib/libvirt/images}
 : ${KVM_builderHost:=localhost}
@@ -1455,7 +1456,7 @@ master_init_join () {
       rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml
       squawk 16 "kubedmin_config_tmp =\n $(cat $kubeadmin_config_tmp)"
       rm $kubeadmin_config_tmp
-      my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
+      my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/tmp/config.yaml"
       squawk 15 "$my_KUBE_INIT"
       run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
       if [[ -z "$run_join" ]]; then
@@ -1466,7 +1467,7 @@ master_init_join () {
       command2run='sudo  rm -f /tmp/config.yaml'
       ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     else
-      my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
+      my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --pod-network-cidr=$my_KUBE_CIDR"
       squawk 15 "$my_KUBE_INIT"
       run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
     fi
@@ -1485,7 +1486,7 @@ master_init_join () {
     rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $my_master_user@$my_master_ip:/tmp/kube-pki.tgz $KUBASH_CLUSTER_DIR/
     squawk 15 'and copy it to master and etcd hosts'
     copy_in_parallel_to_role "master" "$KUBASH_CLUSTER_DIR/kube-pki.tgz" "/tmp/"
-    command2run='cd /; tar zxvf /tmp/kube-pki.tgz'
+    command2run='cd /; tar zxf /tmp/kube-pki.tgz'
     do_command_in_parallel_on_role "master"        "$command2run"
     command2run='rm /tmp/kube-pki.tgz'
     do_command_in_parallel_on_role "master"        "$command2run"
@@ -2076,11 +2077,11 @@ do_masters_in_parallel () {
     if [[ "$K8S_role" == "master" ]]; then
       hostnamero $K8S_node $K8S_ip1 $K8S_provisionerPort $K8S_provisionerUser
       if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
-        my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --config=/tmp/config.yaml"
+        my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/tmp/config.yaml"
         squawk 15 "$my_KUBE_INIT"
         echo "ssh -n $K8S_provisionerUser@$K8S_ip1 '$my_KUBE_INIT'" >> $do_master_tmp/hopper
       else
-        my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init --pod-network-cidr=$my_KUBE_CIDR"
+        my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --pod-network-cidr=$my_KUBE_CIDR"
         squawk 15 "$my_KUBE_INIT"
         echo "ssh -n $K8S_provisionerUser@$K8S_ip1 '$my_KUBE_INIT'" >> $do_master_tmp/hopper
       fi
