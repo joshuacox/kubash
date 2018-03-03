@@ -96,7 +96,7 @@ $(KUBASH_BIN)/crictl: SHELL:=/bin/bash
 $(KUBASH_BIN)/crictl:
 	@echo 'Installing cri-tools'
 	go get github.com/kubernetes-incubator/cri-tools/cmd/crictl
-	cp $HOME/go/bin/crictl $(KUBASH_BIN)/
+	cp ${HOME}/go/bin/crictl $(KUBASH_BIN)/
 
 # force this to install as centos has another packer from the cracklib-dicts package
 packer: $(KUBASH_BIN) $(KUBASH_BIN)/packer
