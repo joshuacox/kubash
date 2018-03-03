@@ -1128,9 +1128,9 @@ w8_kubedns () {
   sleep 1
   
   # while loop
-  countone=1
+  kubedns_countone=1
   # timeout for 15 minutes
-  while [[ $countone -lt 151 ]]
+  while [[ $kubedns_countone -lt 151 ]]
   do
     squawk 10 '.' -n
     RESULT=$(kubectl --kubeconfig=$KUBECONFIG get po --namespace kube-system |grep kube-dns|grep Running)
@@ -1140,7 +1140,7 @@ w8_kubedns () {
         squawk 10 "$RESULT"
         break
     fi
-    ((++countone))
+    ((++kubedns_countone))
     sleep 3
   done
   
@@ -1188,6 +1188,7 @@ w8_node () {
   countone_w8_node=1
   countlimit_w8_node=151
   # timeout for 15 minutes
+  set +e
   while [[ "$countone_w8_node" -lt "$countlimit_w8_node" ]]; do
     squawk 10 '.' -n
     if [[ "$VERBOSITY" -gt "11" ]] ; then
@@ -1204,6 +1205,7 @@ w8_node () {
     squawk 19 "$countone_w8_node"
     sleep 3
   done
+  set -e
   squawk 10  "."
   squawk 10  "kubectl commands are now able to interact with the kubernetes node"
 }
@@ -1521,12 +1523,12 @@ node_join () {
   if [[ "$DO_NODE_JOIN" == "true" ]] ; then
     hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
     result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a")
-    squawk 13 "Result is $result"
+    squawk 13 "hostname and uname is $result"
     squawk 13 "Kubeadmin join"
     run_join=$(cat $KUBASH_DIR/join.sh)
     #result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join --ignore-preflight-errors=IsPrivilegedUser")
     result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join --ignore-preflight-errors=IsPrivilegedUser")
-    squawk 13 "Result is $result"
+    squawk 13 "run_join result is $result"
     w8_node $my_node_name
     rolero $my_node_name node
   fi
