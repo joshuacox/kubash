@@ -123,18 +123,29 @@ go-build-docker:
 	rmdir $(TMP)
 
 examples:
-	rm -Rf $(KUBASH_DIR)/clusters/default
 	make example
 	cd $(KUBASH_DIR)/clusters; \
+	cp -a default openshift; \
 	cp -a default kubeadm2ha; \
 	cp -a default kubespray; \
-	cp -a default openshift;
-	sed -i 's/kubeadm/kubeadm2ha/' $(KUBASH_DIR)/clusters/kubeadm2ha/provision.csv
-	sed -i 's/kubeadm/kubespray/' $(KUBASH_DIR)/clusters/kubespray/provision.csv
+	cp -a default centos; \
+	cp -a default debian; \
+	cp -a default ubuntu; \
+	cp -a default coreos;
 	sed -i 's/kubeadm/openshift/' $(KUBASH_DIR)/clusters/openshift/provision.csv
-	sed -i 's/8f/8a/' $(KUBASH_DIR)/clusters/openshift/provision.csv
-	sed -i 's/8f/8b/' $(KUBASH_DIR)/clusters/kubespray/provision.csv
-	sed -i 's/8f/8c/' $(KUBASH_DIR)/clusters/kubeadm2ha/provision.csv
+	sed -i 's/8f/aa/' $(KUBASH_DIR)/clusters/openshift/provision.csv
+	sed -i 's/kubeadm/kubespray/' $(KUBASH_DIR)/clusters/kubespray/provision.csv
+	sed -i 's/8f/ab/' $(KUBASH_DIR)/clusters/kubespray/provision.csv
+	sed -i 's/kubeadm/kubeadm2ha/' $(KUBASH_DIR)/clusters/kubeadm2ha/provision.csv
+	sed -i 's/8f/ac/' $(KUBASH_DIR)/clusters/kubeadm2ha/provision.csv
+	sed -i 's/kubeadm/centos/' $(KUBASH_DIR)/clusters/centos/provision.csv
+	sed -i 's/8f/ad/' $(KUBASH_DIR)/clusters/centos/provision.csv
+	sed -i 's/kubeadm/debian/' $(KUBASH_DIR)/clusters/debian/provision.csv
+	sed -i 's/8f/ae/' $(KUBASH_DIR)/clusters/debian/provision.csv
+	sed -i 's/kubeadm/ubuntu/' $(KUBASH_DIR)/clusters/ubuntu/provision.csv
+	sed -i 's/8f/a0/' $(KUBASH_DIR)/clusters/ubuntu/provision.csv
+	sed -i 's/kubeadm/coreos/' $(KUBASH_DIR)/clusters/coreos/provision.csv
+	sed -i 's/8f/a1/' $(KUBASH_DIR)/clusters/coreos/provision.csv
 
 example:
 	mkdir -p clusters/default
