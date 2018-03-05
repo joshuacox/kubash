@@ -2445,8 +2445,9 @@ preppy () {
 do_decom () {
   if [[ "$ANSWER_YES" == "yes" ]]; then
     decom_kvm
-    rm $KUBASH_HOSTS_CSV
-    rm $KUBASH_ANSIBLE_HOSTS
+    rm -f $KUBASH_HOSTS_CSV
+    rm -f $KUBASH_ANSIBLE_HOSTS
+    rm -f $KUBASH_CLUSTER_CONFIG
   else
     read -p "This will destroy all VMs defined in the $KUBASH_HOSTS_CSV. Are you sure? [y/N] " -n 1 -r
     echo    # (optional) move to a new line
