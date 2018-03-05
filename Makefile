@@ -122,6 +122,20 @@ go-build-docker:
 	go get github.com/hashicorp/packer
 	rmdir $(TMP)
 
+examples:
+	rm -Rf $(KUBASH_DIR)/clusters/default
+	make example
+	cd $(KUBASH_DIR)/clusters; \
+	cp -a default kubeadm2ha; \
+	cp -a default kubespray; \
+	cp -a default openshift;
+	sed -i 's/kubeadm/kubeadm2ha/' $(KUBASH_DIR)/clusters/kubeadm2ha/provision.csv
+	sed -i 's/kubeadm/kubespray/' $(KUBASH_DIR)/clusters/kubespray/provision.csv
+	sed -i 's/kubeadm/openshift/' $(KUBASH_DIR)/clusters/openshift/provision.csv
+	sed -i 's/8f/8a/' $(KUBASH_DIR)/clusters/openshift/provision.csv
+	sed -i 's/8f/8b/' $(KUBASH_DIR)/clusters/kubespray/provision.csv
+	sed -i 's/8f/8c/' $(KUBASH_DIR)/clusters/kubeadm2ha/provision.csv
+
 example:
 	mkdir -p clusters/default
 	cp -iv hosts.csv.example clusters/default/hosts.csv
