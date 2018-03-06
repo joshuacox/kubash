@@ -117,13 +117,14 @@ main () {
     cd $KUBASH_DIR
     git pull
   fi
+  export PATH=$HOME/.kubash/bin:$PATH
   cd $KUBASH_DIR
   git submodule update --init --recursive
   make submodules/openebs
   make jinja2
+  check_install ct
   check_install helm
   check_install oc
-  check_install ct
   # These need to exist in .kubash/bin/
   make cfssl
   make packer
