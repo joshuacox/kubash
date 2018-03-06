@@ -58,7 +58,7 @@ pip install --upgrade pip
 pip install docker-py
 
 apt-get update
-apt-get install -yqq docker-ce=$(apt-cache madison docker-ce | grep 17.03 | head -1 | awk '{print $3}')
+apt-get install -yqq docker-ce=$(apt-cache madison docker-ce | grep 17.12 | head -1 | awk '{print $3}')
 
 # test snap
 if ! test_cmd_loc="$(type -p "snap")" || [ -z "$test_cmd_loc" ]; then
@@ -91,6 +91,9 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
   ansible-playbook -i $TMP/inventory cluster-images.yaml
 elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   apt-get install -yqq kubelet kubeadm kubectl
+  apt-get install -yqq kubelet=$(apt-cache madison kubelet | grep '1.9.1' | head -1 | awk '{print $3}')
+  apt-get install -yqq kubeadm=$(apt-cache madison kubelet | grep '1.9.1' | head -1 | awk '{print $3}')
+  apt-get install -yqq kubectl=$(apt-cache madison kubelet | grep '1.9.1' | head -1 | awk '{print $3}')
   kubeadm init
   kubeadm reset
 else
