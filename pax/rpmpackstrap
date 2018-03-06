@@ -60,7 +60,24 @@ gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cl
 EOF
 setenforce 0
 
-# Install docker
+install_default_docker () {
+  yum install -y docker
+  systemctl enable docker && systemctl start docker
+  
+  systemctl enable docker
+  systemctl start docker
+  systemctl enable kubelet && systemctl start kubelet
+  
+  pip install --upgrade pip
+  pip install docker-py
+
+  #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
+  sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
+   /etc/sysconfig/docker
+}
+
+install_spec_docker () {
+  # Install docker
   sudo yum-config-manager \
     --add-repo \
     https://download.docker.com/linux/centos/docker-ce.repo
@@ -75,38 +92,39 @@ setenforce 0
   yum install -y etcd-3.2.7-1.el7
   echo 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"' \
     >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-#######
-
-#edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
-sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
- /etc/sysconfig/docker
-systemctl enable docker
-systemctl start docker
-systemctl enable kubelet && systemctl start kubelet
-
-pip install --upgrade pip
-pip install docker-py
+  #######
+  
+  systemctl enable docker
+  systemctl start docker
+  systemctl enable kubelet && systemctl start kubelet
+  
+  pip install --upgrade pip
+  pip install docker-py
+}
 
 if [ "$KUBEADM_INSTALL" = "openshift" ]; then
-  # leaving clean for now, let ansible initialize
+  install_spec_docker
   #yum install -y centos-release-openshift-origin origin-clients
-  echo 'Sticking to default centos'
 elif [ "$KUBEADM_INSTALL" = "kubespray" ]; then
   # leaving clean for now, let ansible initialize
   echo 'Sticking to default centos'
+  install_default_docker
 elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
+  install_spec_docker
   cd $TMP
   git clone --depth=1 https://github.com/joshuacox/kubeadm2ha.git
   cd kubeadm2ha/ansible
   systemctl restart docker
   ansible-playbook -i $TMP/inventory cluster-images.yaml
 elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
+  install_spec_docker
   #systemctl restart docker
   #kubeadm init
   #kubeadm reset
 else
   # Defaults to nothing barebones
   echo 'barebone'
+  install_default_docker
 fi
 
 export GOPATH=$HOME/.go
