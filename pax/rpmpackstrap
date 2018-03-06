@@ -1,7 +1,17 @@
 #!/bin/sh -eux
+# https://docs.docker.com/install/linux/docker-ce/centos/
+# https://github.com/cookeem/kubeadm-ha
 TMP=$(mktemp -d)
 : ${PRE_INSTALL_PKGS:='epel-release'}
 : ${INSTALL_PKGS:='device-mapper-persistent-data lvm2 golang ebtables ethtool keepalived ntp rsync ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct iscsi-initiator-utils yum-utils'}
+: ${DOCKER_PKG:='docker-ce-17.12.1.ce-1.el7.centos.x86_64'}
+: ${DOCKER_COMPOSE_PKG:='docker-compose-1.9.0-5.el7.noarch'}
+: ${KUBEPKG_VERSION:="1.9.1-0"}
+: ${ETCD_VERSION:="3.2.7-1"}
+: ${KUBELET_PKG:="kubelet-$KUBEPKG_VERSION.x86_64"}
+: ${KUBEADM_PKG:="kubeadm-$KUBEPKG_VERSION.x86_64"}
+: ${KUBECTL_PKG:="kubectl-$KUBEPKG_VERSION.x86_64"}
+: ${ETCD_PKG="etcd-$ETCD_VERSION.el7"}
 
 cd $TMP
 cat <<EOF > $TMP/inventory 
@@ -85,11 +95,8 @@ install_spec_docker () {
   # sudo yum-config-manager --enable docker-ce-test
   #curl -fsSL https://get.docker.com/ | sh
   #yum install docker-ce
-  yum install -y docker-ce-17.12.1.ce-1.el7.centos.x86_64
-  yum install -y docker-compose-1.9.0-5.el7.noarch
+  yum install -y $DOCKER_PKG $DOCKER_COMPOSE_PKG $KUBECTL_PKG $KUBEADM_PKG $KUBELET_PKG $ETCD_PKG
   #yum install -y kubelet kubeadm kubectl
-  yum install -y kubelet-1.9.1-0.x86_64 kubeadm-1.9.1-0.x86_64 kubectl-1.9.1-0.x86_64
-  yum install -y etcd-3.2.7-1.el7
   echo 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"' \
     >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
   #######
