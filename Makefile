@@ -2,6 +2,7 @@
 # Install location
 $(eval KUBASH_DIR := $(HOME)/.kubash)
 $(eval KUBASH_BIN := $(KUBASH_DIR)/bin)
+$(eval GOPATH := $(HOME)/.go)
 
 # Namespaces
 $(eval KUBASH_NAMESPACE := kubash)
