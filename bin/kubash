@@ -2630,8 +2630,9 @@ build_all_in_parallel () {
   build_count=0
   while [ "x${OS_LIST[build_count]}" != "x" ]
   do
+    squawk 15 "kubash build --target-os=${OS_LIST[build_count]}"
     echo "kubash build --target-os=${OS_LIST[build_count]}" >> $build_all_tmp_para/hopper
-    ((++build_countzero))
+    ((++build_count))
   done
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
