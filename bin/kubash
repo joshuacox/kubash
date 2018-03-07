@@ -2624,14 +2624,17 @@ activate_monitoring () {
 
 build_all_in_parallel () {
   squawk 11 'Building all targets in parallel'
+  rm -Rf $KVM_builderTMP
+  rm -Rf $KVM_builderDir
   build_all_tmp_para=$(mktemp -d --suffix='.para.tmp')
   touch $build_all_tmp_para/hopper
   OS_LIST=(centos kubeadm kubeadm2ha kubespray openshift ubuntu debian coreos)
   build_count=0
   while [ "x${OS_LIST[build_count]}" != "x" ]
   do
-    squawk 15 "kubash build --target-os=${OS_LIST[build_count]}"
-    echo "kubash build --target-os=${OS_LIST[build_count]}" >> $build_all_tmp_para/hopper
+    command2run="kubash build --target-os=${OS_LIST[build_count]} -y"
+    squawk 15 "$command2run"
+    echo "$command2run" >> $build_all_tmp_para/hopper
     ((++build_count))
   done
 

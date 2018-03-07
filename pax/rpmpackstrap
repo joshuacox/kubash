@@ -108,7 +108,7 @@ install_spec_docker () {
 }
 
 if [ "$KUBEADM_INSTALL" = "openshift" ]; then
-  install_spec_docker
+  install_default_docker
   #yum install -y centos-release-openshift-origin origin-clients
 elif [ "$KUBEADM_INSTALL" = "kubespray" ]; then
   # leaving clean for now, let ansible initialize
