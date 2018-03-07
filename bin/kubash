@@ -2622,6 +2622,30 @@ activate_monitoring () {
   KUBECONFIG=$KUBECONFIG helm install stable/prometheus
 }
 
+build_all_in_parallel () {
+  squawk 11 'Building all targets in parallel'
+  build_all_tmp_para=$(mktemp -d --suffix='.para.tmp')
+  touch $build_all_tmp_para/hopper
+  OS_LIST=(centos kubeadm kubeadm2ha kubespray openshift ubuntu debian coreos)
+  build_count=0
+  while [ "x${OS_LIST[build_count]}" != "x" ]
+  do
+    echo "kubash build --target-os=${OS_LIST[build_count]}" >> $build_all_tmp_para/hopper
+    ((++build_countzero))
+  done
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $build_all_tmp_para/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $build_all_tmp_para/hopper
+  else
+    bash $build_all_tmp_para/hopper
+  fi
+  rm -Rf $build_all_tmp_para
+  squawk 11 'Done Building all targets'
+}
+
 main () {
   # save original io
   exec 3>&1 4>&2
@@ -2984,16 +3008,7 @@ main () {
       usage
       exit 1
     fi
-    squawk 11 'Building all targets'
-    kubash build --target-os ubuntu
-    kubash build --target-os debian
-    kubash build --target-os centos
-    kubash build --target-os openshift
-    kubash build --target-os kubespray
-    kubash build --target-os kubeadm2ha
-    kubash build --target-os coreos
-    kubash build --target-os fedora
-    squawk 11 'Done Building all targets'
+    build_all_in_parallel
   elif [[ $RAISON == "build" ]]; then
     if [[ $print_help == "true" ]]; then
       build_usage
