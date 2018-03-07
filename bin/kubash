@@ -42,7 +42,7 @@
 : ${DO_CRICTL:='false'}
 : ${ETCD_VERSION:=v3.2.16}
 : ${KUBERNETES_VERSION:=v1.9.3}
-: ${KUBASH_RSYNC_OPTS:='-aze'}
+: ${KUBASH_RSYNC_OPTS:='-aze -H'}
 
 # Leaving these off as their behavior can be unpredictable
 # best only turn them on for debugging
