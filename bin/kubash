@@ -386,12 +386,24 @@ kvm-decommer () {
   fi
 }
 
+remove_all_base_images_kvm () {
+  # Now remove the cluster base images
+  uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f8,9,10,11,12,13|sort|uniq)"
+  squawk 18 "$uniq_hosts"
+  copy_image_tmp_para=$(mktemp -d)
+  while IFS="," read -r $uniq_hosts_list_columns
+  do
+    command2run="rm $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG"
+    sudo_command $K8S_provisionerPort $K8S_provisionerUser $K8S_provisionerHost "$command2run"
+  done <<< "$kubash_provision_csv_slurped"
+}
+
 decom_kvm () {
   squawk 11 "decom_kvm starting"
   provision_csv_slurp
   squawk 44 "slurpy -----> $(echo $kubash_provision_csv_slurped)"
   # Write all hosts to inventory for id
-  # csv_columns='K8S_node K8S_user K8S_ip1 K8S_provisionerPort K8S_role K8S_provisionerUser K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort'
+  # csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_network1 K8S_mac1 K8S_ip1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
   squawk 25 "decom_kvm loop starting"
   while IFS="," read -r $csv_columns
   do
@@ -401,7 +413,7 @@ decom_kvm () {
     set -e
   done <<< "$kubash_provision_csv_slurped"
   squawk 26 'Looped through all hosts to be decommissioned'
-  rm $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG
+  remove_all_base_images_kvm
 }
 
 vbox-provisioner () {
