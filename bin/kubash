@@ -589,7 +589,7 @@ qemu-provisioner () {
   	--accelerate \
   	--hvm \
   	--os-variant=virtio26 \
-  	--disk path=$K8S_provisionerBasePath/$qemunodeimg,format=qcow2,bus=virtio \
+  	--disk path=$qemunodeimg,format=qcow2,bus=virtio \
   	--network=$K8S_network1,mac=$K8S_mac1,model=virtio \
   	$SECOND_NIC \
   	$THIRD_NIC \
@@ -607,7 +607,7 @@ qemu-provisioner () {
   	--accelerate \
   	--hvm \
   	--os-variant=virtio26 \
-  	--disk path=$K8S_provisionerBasePath/$qemunodeimg,format=qcow2,bus=virtio \
+  	--disk path=$qemunodeimg,format=qcow2,bus=virtio \
   	--network=$K8S_network1,mac=$K8S_mac1,model=virtio \
   	$SECOND_NIC \
   	$THIRD_NIC"
