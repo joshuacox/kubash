@@ -67,13 +67,16 @@ Install with one easy line
 curl -L git.io/kubash|bash
 ```
 
+### Configs
+
+By default there is now a `.kubash` folder in your home directory.  Inside this directory is a folder called `clusters`, `make example` in the `.kubash` directory will build the default example cluster.
 
 ### Usage
 
 This script automates the setup and maintenance of a kubernetes cluster
 
 ```
-kubash COMMAND
+kubash -n clustername COMMAND
 ```
 
 ### Commands:
@@ -102,6 +105,8 @@ These options are parsed using GNU getopt
 options:
 
  -h --help - Print usage
+
+ -n --clustername - work with a named cluster (or by default it will use a cluster name of 'default')
 
  -c --csv FILE - Set the csv file to be parsed
 
