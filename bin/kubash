@@ -1131,6 +1131,10 @@ write_ansible_kubespray_hosts () {
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[k8s-cluster:children]' >> $KUBASH_ANSIBLE_HOSTS
+  echo 'kube-node' >> $KUBASH_ANSIBLE_HOSTS
+  echo 'kube-master' >> $KUBASH_ANSIBLE_HOSTS
 }
 
 removestalekeys () {

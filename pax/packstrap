@@ -4,7 +4,7 @@ TMP=$(mktemp -d)
 : ${DEB_PACKAGES_TO_INSTALL:='rsync net-tools dnsutils python-pip vim htop iotop iftop'}
 
 : ${DOCKER_PKG:='17.12'}
-: ${DOCKER_COMPOSE_PKG:='1.9.0'}
+: ${DOCKER_COMPOSE_PKG:='1.8.0'}
 : ${KUBEPKG_VERSION:="1.9.1"}
 : ${ETCD_VERSION:="3.2.7"}
 
