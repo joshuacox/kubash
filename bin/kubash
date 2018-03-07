@@ -1076,7 +1076,7 @@ write_ansible_kubespray_hosts () {
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
-  echo '[kubernetes-kubeminions]' >> $KUBASH_ANSIBLE_HOSTS
+  echo '[kube-node]' >> $KUBASH_ANSIBLE_HOSTS
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "node" ]]; then
@@ -1086,12 +1086,12 @@ write_ansible_kubespray_hosts () {
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
-  echo '[kubernetes-kubeminions:vars]' >> $KUBASH_ANSIBLE_HOSTS
+  echo '[kube-node:vars]' >> $KUBASH_ANSIBLE_HOSTS
   echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
-  echo '[kubernetes-kubemasters]' >> $KUBASH_ANSIBLE_HOSTS
+  echo '[kube-master]' >> $KUBASH_ANSIBLE_HOSTS
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
@@ -1103,8 +1103,18 @@ write_ansible_kubespray_hosts () {
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
-  echo '[kubernetes-kubemasters:vars]' >> $KUBASH_ANSIBLE_HOSTS
+  echo '[kube-master:vars]' >> $KUBASH_ANSIBLE_HOSTS
   echo 'ansible_ssh_extra_args="-o StrictHostKeyChecking=no"' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[etcd]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" = "etcd" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
