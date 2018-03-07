@@ -395,7 +395,7 @@ remove_all_base_images_kvm () {
   do
     command2run="rm $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG"
     sudo_command $K8S_provisionerPort $K8S_provisionerUser $K8S_provisionerHost "$command2run"
-  done <<< "$kubash_provision_csv_slurped"
+  done <<< "$uniq_hosts"
 }
 
 decom_kvm () {
