@@ -513,7 +513,8 @@ qemu-provisioner () {
   "
 
   # Create VM for node
-  qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_node.qcow2"
+  qemunodeimg="$K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node.qcow2"
+  qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG $qemunodeimg"
 
   if [[ "$K8S_os" == "coreos" ]]; then
     squawk 15 Keyer
@@ -576,7 +577,7 @@ qemu-provisioner () {
   	--accelerate \
   	--hvm \
   	--os-variant=virtio26 \
-  	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
+  	--disk path=$K8S_provisionerBasePath/$qemunodeimg,format=qcow2,bus=virtio \
   	--network=$K8S_network1,mac=$K8S_mac1,model=virtio \
   	$SECOND_NIC \
   	$THIRD_NIC \
@@ -594,7 +595,7 @@ qemu-provisioner () {
   	--accelerate \
   	--hvm \
   	--os-variant=virtio26 \
-  	--disk path=$K8S_provisionerBasePath/$K8S_node.qcow2,format=qcow2,bus=virtio \
+  	--disk path=$K8S_provisionerBasePath/$qemunodeimg,format=qcow2,bus=virtio \
   	--network=$K8S_network1,mac=$K8S_mac1,model=virtio \
   	$SECOND_NIC \
   	$THIRD_NIC"
