@@ -74,8 +74,7 @@ install_default_docker () {
   yum install -y docker
   systemctl enable docker && systemctl start docker
   
-  systemctl enable docker
-  systemctl start docker
+  systemctl enable docker && systemctl start docker
   systemctl enable kubelet && systemctl start kubelet
   
   pip install --upgrade pip
@@ -101,8 +100,7 @@ install_spec_docker () {
     >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
   #######
   
-  systemctl enable docker
-  systemctl start docker
+  systemctl enable docker && systemctl start docker
   systemctl enable kubelet && systemctl start kubelet
   
   pip install --upgrade pip
