@@ -42,7 +42,7 @@
 : ${DO_CRICTL:='false'}
 : ${ETCD_VERSION:=v3.2.16}
 : ${KUBERNETES_VERSION:=v1.9.3}
-: ${KUBASH_RSYNC_OPTS:='-aze -H'}
+: ${KUBASH_RSYNC_OPTS:='-H -aze'}
 
 # Leaving these off as their behavior can be unpredictable
 # best only turn them on for debugging
@@ -758,7 +758,7 @@ copy_image_to_all_provisioning_hosts () {
     squawk 19 " $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort $K8S_provisionerBasePath $K8S_os $K8S_virt"
     if [[ "$KVM_builderHost" == 'localhost' ]]; then
       if [[ "$K8S_provisionerHost" == 'localhost' ]]; then
-        copyimagecommand2run="rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG"
+        copyimagecommand2run="rsync $KUBASH_RSYNC_OPTS $KVM_builderBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG"
         squawk 17 "$copyimagecommand2run"
         echo  "$copyimagecommand2run" >> $copy_image_tmp_para/hopper
       else
@@ -2789,7 +2789,7 @@ main () {
   done
 
   if [[ "$VERBOSITY" -gt 0 ]]; then
-    KUBASH_RSYNC_OPTS='-azve -H'
+    KUBASH_RSYNC_OPTS='-H -azve'
   fi
 
   chkdir $KUBASH_CLUSTERS_DIR
