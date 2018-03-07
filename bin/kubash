@@ -512,7 +512,7 @@ qemu-provisioner () {
   "
 
   # Create VM for node
-  qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_node.qcow2"
+  qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$K8S_CLUSTER_NAME-$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_node.qcow2"
 
   if [[ "$K8S_os" == "coreos" ]]; then
     squawk 15 Keyer
@@ -752,24 +752,29 @@ copy_image_to_all_provisioning_hosts () {
         if [[ "$(realpath $KVM_builderBasePath)" == "$(realpath $K8S_provisionerBasePath)" ]]; then
           squawk 19 'builder and provisioner are the same path here'
         else
-          squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-          echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $copy_image_tmp_para/hopper
+          copyimagecommand2run="rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_CLUSTER_NAME-$KVM_BASE_IMG"
+          squawk 17 "$copyimagecommand2run"
+          echo  "$copyimagecommand2run" >> $copy_image_tmp_para/hopper
         fi
       else
-        squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-        echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $copy_image_tmp_para/hopper
+$KVM_BASE_IMG
+        copyimagecommand2run="rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_CLUSTER_NAME-$KVM_BASE_IMG"
+        squawk 17 "$copyimagecommand2run"
+        echo  "$copyimagecommand2run" >> $copy_image_tmp_para/hopper
       fi
     else
       if [[ "$K8S_provisionerHost" == "$KVM_builderHost" ]]; then
         if [[ "$KVM_builderBasePath" == "$K8S_provisionerBasePath" ]]; then
           squawk 19 'builder and provisioner are the same path here'
         else
-          squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-          echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $copy_image_tmp_para/hopper
+          copyimagecommand2run="rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerBasePath/$K8S_CLUSTER_NAME-$KVM_BASE_IMG"
+          squawk 17 "$copyimagecommand2run"
+          echo  "$copyimagecommand2run" >> $copy_image_tmp_para/hopper
         fi
       else
-        squawk 17 "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2"
-        echo "rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderUser@$KVM_builderHost:$KVM_builderBasePath/$K8S_os-kubash.qcow2 $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_os-kubash.qcow2" >> $copy_image_tmp_para/hopper
+        copyimagecommand2run="rsync $KUBASH_RSYNC_OPTS \"ssh -p $K8S_provisionerPort\" $KVM_builderBasePath/$K8S_os-$KVM_BASE_IMG $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/$K8S_CLUSTER_NAME-$KVM_BASE_IMG"
+        squawk 17 "$copyimagecommand2run"
+        echo  "$copyimagecommand2run" >> $copy_image_tmp_para/hopper
       fi
     fi
   done <<< "$uniq_hosts"
@@ -2922,6 +2927,7 @@ main () {
       provision_usage
       exit 1
     fi
+    copy_image_to_all_provisioning_hosts
     provisioner
     sleep 15
     refresh_network_addresses
