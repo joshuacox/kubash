@@ -401,6 +401,7 @@ decom_kvm () {
     set -e
   done <<< "$kubash_provision_csv_slurped"
   squawk 26 'Looped through all hosts to be decommissioned'
+  rm $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG
 }
 
 vbox-provisioner () {
