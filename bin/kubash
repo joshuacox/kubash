@@ -2789,7 +2789,7 @@ main () {
   done
 
   if [[ "$VERBOSITY" -gt 0 ]]; then
-    KUBASH_RSYNC_OPTS='-azve'
+    KUBASH_RSYNC_OPTS='-azve -H'
   fi
 
   chkdir $KUBASH_CLUSTERS_DIR
