@@ -1268,6 +1268,9 @@ remove_vagrant_user () {
 hostname_in_parallel () {
   hostname_tmp_para=$(mktemp -d --suffix='.para.tmp')
   squawk 12 ' Hostnaming all hosts using ssh'
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    hosts_csv_slurp
+  fi
   while IFS="," read -r $csv_columns
   do
     my_HOST=$K8S_node
@@ -1278,7 +1281,7 @@ hostname_in_parallel () {
     squawk 15 "$command2run"
     echo "$command2run" \
       >> $hostname_tmp_para/hopper
-  done < $KUBASH_HOSTS_CSV
+  done <<< "$kubash_hosts_csv_slurped"
 
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $hostname_tmp_para/hopper
