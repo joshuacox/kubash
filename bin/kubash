@@ -2468,7 +2468,6 @@ prep () {
   do
     preppy $K8S_node $K8S_ip1 $K8S_provisionerPort
   done < $KUBASH_HOSTS_CSV
-  hostname_in_parallel
 }
 
 preppy () {
@@ -2948,6 +2947,7 @@ main () {
     refresh_network_addresses
     prep
     remove_vagrant_user
+    hostname_in_parallel
   elif [[ $RAISON == "decommission" ]]; then
     if [[ $print_help == "true" ]]; then
       decom_usage
