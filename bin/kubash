@@ -1301,7 +1301,7 @@ ping_in_parallel () {
   do
     squawk 11 "$K8S_ip1"
     squawk 13 "$K8S_user"
-    MY_ECHO="echo '$K8S_ip1 $K8S_provisionerUser pong'" 
+    MY_ECHO="hostname; echo '$K8S_ip1 $K8S_provisionerUser pong'" 
     squawk 15 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"$MY_ECHO\""
     echo "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_ip1 \"$MY_ECHO\""\
 	      >> $ping_tmp_para/hopper
