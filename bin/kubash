@@ -1265,6 +1265,32 @@ remove_vagrant_user () {
   rm -Rf $remove_vagrant_user_tmp_para
 }
 
+hostname_in_parallel () {
+  hostname_tmp_para=$(mktemp -d --suffix='.para.tmp')
+  squawk 12 ' Hostnaming all hosts using ssh'
+  while IFS="," read -r $csv_columns
+  do
+    my_HOST=$K8S_node
+    my_IP=$K8S_provisionerHost
+    my_PORT=$K8S_provisionerPort
+    my_USER=$K8S_provisionerUser
+    command2run="ssh -n -p $my_PORT $my_USER@$my_IP '$PSEUDO hostname $my_HOST && echo $my_HOST | $PSEUDO tee /etc/hostname && echo '127.0.1.1 $my_HOST.$my_DOMAIN $my_HOST  ' | $PSEUDO tee -a /etc/hosts"
+    squawk 15 "$command2run"
+    echo "$command2run" \
+      >> $hostname_tmp_para/hopper
+  done < $KUBASH_HOSTS_CSV
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $hostname_tmp_para/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $hostname_tmp_para/hopper
+  else
+    bash $hostname_tmp_para/hopper
+  fi
+  rm -Rf $hostname_tmp_para
+}
+
 ping_in_parallel () {
   ping_tmp_para=$(mktemp -d --suffix='.para.tmp')
   squawk 12 ' Pinging all hosts using ssh'
@@ -1309,16 +1335,6 @@ ping () {
 ansible-ping () {
   squawk 11 ' Pinging all hosts using Ansible'
   ansible -i $KUBASH_ANSIBLE_HOSTS -m ping all
-}
-
-hostnamero () {
-  my_HOST=$1
-  my_IP=$2
-  my_PORT=$3
-  my_USER=$4
-  squawk 11 " hostnamero my_HOST=$my_HOST my_IP=$my_IP my_PORT=$my_PORT my_USER=$my_USER"
-  result=$(ssh -n -p $my_PORT $my_USER@$my_IP "$PSEUDO hostname $my_HOST && echo $my_HOST | $PSEUDO tee /etc/hostname && echo \"127.0.1.1 $my_HOST.$my_DOMAIN $my_HOST  \" | $PSEUDO tee -a /etc/hosts ")
-  squawk 13 "Result is $result"
 }
 
 chkdir () {
@@ -1390,7 +1406,6 @@ master_join () {
 
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
     finish_pki_for_masters $my_node_user $my_node_ip $my_node_name
-    hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
     ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSUEDO hostname;$PSUEDO  uname -a"
     run_join=$(cat $KUBASH_DIR/join.sh)
     squawk 11 " run join $run_join"
@@ -1476,8 +1491,6 @@ master_init_join () {
 
   squawk 10 " master_init_join $my_master_name $my_master_ip $my_master_user $my_master_port"
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
-    squawk 11 ' hostnamero'
-    hostnamero $my_master_name $my_master_ip $my_master_port $my_master_user
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$PSEUDO hostname;$PSEUDO  uname -a"
     my_grep='kubeadm join --token'
     squawk 13 'master_init_join kubeadm init'
@@ -1560,7 +1573,6 @@ node_join () {
   my_node_port=$4
   squawk 11 " node_join $my_node_name $my_node_ip $my_node_user $my_node_port"
   if [[ "$DO_NODE_JOIN" == "true" ]] ; then
-    hostnamero $my_node_name $my_node_ip $my_node_port $my_node_user
     result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a")
     squawk 13 "hostname and uname is $result"
     squawk 13 "Kubeadmin join"
@@ -2122,7 +2134,6 @@ do_masters_in_parallel () {
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == "master" ]]; then
-      hostnamero $K8S_node $K8S_ip1 $K8S_provisionerPort $K8S_provisionerUser
       if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
         my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/tmp/config.yaml"
         squawk 15 "$my_KUBE_INIT"
@@ -2454,6 +2465,7 @@ prep () {
   do
     preppy $K8S_node $K8S_ip1 $K8S_provisionerPort
   done < $KUBASH_HOSTS_CSV
+  hostname_in_parallel
 }
 
 preppy () {
