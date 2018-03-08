@@ -130,6 +130,7 @@ main () {
   make cfssl
   make packer
   check_install crictl
+  sudo pip install netaddr
   $KUBASH_BIN/kubash dotfiles
   echo 'logout and log back in, or source your RC files'
 }
