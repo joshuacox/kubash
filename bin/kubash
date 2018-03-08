@@ -1274,7 +1274,7 @@ hostname_in_parallel () {
   while IFS="," read -r $csv_columns
   do
     my_HOST=$K8S_node
-    my_IP=$K8S_provisionerHost
+    my_IP=$K8S_ip1
     my_PORT=$K8S_provisionerPort
     my_USER=$K8S_provisionerUser
     command2run="ssh -n -p $my_PORT $my_USER@$my_IP '$PSEUDO hostname $my_HOST && echo $my_HOST | $PSEUDO tee /etc/hostname && echo \"127.0.1.1 $my_HOST.$my_DOMAIN $my_HOST  \" | $PSEUDO tee -a /etc/hosts'"
