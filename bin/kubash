@@ -1493,7 +1493,7 @@ master_init_join () {
         > $kubeadmin_config_tmp
       squawk 29 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $my_master_port' $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml"
       rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml
-      aquawk 16 "kubedmin_config_tmp =\n $(cat $kubeadmin_config_tmp)" -e
+      squawk 16 "kubedmin_config_tmp =\n $(cat $kubeadmin_config_tmp)" -e
       rm $kubeadmin_config_tmp
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/tmp/config.yaml"
       squawk 15 "$my_KUBE_INIT"
