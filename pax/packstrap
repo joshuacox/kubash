@@ -62,6 +62,7 @@ install_default_docker () {
 install_spec_docker () {
   apt-get install -yqq docker-ce=$(apt-cache madison docker-ce | grep $DOCKER_PKG | head -1 | awk '{print $3}')
   apt-get install -yqq docker-compose=$(apt-cache madison docker-compose | grep $DOCKER_COMPOSE_PKG | head -1 | awk '{print $3}')
+  apt-cache madison kubelet | grep '$KUBEPKG_VERSION'
   apt-get install -yqq kubelet=$(apt-cache madison kubelet | grep '$KUBEPKG_VERSION' | head -1 | awk '{print $3}')
   apt-get install -yqq kubeadm=$(apt-cache madison kubeadm | grep '$KUBEPKG_VERSION' | head -1 | awk '{print $3}')
   apt-get install -yqq kubectl=$(apt-cache madison kubectl | grep '$KUBEPKG_VERSION' | head -1 | awk '{print $3}')
@@ -88,8 +89,6 @@ EOF
 apt-get update
 apt-get install -y \
 $DEB_PACKAGES_TO_INSTALL
-
-apt-get update
 
 # test snap
 if ! test_cmd_loc="$(type -p "snap")" || [ -z "$test_cmd_loc" ]; then
