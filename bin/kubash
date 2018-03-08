@@ -2948,6 +2948,12 @@ main () {
     prep
     remove_vagrant_user
     hostname_in_parallel
+  elif [[ $RAISON == "hostnamer" ]]; then
+    if [[ $print_help == "true" ]]; then
+      usage
+      exit 1
+    fi
+    hostname_in_parallel
   elif [[ $RAISON == "decommission" ]]; then
     if [[ $print_help == "true" ]]; then
       decom_usage
