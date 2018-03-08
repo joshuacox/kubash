@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+KUBASH_VERSION=0.1.0
 : ${KUBASH_CLUSTER_NAME=default}
 : ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
@@ -2705,7 +2706,7 @@ main () {
 
   # Execute getopt on the arguments passed to this program, identified by the special character $@
   short_opts="c:hvyn:"
-  long_opts="oidc,clustername:,initializer:,csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
+  long_opts="version,oidc,clustername:,initializer:,csv:,help,yes,verbose,verbosity:,target-os:,target-build:,build-virt:,node-join-name:,node-join-user:,node-join-ip:,node-join-port:,node-join-role:,parallel:,builder:,debug"
   PARSED_OPTIONS=$(getopt -n "$0" -o "$short_opts" --long "$long_opts" -- "$@")
 
   #Bad arguments, something has gone wrong with the getopt command.
@@ -2731,6 +2732,10 @@ main () {
         shift;;
       --debug)
         debug=true
+        shift;;
+      --version)
+        echo "Kubash, version $KUBASH_VERSION"
+        exit 0
         shift;;
       -y|--yes)
 	ANSWER_YES=yes

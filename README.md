@@ -10,6 +10,18 @@ Build production ready clusters using a variety of technologies along the way.
 By default, this will build an image using packer, then rebase that image for your nodes.
 Then initialize them using kubeadm, and install charts using helm.
 
+### Oneliner installation
+
+Install with one easy line
+
+```
+curl -L git.io/kubash|bash
+```
+
+Get started by making the example clusters `cd ~/.kubash; make examples; ls -lh clusters`
+
+### Alternative pipelines
+
 There are also alternative methods available for the steps,
 for coreos there is an alternative builder that merely downloads the official images.
 And for initializing the default is to directly initialize with kubeadm,
@@ -58,14 +70,6 @@ you can optionally use kubespray or openshifts ansible playbooks instead,
 I have had various issues with both and that's why i wrote this script so I can choose amongst a 
 few different methods in my regular daily builds 
 (I'm the sort of guy who likes to spin up clusters while sipping my morning coffee).
-
-### Oneliner
-
-Install with one easy line
-
-```
-curl -L git.io/kubash|bash
-```
 
 ### Configs
 
