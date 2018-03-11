@@ -84,6 +84,8 @@ kubash -n clustername COMMAND
 
 ### Commands:
 
+[yaml2cluster](./docs/yaml2cluster.md) - Build a cluster directory from a yaml cluster file
+
 [build](./docs/build.md) - Build a base image
 
 [build-all](./docs/build.md) - Build all the base images in parallel

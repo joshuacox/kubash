@@ -123,6 +123,7 @@ main () {
   git submodule update --init --recursive
   make submodules/openebs
   make jinja2
+  make yaml2json
   check_install ct
   check_install helm
   check_install oc
