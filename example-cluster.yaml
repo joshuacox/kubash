@@ -1,5 +1,4 @@
 ---
-  clustername: example
   hosts:
     my-master1:
       hostname: bob

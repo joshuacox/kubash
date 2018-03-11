@@ -332,13 +332,13 @@ genmac () {
   # Generate a mac address
   hexchars="0123456789ABCDEF"
   : ${DEFAULT_MAC_ADDRESS_BLOCK:=52:54:00}
-  
+
   if [[ ! -z "$1" ]]; then
   	DEFAULT_MAC_ADDRESS_BLOCK=$1
   fi
-  
+
   end=$( for i in {1..6} ; do echo -n ${hexchars:$(( $RANDOM % 16 )):1} ; done | sed -e 's/\(..\)/:\1/g' )
-  
+
   echo "$DEFAULT_MAC_ADDRESS_BLOCK$end" >&3
 }
 
@@ -466,7 +466,7 @@ vbox-provisioner () {
 
 qemu-provisioner () {
   squawk 11 "qemu-provisioner $@"
-  
+
   K8S_node=$1
   K8S_role=$2
   K8S_cpuCount=$3
@@ -486,17 +486,17 @@ qemu-provisioner () {
   K8S_network3=${17}
   K8S_mac3=${18}
   K8S_ip3=${19}
-  if [[ "$K8S_mac1" == '' ]]; then
+  if [[ "$K8S_mac1" == 'null' ]]; then
     $K8S_mac1=$(kubash genmac)
   fi
-  if [[ ! -z "$K8S_network2" ]]; then
-    if [[ "$K8S_mac2" == '' ]]; then
+  if [[ "$K8S_network2" -ne 'null' ]]; then
+    if [[ "$K8S_mac2" == 'null' ]]; then
       $K8S_mac2=$(kubash genmac)
     fi
     SECOND_NIC="--network=$K8S_network2,mac=$K8S_mac2,model=virtio"
   fi
-  if [[ ! -z "$K8S_network3" ]]; then
-    if [[ "$K8S_mac3" == '' ]]; then
+  if [[ "$K8S_network3" -ne 'null' ]]; then
+    if [[ "$K8S_mac3" == 'null' ]]; then
       $K8S_mac3=$(kubash genmac)
     fi
     THIRD_NIC="--network=$K8S_network3,mac=$K8S_mac3,model=virtio"
@@ -1155,7 +1155,7 @@ removestalekeys () {
 w8_kubedns () {
   squawk 10 "wait on Kube-DNS to become available" -n
   sleep 1
-  
+
   # while loop
   kubedns_countone=1
   # timeout for 15 minutes
@@ -1172,7 +1172,7 @@ w8_kubedns () {
     ((++kubedns_countone))
     sleep 3
   done
-  
+
   echo "Kube-DNS is now up and running"
   sleep 1
 }
@@ -1464,7 +1464,7 @@ master_init_join () {
   if [[ "DO_KEEPALIVED" == 'true' ]]; then
     #keepalived
     setup_keepalived_tmp=$(mktemp -d)
-  
+
     MASTER_VIP=$my_master_ip \
     envsubst < $KUBASH_DIR/templates/check_apiserver.sh \
     > $setup_keepalived_tmp/check_apiserver.sh
@@ -1491,7 +1491,7 @@ master_init_join () {
     rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $my_master_user@$my_master_ip:/tmp/keepalived.conf
     command2run='sudo  mv /tmp/keepalived.conf /etc/keepalived/'
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
-    
+
     rm -f $setup_keepalived_tmp/keepalived.conf $setup_keepalived_tmp/check_apiserver.sh
     rmdir $setup_keepalived_tmp
   fi
@@ -2687,11 +2687,10 @@ json2cluster () {
     exit 1
   fi
   this_json=$1
-  clustername=$(jq -r '.clustername | "\(.)" ' $this_json)
 
-  if [[ -e $KUBASH_DIR/clusters/$clustername ]]; then
+  if [[ -e $KUBASH_DIR/clusters/$KUBASH_CLUSTER_NAME ]]; then
     horizontal_rule
-    echo "The cluster directory already exists! $KUBASH_DIR/clusters/$clustername"
+    echo "The cluster directory already exists! $KUBASH_DIR/clusters/$KUBASH_CLUSTER_NAME"
     horizontal_rule
     exit 1
   fi
@@ -2703,6 +2702,7 @@ json2cluster () {
   squawk 11 "$(cat $json2cluster_tmp/provision.csv)"
 
   # ca-data.yaml
+#### BEGIN --> Indention break warning <-- BEGIN
   jq -r \
     '.ca[] | "CERT_COMMON_NAME: \(.CERT_COMMON_NAME)
 CERT_COUNTRY: \(.CERT_COUNTRY)
@@ -2711,6 +2711,7 @@ CERT_ORGANISATION: \(.CERT_ORGANISATION)
 CERT_STATE: \(.CERT_STATE)
 CERT_ORG_UNIT: \(.CERT_ORG_UNIT)"' \
     $this_json >  $json2cluster_tmp/ca-data.yaml
+#### END --> Indention break warning <-- END
   squawk 11 "$(cat $json2cluster_tmp/ca-data.yaml)"
 
   # net_set
@@ -2723,7 +2724,7 @@ CERT_ORG_UNIT: \(.CERT_ORG_UNIT)"' \
 	$CP_CMD $KUBASH_DIR/templates/ca-config.json $json2cluster_tmp/
 	$CP_CMD $KUBASH_DIR/templates/client.json $json2cluster_tmp/
 
-  $MV_CMD $json2cluster_tmp $KUBASH_DIR/clusters/$clustername
+  $MV_CMD $json2cluster_tmp $KUBASH_DIR/clusters/$KUBASH_CLUSTER_NAME
 }
 
 main () {
