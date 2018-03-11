@@ -2697,9 +2697,9 @@ json2cluster () {
 
   # provision.csv
   jq -r \
-    '.hosts[] | "\(.hostname),\(.role),\(.cpuCount),\(.Memory),\(.provisioner.Host),\(.provisioner.User),\(.provisioner.Port),\(.provisioner.BasePath),\(.os),\(.virt),\(.network1.network),\(.network1.mac),\(.network1.ip),\(.network2.network),\(.network2.mac),\(.network2.ip),\(.network3.network),\(.network3.mac),\(.network3.ip) "' \
+    '.hosts[] | "\(.hostname),\(.role),\(.cpuCount),\(.Memory),\(.network1.network),\(.network1.mac),\(.network1.ip),\(.provisioner.Host),\(.provisioner.User),\(.provisioner.Port),\(.provisioner.BasePath),\(.os),\(.virt),\(.network2.network),\(.network2.mac),\(.network2.ip),\(.network3.network),\(.network3.mac),\(.network3.ip) "' \
     $this_json >  $json2cluster_tmp/provision.csv
-    cat $json2cluster_tmp/provision.csv
+  squawk 11 "$(cat $json2cluster_tmp/provision.csv)"
 
   # ca-data.yaml
   jq -r \
@@ -2710,12 +2710,12 @@ CERT_ORGANISATION: \(.CERT_ORGANISATION)
 CERT_STATE: \(.CERT_STATE)
 CERT_ORG_UNIT: \(.CERT_ORG_UNIT)"' \
     $this_json >  $json2cluster_tmp/ca-data.yaml
-    cat $json2cluster_tmp/ca-data.yaml
+  squawk 11 "$(cat $json2cluster_tmp/ca-data.yaml)"
 
   # net_set
   jq -r '.net_set | "\(.)" ' \
     $this_json >  $json2cluster_tmp/net_set
-    cat $json2cluster_tmp/net_set
+  squawk 11 "$(cat $json2cluster_tmp/net_set)"
 
 	$CP_CMD $KUBASH_DIR/users.csv.example $json2cluster_tmp/users.csv
 	$CP_CMD $KUBASH_DIR/templates/ca-csr.json $json2cluster_tmp/
