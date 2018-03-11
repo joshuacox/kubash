@@ -489,13 +489,13 @@ qemu-provisioner () {
   if [[ "$K8S_mac1" == 'null' ]]; then
     K8S_mac1=$(VERBOSITY=0 kubash --verbosity=1 genmac)
   fi
-  if [[ "$K8S_network2" -ne 'null' ]]; then
+  if [[ "$K8S_network2" != 'null' ]]; then
     if [[ "$K8S_mac2" == 'null' ]]; then
       K8S_mac2=$(VERBOSITY=0 kubash --verbosity=1 genmac)
     fi
     SECOND_NIC="--network=$K8S_network2,mac=$K8S_mac2,model=virtio"
   fi
-  if [[ "$K8S_network3" -ne 'null' ]]; then
+  if [[ "$K8S_network3" != 'null' ]]; then
     if [[ "$K8S_mac3" == 'null' ]]; then
       K8S_mac3=$(VERBOSITY=0 kubash --verbosity=1 genmac)
     fi
@@ -2698,7 +2698,28 @@ json2cluster () {
   # provision.csv
   jq -r \
     '.hosts[] | "\(.hostname),\(.role),\(.cpuCount),\(.Memory),\(.network1.network),\(.network1.mac),\(.network1.ip),\(.provisioner.Host),\(.provisioner.User),\(.provisioner.Port),\(.provisioner.BasePath),\(.os),\(.virt),\(.network2.network),\(.network2.mac),\(.network2.ip),\(.network3.network),\(.network3.mac),\(.network3.ip) "' \
-    $this_json >  $json2cluster_tmp/provision.csv
+    $this_json >  $json2cluster_tmp/tmp.csv
+
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_mac1" == 'null' ]]; then
+      K8S_mac1=$(VERBOSITY=0 kubash --verbosity=1 genmac)
+    fi
+    if [[ "$K8S_network2" != 'null' ]]; then
+      if [[ "$K8S_mac2" == 'null' ]]; then
+        K8S_mac2=$(VERBOSITY=0 kubash --verbosity=1 genmac)
+      fi
+    fi
+    if [[ "$K8S_network3" != 'null' ]]; then
+      if [[ "$K8S_mac3" == 'null' ]]; then
+        K8S_mac3=$(VERBOSITY=0 kubash --verbosity=1 genmac)
+      fi
+    fi
+    echo "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_network1,$K8S_mac1,$K8S_ip1,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_network3,$K8S_mac3,$K8S_ip3" \
+      >>  $json2cluster_tmp/provision.csv
+  done < "$json2cluster_tmp/tmp.csv"
+
+  rm $json2cluster_tmp/tmp.csv
   squawk 11 "$(cat $json2cluster_tmp/provision.csv)"
 
   # ca-data.yaml
