@@ -1605,6 +1605,7 @@ checks () {
   check_cmd ct
   check_cmd jinja2
   check_cmd yaml2json
+  check_cmd jq
   check_cmd expr
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     check_cmd parallel
