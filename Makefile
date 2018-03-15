@@ -137,16 +137,16 @@ go-build-docker:
 	go get github.com/hashicorp/packer
 	rmdir $(TMP)
 
-examples:
+all-examples:
 	make example
 	cd $(KUBASH_DIR)/clusters; \
-	cp -a default openshift; \
-	cp -a default kubeadm2ha; \
-	cp -a default kubespray; \
-	cp -a default centos; \
-	cp -a default debian; \
-	cp -a default ubuntu; \
-	cp -a default coreos;
+	rsync -av example openshift; \
+	rsync -av example kubeadm2ha; \
+	rsync -av example kubespray; \
+	rsync -av example centos; \
+	rsync -av example debian; \
+	rsync -av example ubuntu; \
+	rsync -av example coreos;
 	sed -i 's/kubeadm/openshift/' $(KUBASH_DIR)/clusters/openshift/provision.csv
 	sed -i 's/8f/aa/' $(KUBASH_DIR)/clusters/openshift/provision.csv
 	sed -i 's/^my-/openshift-/' $(KUBASH_DIR)/clusters/openshift/provision.csv
@@ -170,7 +170,8 @@ examples:
 	sed -i 's/^my-/coreos-/' $(KUBASH_DIR)/clusters/coreos/provision.csv
 
 example:
-	$(HOME)/.kubash/kubash yaml2cluster -n default $(KUBASH_DIR)/examples/example-cluster.yaml
+	rm -Rf $(KUBASH_DIR)/clusters/example
+	$(KUBASH_BIN)/kubash yaml2cluster -n example $(KUBASH_DIR)/examples/example-cluster.yaml
 
 yaml2json:
 	npm i -g yaml2json
