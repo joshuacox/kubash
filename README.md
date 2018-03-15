@@ -15,6 +15,8 @@ Build production ready clusters using a variety of technologies along the way.
 By default, this will build an image using packer, then rebase that image for your nodes.
 Then initialize them using kubeadm, and install charts using helm.
 
+[![asciicast](https://asciinema.org/a/169820.png)](https://asciinema.org/a/169820)
+
 ### Oneliner installation
 
 Install with one easy line
