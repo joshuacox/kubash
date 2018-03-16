@@ -356,3 +356,4 @@ coreos_key:
 	$(eval TMP := $(shell mktemp -d --suffix=CKTMP))
 	curl -O https://coreos.com/security/image-signing-key/CoreOS_Image_Signing_Key.asc -o $(TMP)/CoreOS_Image_Signing_Key.asc
 	gpg --import --keyid-format LONG CoreOS_Image_Signing_Key.asc
+	rm -Rf $(TMP)

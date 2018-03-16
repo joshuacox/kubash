@@ -123,51 +123,51 @@ kubash init
   horizontal_rule
 echo '
 commands:
-  build	        -	build a base image
-  provision	    -	provision individual nodes
-  init	        -	initialize the cluster
-  reset	        -	reset the cluster with `kubeadm reset` on all hosts
-  decommission	-	tear down the cluster and decommission nodes
-  show	        -	show the analyzed input of the hosts file
-  ping	        -	Perform ansible ping to all hosts
-  auto	        -	Full auto will provision and initialize all hosts
-  masters	      -	Perform initialization of masters
-  nodes	        -	Perform initialization of nodes
-  dotfiles	    -	Perform dotfiles auto configuration
-  grab	        -	Grab the .kube/config from the master
-  hosts	        -	Write ansible hosts file
-  copy	        -	copy the built images to the provisioning hosts
+  build         - build a base image
+  provision     - provision individual nodes
+  init          - initialize the cluster
+  reset         - reset the cluster with `kubeadm reset` on all hosts
+  decommission  - tear down the cluster and decommission nodes
+  show          - show the analyzed input of the hosts file
+  ping          - Perform ansible ping to all hosts
+  auto          - Full auto will provision and initialize all hosts
+  masters       - Perform initialization of masters
+  nodes         - Perform initialization of nodes
+  dotfiles      - Perform dotfiles auto configuration
+  grab          - Grab the .kube/config from the master
+  hosts         - Write ansible hosts file
+  copy          - copy the built images to the provisioning hosts
   kubash *     - any unrecognized commands will attempt to be passed to kubectl
 '
   horizontal_rule
 echo '
 options:
- -h --help     	-	Print usage
- -c --csv FILE	-	Set the csv file to be parsed
- --parallel X 	-	set the number of parallel jobs for tasks that support it
- -v --verbose  	-	Increase the verbosity (can set multiple times to incrementally increase e.g. `-vvvv`
- --verbosity X	-	or you can set the verbosity directly
- --debug	      -	adds the debug flag
- -n             -	use a particular cluster by name
+ -h --help      - Print usage
+ -c --csv FILE  - Set the csv file to be parsed
+ --parallel X   - set the number of parallel jobs for tasks that support it
+ -v --verbose   - Increase the verbosity (can set multiple times to incrementally increase e.g. `-vvvv`
+ --verbosity X  - or you can set the verbosity directly
+ --debug        - adds the debug flag
+ -n             - use a particular cluster by name
 '
 }
 
 interactive_usage () {
 echo -n 'commands:
-  build	        -	build a base image
-  provision	    -	provision individual nodes
-  init	        -	initialize the cluster
-  reset	        -	reset the cluster with `kubeadm reset` on all hosts
-  decommission	-	tear down the cluster and decommission nodes
-  show	        -	show the analyzed input of the hosts file
-  ping	        -	Perform ansible ping to all hosts
-  auto	        -	Full auto will provision and initialize all hosts
-  masters	      -	Perform initialization of masters
-  nodes	        -	Perform initialization of nodes
-  dotfiles	    -	Perform dotfiles auto configuration
-  grab	        -	Grab the .kube/config from the master
-  hosts	        -	Write ansible hosts file
-  copy	        -	copy the built images to the provisioning hosts
+  build         - build a base image
+  provision     - provision individual nodes
+  init          - initialize the cluster
+  reset         - reset the cluster with `kubeadm reset` on all hosts
+  decommission  - tear down the cluster and decommission nodes
+  show          - show the analyzed input of the hosts file
+  ping          - Perform ansible ping to all hosts
+  auto          - Full auto will provision and initialize all hosts
+  masters       - Perform initialization of masters
+  nodes         - Perform initialization of nodes
+  dotfiles      - Perform dotfiles auto configuration
+  grab          - Grab the .kube/config from the master
+  hosts         - Write ansible hosts file
+  copy          - copy the built images to the provisioning hosts
   kubectl *     - any unrecognized commands will attempt to be passed to kubectl
   i.e.
   get pods
@@ -2608,6 +2608,10 @@ coreos_build  () {
   chkdir $KVM_builderDir
   chkdir $KVM_builderTMP
 
+  command2run="curl -O https://coreos.com/security/image-signing-key/CoreOS_Image_Signing_Key.asc -o $(TMP)/CoreOS_Image_Signing_Key.asc"
+  sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
+  command2run="gpg --import --keyid-format LONG CoreOS_Image_Signing_Key.asc"
+  sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
   command2run="cd $KVM_builderTMP"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
   command2run="wget -c https://$CHANNEL.release.core-os.net/amd64-usr/current/coreos_production_qemu_image.img.bz2{,.sig}"
@@ -2617,7 +2621,6 @@ coreos_build  () {
   command2run="rm coreos_production_qemu_image.img.bz2.sig"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
   command2run="bunzip2 coreos_production_qemu_image.img.bz2"
-  sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 
   TARGET_FILE="$KVM_builderTMP/coreos_production_qemu_image.img"
