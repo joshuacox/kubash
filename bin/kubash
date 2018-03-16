@@ -2780,7 +2780,7 @@ kubash_interactive () {
 
   while true
   do
-    myinput=$(rlwrap -s 777 -S 'K8$ ' -H $KUBASH_HISTORY -D=1 head -n1)
+    myinput=$(rlwrap -f $KUBASH_DIR/.kubash_completions -s 777 -S 'K8$ ' -H $KUBASH_HISTORY -D=1 head -n1)
     read command args <<< $myinput
     squawk 9 "$command $args"
     case $command
