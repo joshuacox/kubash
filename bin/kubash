@@ -3309,6 +3309,14 @@ main () {
       if [[ -z "$target_build" ]]; then
         target_build=fedora-27-x86_64
       fi
+    elif [[ "$target_os" == "kubeadm194" ]]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=kubeadm194-7.4-x86_64
+      fi
+    elif [[ "$target_os" == "ubuntu194" ]]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=ubuntu194-16.04-amd64
+      fi
     elif [[ "$target_os" == "coreos" ]]; then
       #override packer atm
       builder=coreos
