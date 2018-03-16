@@ -2799,12 +2799,12 @@ set_verbosity () {
   else
     VERBOSITY=$1
   fi
-  squawk 1 " verbosity is now $VERBOSITY"
+  squawk 5 " verbosity is now $VERBOSITY"
 }
 
 increase_verbosity () {
   ((++VERBOSITY))
-  squawk 1 " verbosity is now $VERBOSITY"
+  squawk 5 " verbosity is now $VERBOSITY"
 }
 
 set_name () {
@@ -2909,8 +2909,7 @@ main () {
         build_virt="$2"
         shift 2 ;;
       -v|--verbose)
-        VERBOSITY=`expr $VERBOSITY + 1`
-        squawk 2 " verbosity is now $VERBOSITY"
+        increase_verbosity
         shift;;
       --verbosity)
         set_verbosity $2
