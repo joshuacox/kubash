@@ -1119,6 +1119,17 @@ write_ansible_kubespray_hosts () {
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
+  echo '[calico-rr]' >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "master" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    elif [[ "$K8S_role" == "primary_master" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
   echo '[kube-master]' >> $KUBASH_ANSIBLE_HOSTS
   while IFS="," read -r $csv_columns
   do
