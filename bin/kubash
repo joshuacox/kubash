@@ -2826,6 +2826,7 @@ set_name () {
 }
 
 main () {
+  checks
   # save original io
   exec 3>&1 4>&2
   # Let's display everything on stderr.
@@ -2961,7 +2962,6 @@ main () {
   squawk 5 "Raison set to $RAISON"
   shift
 
-  checks
 
   if [[ $RAISON = "false" || "$RAISON" = "help" ]]; then
     horizontal_rule
