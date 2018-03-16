@@ -108,8 +108,6 @@ horizontal_rule () {
   printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
 }
 
-squawk 3 "Kubash, by Josh Cox"
-
 usage () {
   horizontal_rule
   # Print usage
