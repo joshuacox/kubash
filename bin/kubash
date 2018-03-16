@@ -2812,8 +2812,8 @@ increase_verbosity () {
 }
 
 set_name () {
-  squawk 5 "set_name $1"
-  squawk 3 "Kubash will now work with the $1 cluster"
+  squawk 9 "set_name $1"
+  squawk 8 "Kubash will now work with the $1 cluster"
   KUBASH_CLUSTER_NAME="$1"
   KUBASH_CLUSTER_DIR=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME
   KUBASH_CLUSTER_CONFIG=$KUBASH_CLUSTER_DIR/config
