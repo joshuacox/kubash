@@ -327,7 +327,7 @@
     }
   ],
   "variables": {
-    "box_basename": "ubuntu-16.04",
+    "box_basename": "ubuntu194-16.04",
     "build_timestamp": "{{isotime \"20060102150405\"}}",
     "keys_to_add": "{{ env `KEYS_TO_ADD`}}",
     "keys_url": "{{ env `KEYS_URL`}}",
@@ -352,10 +352,10 @@
     "memory": "1024",
     "mirror": "http://releases.ubuntu.com",
     "mirror_directory": "16.04.3",
-    "name": "ubuntu-16.04",
+    "name": "ubuntu194-16.04",
     "no_proxy": "{{env `no_proxy`}}",
     "preseed_path": "preseed.cfg",
-    "template": "ubuntu-16.04-amd64",
+    "template": "ubuntu194-16.04-amd64",
     "version": "TIMESTAMP"
   }
 }
