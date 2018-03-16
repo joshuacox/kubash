@@ -2608,9 +2608,8 @@ coreos_build  () {
   chkdir $KVM_builderDir
   chkdir $KVM_builderTMP
 
-  command2run="curl -O https://coreos.com/security/image-signing-key/CoreOS_Image_Signing_Key.asc -o $(TMP)/CoreOS_Image_Signing_Key.asc"
-  sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
-  command2run="gpg --import --keyid-format LONG CoreOS_Image_Signing_Key.asc"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p$K8S_builderPort" $KUBASH_DIR/pax/CoreOS_Image_Signing_Key.asc" $K8S_builderUser@$K8S_builderHost:/tmp/
+  command2run="gpg --import --keyid-format LONG /tmp/CoreOS_Image_Signing_Key.asc"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
   command2run="cd $KVM_builderTMP"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
