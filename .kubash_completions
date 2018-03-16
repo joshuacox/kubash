@@ -12,6 +12,9 @@ provision
 ping
 init
 copy
+dotfiles
+hosts
+grab
 auto
 demo
 openebs
