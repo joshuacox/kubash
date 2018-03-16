@@ -2790,7 +2790,7 @@ kubash_interactive () {
       verbosity)             set_verbosity $args          ;;
       v)                increase_verbosity $args          ;;
       cluster|clustername|name) set_name   $args          ;;
-      *) interactive_results=$(kubash -n $KUBASH_CLUSTER_NAME "$command" "$args") ;;
+      *) interactive_results=$(kubash -n $KUBASH_CLUSTER_NAME $command $args) ;;
     esac
     echo "$interactive_results"
   done
