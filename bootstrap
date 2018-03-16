@@ -136,6 +136,7 @@ main () {
   # These need to exist in .kubash/bin/
   make cfssl
   make packer
+  make coreos_key
   check_install crictl
   sudo pip install netaddr
   $KUBASH_BIN/kubash dotfiles
