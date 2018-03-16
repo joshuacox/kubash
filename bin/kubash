@@ -123,32 +123,56 @@ kubash init
   horizontal_rule
 echo '
 commands:
-  build - build a base image
-  provision - provision individual nodes
-  init - initialize the cluster
-  reset - reset the cluster with `kubeadm reset` on all hosts
-  decommission - tear down the cluster and decommission nodes
-  show - show the analyzed input of the hosts file
-  ping - Perform ansible ping to all hosts
-  auto - Full auto will provision and initialize all hosts
-  masters - Perform initialization of masters
-  nodes - Perform initialization of nodes
-  dotfiles - Perform dotfiles auto configuration
-  grab - Grab the .kube/config from the master
-  hosts - Write ansible hosts file
-  copy - copy the built images to the provisioning hosts
+  build	        -	build a base image
+  provision	    -	provision individual nodes
+  init	        -	initialize the cluster
+  reset	        -	reset the cluster with `kubeadm reset` on all hosts
+  decommission	-	tear down the cluster and decommission nodes
+  show	        -	show the analyzed input of the hosts file
+  ping	        -	Perform ansible ping to all hosts
+  auto	        -	Full auto will provision and initialize all hosts
+  masters	      -	Perform initialization of masters
+  nodes	        -	Perform initialization of nodes
+  dotfiles	    -	Perform dotfiles auto configuration
+  grab	        -	Grab the .kube/config from the master
+  hosts	        -	Write ansible hosts file
+  copy	        -	copy the built images to the provisioning hosts
+  kubash *     - any unrecognized commands will attempt to be passed to kubectl
 '
   horizontal_rule
 echo '
 options:
- -h --help - Print usage
- -c --csv FILE - Set the csv file to be parsed
- --parallel NUMBER_OF_THREADS - set the number of parallel jobs for tasks that support it
- -v --verbose - Increase the verbosity (can set multiple times to incrementally increase e.g. `-vvvv`
- --verbosity NUMBER - or you can set the verbosity directly
- --debug - adds the debug flag
- -n --clustername - use a particular cluster by name
+ -h --help     	-	Print usage
+ -c --csv FILE	-	Set the csv file to be parsed
+ --parallel X 	-	set the number of parallel jobs for tasks that support it
+ -v --verbose  	-	Increase the verbosity (can set multiple times to incrementally increase e.g. `-vvvv`
+ --verbosity X	-	or you can set the verbosity directly
+ --debug	      -	adds the debug flag
+ -n             -	use a particular cluster by name
 '
+}
+
+interactive_usage () {
+echo -n 'commands:
+  build	        -	build a base image
+  provision	    -	provision individual nodes
+  init	        -	initialize the cluster
+  reset	        -	reset the cluster with `kubeadm reset` on all hosts
+  decommission	-	tear down the cluster and decommission nodes
+  show	        -	show the analyzed input of the hosts file
+  ping	        -	Perform ansible ping to all hosts
+  auto	        -	Full auto will provision and initialize all hosts
+  masters	      -	Perform initialization of masters
+  nodes	        -	Perform initialization of nodes
+  dotfiles	    -	Perform dotfiles auto configuration
+  grab	        -	Grab the .kube/config from the master
+  hosts	        -	Write ansible hosts file
+  copy	        -	copy the built images to the provisioning hosts
+  kubectl *     - any unrecognized commands will attempt to be passed to kubectl
+  i.e.
+  get pods
+  get nodes
+  etc'
 }
 
 node_usage () {
@@ -2752,21 +2776,20 @@ kubash_interactive () {
   horizontal_rule
   echo "Interactive Kubash Shell Enter 'help' for help, or 'quit' to quit"
   echo "working with the $KUBASH_CLUSTER_NAME kubash cluster, or set with 'clustername'"
-  horizontal_rule
   set +e
 
   while true
   do
-    myinput=$(rlwrap -f $KUBASH_DIR/.kubash_completions -s 777 -S 'K8$ ' -H $KUBASH_HISTORY -D=1 head -n1)
+    myinput=$(rlwrap -f $KUBASH_DIR/.kubash_completions -s 777 -S 'K8$ ' -H $KUBASH_HISTORY -D=2 head -n1)
     read command args <<< $myinput
-    squawk 9 "$command $args"
+    squawk 29 "$command $args"
     case $command
     in
       quit|exit)             exit 0                       ;;
-      help|\?)               usage                        ;;
+      help|\?)               interactive_usage            ;;
       verbosity)             set_verbosity $args          ;;
       v)                increase_verbosity $args          ;;
-      cluster|clustername|name)      set_name      $args          ;;
+      cluster|clustername|name) set_name   $args          ;;
       *) interactive_results=$(kubash -n $KUBASH_CLUSTER_NAME "$command" "$args") ;;
     esac
     echo "$interactive_results"
