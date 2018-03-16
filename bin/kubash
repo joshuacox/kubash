@@ -3,6 +3,7 @@ KUBASH_VERSION='v1.9.3'
 : ${KUBERNETES_VERSION:=$KUBASH_VERSION}
 : ${KUBASH_CLUSTER_NAME=default}
 : ${KUBASH_DIR:=$HOME/.kubash}
+: ${KUBASH_HISTORY:=$KUBASH_DIR/.kubash_history}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${KUBASH_CLUSTERS_DIR:=$KUBASH_DIR/clusters}
 : ${KUBASH_CLUSTER_DIR:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME}
@@ -1624,6 +1625,7 @@ checks () {
   check_cmd jinja2
   check_cmd yaml2json
   check_cmd jq
+  check_cmd rlwrap
   check_cmd expr
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     check_cmd parallel
@@ -2774,10 +2776,13 @@ kubash_interactive () {
   echo "Interactive Kubash Shell Enter 'help' for help, or 'quit' to quit"
   echo "working with the $KUBASH_CLUSTER_NAME kubash cluster, or set with 'clustername'"
   horizontal_rule
-  echo -n 'K8$ '
   set +e
-  while read command args
+
+  while true
   do
+    myinput=$(rlwrap -s 777 -S 'K8$ ' -H $KUBASH_HISTORY -D=1 head -n1)
+    read command args <<< $myinput
+    squawk 9 "$command $args"
     case $command
     in
       quit|exit)             exit 0                       ;;
@@ -2788,7 +2793,6 @@ kubash_interactive () {
       *) interactive_results=$(kubash -n $KUBASH_CLUSTER_NAME "$command" "$args") ;;
     esac
     echo "$interactive_results"
-    echo -n 'K8$ '
   done
   set -e
 }
