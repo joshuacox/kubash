@@ -152,53 +152,53 @@ options:
 
 interactive_usage () {
 echo -n 'commands:
-  build         - build a base image
-  provision     - provision individual nodes
-  init          - initialize the cluster
-  reset         - reset the cluster with `kubeadm reset` on all hosts
-  decommission  - tear down the cluster and decommission nodes
-  show          - show the analyzed input of the hosts file
-  ping          - Perform ansible ping to all hosts
-  auto          - Full auto will provision and initialize all hosts
-  masters       - Perform initialization of masters
-  nodes         - Perform initialization of nodes
-  dotfiles      - Perform dotfiles auto configuration
-  grab          - Grab the .kube/config from the master
-  hosts         - Write ansible hosts file
-  copy          - copy the built images to the provisioning hosts
-  kubectl *     - any unrecognized commands will attempt to be passed to kubectl
-  i.e.
-  get pods
-  get nodes
-  etc'
+build         - build a base image
+provision     - provision individual nodes
+init          - initialize the cluster
+reset         - reset the cluster with `kubeadm reset` on all hosts
+decommission  - tear down the cluster and decommission nodes
+show          - show the analyzed input of the hosts file
+ping          - Perform ansible ping to all hosts
+auto          - Full auto will provision and initialize all hosts
+masters       - Perform initialization of masters
+nodes         - Perform initialization of nodes
+dotfiles      - Perform dotfiles auto configuration
+grab          - Grab the .kube/config from the master
+hosts         - Write ansible hosts file
+copy          - copy the built images to the provisioning hosts
+kubectl *     - any unrecognized commands will attempt to be passed to kubectl
+i.e.
+get pods
+get nodes
+etc
 # Drop into an interactive terminal on a container
-keti='k exec -ti'
+keti="kubectl exec -ti"
 # Pod management.
-kgp='k get pods'
-klp='k logs pods'
-kep='k edit pods'
-kdp='k describe pods'
-kdelp='k delete pods'
+kgp="kubectl get pods"
+klp="kubectl logs pods"
+kep="kubectl edit pods"
+kdp="kubectl describe pods"
+kdelp="kubectl delete pods"
 # Service management.
-kgs='k get svc'
-kes='k edit svc'
-kds='k describe svc'
-kdels='k delete svc'
+kgs="kubectl get svc"
+kes="kubectl edit svc"
+kds="kubectl describe svc"
+kdels="kubectl delete svc"
 # Secret management
-kgsec='k get secret'
-kdsec='k describe secret'
-kdelsec='k delete secret'
+kgsec="kubectl get secret"
+kdsec="kubectl describe secret"
+kdelsec="kubectl delete secret"
 # Deployment management.
-kgd='k get deployment'
-ked='k edit deployment'
-kdd='k describe deployment'
-kdeld='k delete deployment'
-ksd='k scale deployment'
-krsd='k rollout status deployment'
+kgd="kubectl get deployment"
+ked="kubectl edit deployment"
+kdd="kubectl describe deployment"
+kdeld="kubectl delete deployment"
+ksd="kubectl scale deployment"
+krsd="kubectl rollout status deployment"
 # Rollout management.
-kgrs='k get rs'
-krh='k rollout history'
-kru='k rollout undo'
+kgrs="kubectl get rs"
+krh="kubectl rollout history"
+kru="kubectl rollout undo"'
 }
 
 node_usage () {
