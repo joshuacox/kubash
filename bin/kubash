@@ -152,6 +152,8 @@ options:
 
 interactive_usage () {
 echo -n 'commands:
+help          - show this help
+kh|khelp      - show the kubectl help
 build         - build a base image
 provision     - provision individual nodes
 init          - initialize the cluster
@@ -166,11 +168,16 @@ dotfiles      - Perform dotfiles auto configuration
 grab          - Grab the .kube/config from the master
 hosts         - Write ansible hosts file
 copy          - copy the built images to the provisioning hosts
-kubectl *     - any unrecognized commands will attempt to be passed to kubectl
+k *           - k commands will attempt to be passed to kubectl
+h *           - h commands will attempt to be passed to helm
 i.e.
 get pods
 get nodes
-etc
+etc'
+}
+
+kubectl_interactive_usage () {
+echo -n 'kubectl shorthand commands:
 # Drop into an interactive terminal on a container
 keti="kubectl exec -ti"
 # Pod management.
@@ -2816,7 +2823,7 @@ CERT_ORG_UNIT: \(.CERT_ORG_UNIT)"' \
 
 kubash_interactive () {
   horizontal_rule
-  echo "Interactive Kubash Shell Enter 'help' for help, or 'quit' to quit"
+  echo "Interactive Kubash Shell Enter 'help' for help, 'kh' for kubectl help or 'quit' to quit"
   echo "working with the $KUBASH_CLUSTER_NAME kubash cluster, or set with 'clustername'"
   set +e
 
@@ -2829,6 +2836,7 @@ kubash_interactive () {
     in
       quit|exit)             exit 0                       ;;
       help|\?)               interactive_usage            ;;
+      khelp|kh)               kubectl_interactive_usage   ;;
       verbosity)             set_verbosity $args          ;;
       v)                increase_verbosity $args          ;;
       cluster|clustername|name) set_name   $args          ;;
