@@ -151,61 +151,63 @@ options:
 }
 
 interactive_usage () {
+horizontal_rule
 echo -n 'commands:
-help          - show this help
-kh|khelp      - show the kubectl help
-build         - build a base image
-provision     - provision individual nodes
-init          - initialize the cluster
-reset         - reset the cluster with `kubeadm reset` on all hosts
-decommission  - tear down the cluster and decommission nodes
-show          - show the analyzed input of the hosts file
-ping          - Perform ansible ping to all hosts
-auto          - Full auto will provision and initialize all hosts
-masters       - Perform initialization of masters
-nodes         - Perform initialization of nodes
-dotfiles      - Perform dotfiles auto configuration
-grab          - Grab the .kube/config from the master
-hosts         - Write ansible hosts file
-copy          - copy the built images to the provisioning hosts
-k *           - k commands will attempt to be passed to kubectl
-h *           - h commands will attempt to be passed to helm
-i.e.
-get pods
-get nodes
-etc'
+  help          - show this help
+  kh|khelp      - show the kubectl help
+  build         - build a base image
+  provision     - provision individual nodes
+  init          - initialize the cluster
+  reset         - reset the cluster with `kubeadm reset` on all hosts
+  decommission  - tear down the cluster and decommission nodes
+  show          - show the analyzed input of the hosts file
+  ping          - Perform ansible ping to all hosts
+  auto          - Full auto will provision and initialize all hosts
+  masters       - Perform initialization of masters
+  nodes         - Perform initialization of nodes
+  dotfiles      - Perform dotfiles auto configuration
+  grab          - Grab the .kube/config from the master
+  hosts         - Write ansible hosts file
+  copy          - copy the built images to the provisioning hosts
+  k *           - k commands will attempt to be passed to kubectl
+  h *           - h commands will attempt to be passed to helm
+  i.e.
+  get pods
+  get nodes
+  etc'
 }
 
 kubectl_interactive_usage () {
+horizontal_rule
 echo -n 'kubectl shorthand commands:
-# Drop into an interactive terminal on a container
-keti="kubectl exec -ti"
-# Pod management.
-kgp="kubectl get pods"
-klp="kubectl logs pods"
-kep="kubectl edit pods"
-kdp="kubectl describe pods"
-kdelp="kubectl delete pods"
-# Service management.
-kgs="kubectl get svc"
-kes="kubectl edit svc"
-kds="kubectl describe svc"
-kdels="kubectl delete svc"
-# Secret management
-kgsec="kubectl get secret"
-kdsec="kubectl describe secret"
-kdelsec="kubectl delete secret"
-# Deployment management.
-kgd="kubectl get deployment"
-ked="kubectl edit deployment"
-kdd="kubectl describe deployment"
-kdeld="kubectl delete deployment"
-ksd="kubectl scale deployment"
-krsd="kubectl rollout status deployment"
-# Rollout management.
-kgrs="kubectl get rs"
-krh="kubectl rollout history"
-kru="kubectl rollout undo"'
+  # Drop into an interactive terminal on a container
+  keti="kubectl exec -ti"
+  # Pod management.
+  kgp="kubectl get pods"
+  klp="kubectl logs pods"
+  kep="kubectl edit pods"
+  kdp="kubectl describe pods"
+  kdelp="kubectl delete pods"
+  # Service management.
+  kgs="kubectl get svc"
+  kes="kubectl edit svc"
+  kds="kubectl describe svc"
+  kdels="kubectl delete svc"
+  # Secret management
+  kgsec="kubectl get secret"
+  kdsec="kubectl describe secret"
+  kdelsec="kubectl delete secret"
+  # Deployment management.
+  kgd="kubectl get deployment"
+  ked="kubectl edit deployment"
+  kdd="kubectl describe deployment"
+  kdeld="kubectl delete deployment"
+  ksd="kubectl scale deployment"
+  krsd="kubectl rollout status deployment"
+  # Rollout management.
+  kgrs="kubectl get rs"
+  krh="kubectl rollout history"
+  kru="kubectl rollout undo"'
 }
 
 node_usage () {
