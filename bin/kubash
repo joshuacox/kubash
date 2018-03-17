@@ -2841,12 +2841,12 @@ kubash_interactive () {
       khelp|kh)               kubectl_interactive_usage   ;;
       verbosity)             set_verbosity $args          ;;
       v)                increase_verbosity $args          ;;
-      cluster|clustername|name) set_name   $args          ;;
-      k|kubectl) kubectl_passthru $args         ;;
-      h|helm) helm_passthru $args                        ;;
-      g|get) kubectl_passthru get $args                  ;;
+      switch|use|n|cluster|name) set_name  $args          ;;
+      k|kubectl) kubectl_passthru $args                   ;;
+      h|helm) helm_passthru $args                         ;;
+      g|get) kubectl_passthru get $args                   ;;
       l|list) helm_passthru list                          ;;
-      d|describe) kubectl_passthru describe $args        ;;
+      d|describe) kubectl_passthru describe $args         ;;
       keti) kubectl_passthru exec -ti $args               ;;
       kgpa) kubectl_passthru get pods --all-namespaces $args ;;
       kgp) kubectl_passthru get pods $args                ;;
