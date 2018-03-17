@@ -224,7 +224,7 @@
     "DOCKER_PKG": "docker-ce-17.12.1.ce-1.el7.centos.x86_64",
     "DOCKER_COMPOSE_PKG": "docker-compose-1.9.0-5.el7.noarch",
     "KUBEPKG_VERSION": "1.9.4-0",
-    "ETCD_VERSION": "3.2.15-1",
+    "ETCD_VERSION": "3.2.7-1",
     "cpus": "1",
     "disk_size": "65536",
     "git_revision": "__unknown_git_revision__",
