@@ -2832,8 +2832,8 @@ kubash_interactive () {
       verbosity)             set_verbosity $args          ;;
       v)                increase_verbosity $args          ;;
       cluster|clustername|name) set_name   $args          ;;
-      k|kubectl) kubectl_passthru $command $args         ;;
-      h|helm) helm $command $args                        ;;
+      k|kubectl) kubectl_passthru $args         ;;
+      h|helm) helm_passthru $args                        ;;
       g|get) kubectl_passthru get $args                  ;;
       l|list) helm_passthru list                          ;;
       d|describe) kubectl_passthru describe $args        ;;
