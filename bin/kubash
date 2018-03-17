@@ -171,6 +171,34 @@ echo -n 'commands:
   get pods
   get nodes
   etc'
+# Drop into an interactive terminal on a container
+keti='k exec -ti'
+# Pod management.
+kgp='k get pods'
+klp='k logs pods'
+kep='k edit pods'
+kdp='k describe pods'
+kdelp='k delete pods'
+# Service management.
+kgs='k get svc'
+kes='k edit svc'
+kds='k describe svc'
+kdels='k delete svc'
+# Secret management
+kgsec='k get secret'
+kdsec='k describe secret'
+kdelsec='k delete secret'
+# Deployment management.
+kgd='k get deployment'
+ked='k edit deployment'
+kdd='k describe deployment'
+kdeld='k delete deployment'
+ksd='k scale deployment'
+krsd='k rollout status deployment'
+# Rollout management.
+kgrs='k get rs'
+krh='k rollout history'
+kru='k rollout undo'
 }
 
 node_usage () {
@@ -2804,11 +2832,49 @@ kubash_interactive () {
       verbosity)             set_verbosity $args          ;;
       v)                increase_verbosity $args          ;;
       cluster|clustername|name) set_name   $args          ;;
+      k|kubectl) kubectl_passthru $command $args)         ;;
+      h|helm) helm $command $args)                        ;;
+      g|get) kubectl_passthru get $args)                  ;;
+      l|list) helm_passthru list                          ;;
+      d|describe) kubectl_passthru describe $args)        ;;
+      keti) kubectl_passthru exec -ti $args               ;;
+      kgpa) kubectl_passthru get pods --all-namespaces $args ;;
+      kgp) kubectl_passthru get pods $args                ;;
+      klp) kubectl_passthru logs pods $args               ;;
+      kep) kubectl_passthru logs pods $args               ;;
+      kdp) kubectl_passthru describe pods $args           ;;
+      kdelp) kubectl_passthru delete pods $args           ;;
+      kgs) kubectl_passthru get svc $args                 ;;
+      kes) kubectl_passthru edit svc $args                ;;
+      kds) kubectl_passthru describe svc $args            ;;
+      kdels) kubectl_passthru delete svc $args            ;;
+      kgsec) kubectl_passthru get secret $args            ;;
+      kdsec) kubectl_passthru decribe secret $args        ;;
+      kdelsec) kubectl_passthru delete secret $args       ;;
+      kdp) kubectl_passthru get deployment $args          ;;
+      ked) kubectl_passthru edit deployment $args         ;;
+      kdd) kubectl_passthru describe deployment $args     ;;
+      kdeld) kubectl_passthru delete deployment $args     ;;
+      ksd) kubectl_passthru scale deployment $args        ;;
+      krsd) kubectl_passthru rollout status deployment $args ;;
+      kgrs) kubectl_passthru get rs $args                 ;;
+      krh) kubectl_passthru get rollout history $args     ;;
+      kru) kubectl_passthru get rollout undo $args        ;;
       *) interactive_results=$(kubash -n $KUBASH_CLUSTER_NAME $command $args) ;;
     esac
     echo "$interactive_results"
   done
   set -e
+}
+
+kubectl_passthru () {
+    squawk 5 "kubectl --kubeconfig=$KUBASH_CLUSTER_DIR/config $@"
+    kubectl --kubeconfig=$KUBASH_CLUSTER_DIR/config $@
+}
+
+helm_passthru () {
+    squawk 5 "KUBECONFIG=$KUBASH_CLUSTER_DIR/config helm $@"
+    KUBECONFIG=$KUBASH_CLUSTER_DIR/config helm $@
 }
 
 set_verbosity () {
