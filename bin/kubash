@@ -818,7 +818,7 @@ copy_image_to_all_provisioning_hosts () {
 
 apparmor_fix_all_provisioning_hosts () {
   squawk 1 "apparmor_fix_all_provisioning_hosts"
-  uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f7,8,9,10,11,12|sort|uniq)"
+  uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f8,9,10,11,12,13|sort|uniq)"
   squawk 8 "$uniq_hosts"
   apparmor_tmp_para=$(mktemp -d)
   touch $apparmor_tmp_para/hopper
