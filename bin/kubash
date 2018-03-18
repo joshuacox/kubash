@@ -184,6 +184,7 @@ echo -n 'kubectl shorthand commands:
   keti="kubectl exec -ti"
   # Pod management.
   kgp="kubectl get pods"
+  kgpa="kubectl get pods --all-namespaces"
   klp="kubectl logs pods"
   kep="kubectl edit pods"
   kdp="kubectl describe pods"
@@ -2861,7 +2862,7 @@ kubash_interactive () {
       kgsec) kubectl_passthru get secret $args            ;;
       kdsec) kubectl_passthru decribe secret $args        ;;
       kdelsec) kubectl_passthru delete secret $args       ;;
-      kdp) kubectl_passthru get deployment $args          ;;
+      kgd) kubectl_passthru get deployment $args          ;;
       ked) kubectl_passthru edit deployment $args         ;;
       kdd) kubectl_passthru describe deployment $args     ;;
       kdeld) kubectl_passthru delete deployment $args     ;;
