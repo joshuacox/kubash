@@ -2154,6 +2154,7 @@ do_primary_master () {
   do
     if [[ "$K8S_role" == "primary_master" ]]; then
       if [[ "$do_master_count" -lt "1" ]]; then
+        squawk 9 "master_init_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_sshPort"
         master_init_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_sshPort
       else
   echo 'There should only be one init master! Skipping this master'
