@@ -1485,7 +1485,7 @@ master_join () {
 
 
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
-    finish_pki_for_masters $my_node_user $my_node_ip $my_node_name
+    finish_pki_for_masters $my_node_user $my_node_ip $my_node_name $my_node_port
     ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSUEDO hostname;$PSUEDO  uname -a"
     run_join=$(cat $KUBASH_DIR/join.sh)
     squawk 1 " run join $run_join"
@@ -1505,7 +1505,7 @@ master_init_join () {
     hosts_csv_slurp
   fi
 
-  finish_pki_for_masters $my_master_user $my_master_ip $my_master_name
+  finish_pki_for_masters $my_master_user $my_master_ip $my_master_name $my_master_port
 
   rm -f $KUBASH_CLUSTER_DIR/ingress.ip1
   rm -f $KUBASH_CLUSTER_DIR/ingress.ip2
@@ -1826,7 +1826,13 @@ grant_users () {
 }
 
 finish_pki_for_masters () {
-  squawk 5 'finish_pki_for_masters'
+  squawk 5 'finish_pki_for_masters $@'
+  if [[ $# -ne 4 ]]; then
+    kubash_interactive
+    echo 'Arguments does not equal 4!'
+    echo 'Arguments: $@'
+    exit 1
+  fi
   this_user=$1
   this_host=$2
   this_name=$3
