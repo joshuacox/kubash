@@ -48,6 +48,8 @@ KUBASH_VERSION='v1.9.3'
 : ${KUBASH_RSYNC_OPTS:='-H -aze'}
 : ${CALICO_URL:=https://docs.projectcalico.org/v3.0/getting-started/kubernetes/installation/hosted/kubeadm/1.7/calico.yaml}
 : ${FLANNEL_URL:=https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml}
+: ${USE_TRAEFIK_DAEMON_SET:='true'}
+: ${USE_TRAEFIK_RBAC:='true'}
 
 set -e
 
@@ -924,6 +926,22 @@ do_net () {
     VERSION="$(kubectl version | base64 | tr -d '\n')"
     kubectl --kubeconfig=$KUBECONFIG apply -f "https://cloud.weave.works/k8s/net?k8s-version=${VERSION}"
   fi
+}
+
+do_traefik () {
+  squawk 1 " do_traefik"
+  if [[ $USE_TRAEFIK_RBAC == 'true' ]]; then
+    kubectl --kubeconfig=$KUBECONFIG apply -f \
+    https://raw.githubusercontent.com/containous/traefik/master/examples/k8s/traefik-rbac.yaml
+  fi
+
+  if [[ $USE_TRAEFIK_DAEMON_SET == 'true' ]]; then
+    TRAEFIK_URL=https://github.com/containous/traefik/tree/master/examples/k8s/traefik-ds.yaml
+  else
+    TRAEFIK_URL=https://github.com/containous/traefik/tree/master/examples/k8s/traefik-deployment.yaml
+  fi
+  kubectl --kubeconfig=$KUBECONFIG apply -f \
+    $TRAEFIK_URL
 }
 
 do_tiller () {
@@ -3309,6 +3327,13 @@ main () {
       exit 1
     fi
     json2cluster $@
+  elif [[ $RAISON == "traefik" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      init_usage
+      exit 1
+    fi
+    do_traefik
   elif [[ $RAISON == "tiller" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
