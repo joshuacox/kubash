@@ -181,6 +181,8 @@ echo -n 'commands:
 kubectl_interactive_usage () {
 horizontal_rule
 echo -n 'kubectl shorthand commands:
+  # Show all the nodes and their status
+  kgp="kubectl get nodes"
   # Drop into an interactive terminal on a container
   keti="kubectl exec -ti"
   # Pod management.
@@ -2858,6 +2860,7 @@ kubash_interactive () {
       l|list) helm_passthru list                          ;;
       d|describe) kubectl_passthru describe $args         ;;
       keti) kubectl_passthru exec -ti $args               ;;
+      kgn) kubectl_passthru get nodes $args                ;;
       kgpa) kubectl_passthru get pods --all-namespaces $args ;;
       kgp) kubectl_passthru get pods $args                ;;
       klp) kubectl_passthru logs pods $args               ;;
