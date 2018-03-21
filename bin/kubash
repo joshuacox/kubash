@@ -182,7 +182,7 @@ kubectl_interactive_usage () {
 horizontal_rule
 echo -n 'kubectl shorthand commands:
   # Show all the nodes and their status
-  kgp="kubectl get nodes"
+  kgn="kubectl get nodes"
   # Drop into an interactive terminal on a container
   keti="kubectl exec -ti"
   # Pod management.
@@ -3402,6 +3402,14 @@ main () {
     elif [[ "$target_os" == "fedora" ]]; then
       if [[ -z "$target_build" ]]; then
         target_build=fedora-27-x86_64
+      fi
+    elif [[ "$target_os" == "kubeadm193" ]]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=kubeadm193-7.4-x86_64
+      fi
+    elif [[ "$target_os" == "ubuntu193" ]]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=ubuntu193-16.04-amd64
       fi
     elif [[ "$target_os" == "kubeadm194" ]]; then
       if [[ -z "$target_build" ]]; then
