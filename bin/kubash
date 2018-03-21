@@ -4,6 +4,7 @@ KUBASH_VERSION='v1.9.3'
 : ${KUBASH_CLUSTER_NAME=default}
 : ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_HISTORY:=$KUBASH_DIR/.kubash_history}
+: ${KUBASH_HISTORY_LIMIT:=5000}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${KUBASH_CLUSTERS_DIR:=$KUBASH_DIR/clusters}
 : ${KUBASH_CLUSTER_DIR:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME}
@@ -2832,7 +2833,7 @@ kubash_interactive () {
 
   while true
   do
-    myinput=$(rlwrap -f $KUBASH_DIR/.kubash_completions -s 777 -S 'K8$ ' -H $KUBASH_HISTORY -D=2 head -n1)
+    myinput=$(rlwrap -f $KUBASH_DIR/.kubash_completions -s $KUBASH_HISTORY_LIMIT -S 'K8$ ' -H $KUBASH_HISTORY -D=2 head -n1)
     read command args <<< $myinput
     squawk 29 "$command $args"
     case $command
