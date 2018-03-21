@@ -2841,7 +2841,7 @@ kubash_interactive () {
 
   while true
   do
-    myinput=$(rlwrap -f $KUBASH_DIR/.kubash_completions -s $KUBASH_HISTORY_LIMIT -S 'K8$ ' -H $KUBASH_HISTORY -D=2 head -n1)
+    myinput=$(rlwrap -f $KUBASH_DIR/.kubash_completions -s $KUBASH_HISTORY_LIMIT -S 'K8$ ' -H $KUBASH_HISTORY -D2 head -n1)
     read command args <<< $myinput
     squawk 29 "$command $args"
     case $command
