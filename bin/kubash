@@ -936,9 +936,9 @@ do_traefik () {
   fi
 
   if [[ $USE_TRAEFIK_DAEMON_SET == 'true' ]]; then
-    TRAEFIK_URL=https://raw.githubusercontent.com/containous/traefik/tree/master/examples/k8s/traefik-ds.yaml
+    TRAEFIK_URL=https://raw.githubusercontent.com/containous/traefik/master/examples/k8s/traefik-ds.yaml
   else
-    TRAEFIK_URL=https://raw.githubusercontent.com/containous/traefik/tree/master/examples/k8s/traefik-deployment.yaml
+    TRAEFIK_URL=https://raw.githubusercontent.com/containous/traefik/master/examples/k8s/traefik-deployment.yaml
   fi
   kubectl --kubeconfig=$KUBECONFIG apply -f \
     $TRAEFIK_URL
