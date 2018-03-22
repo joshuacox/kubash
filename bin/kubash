@@ -3453,6 +3453,14 @@ main () {
       if [[ -z "$target_build" ]]; then
         target_build=ubuntu195-16.04-amd64
       fi
+    elif [[ "$target_os" == "kubeadm196" ]]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=kubeadm196-7.4-x86_64
+      fi
+    elif [[ "$target_os" == "ubuntu196" ]]; then
+      if [[ -z "$target_build" ]]; then
+        target_build=ubuntu196-16.04-amd64
+      fi
     elif [[ "$target_os" == "coreos" ]]; then
       #override packer atm
       builder=coreos
