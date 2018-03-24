@@ -932,7 +932,7 @@ do_traefik () {
   squawk 1 " do_traefik"
   if [[ $USE_TRAEFIK_RBAC == 'true' ]]; then
     kubectl --kubeconfig=$KUBECONFIG apply -f \
-    $KUBASH_DIR/templats/traefik-rbac.yaml
+    $KUBASH_DIR/templates/traefik-rbac.yaml
   fi
 
   if [[ $USE_TRAEFIK_DAEMON_SET == 'true' ]]; then
