@@ -936,9 +936,9 @@ do_traefik () {
   fi
 
   if [[ $USE_TRAEFIK_DAEMON_SET == 'true' ]]; then
-    TRAEFIK_URL=$KUBASH_DIR/templats/traefik-ds.yaml
+    TRAEFIK_URL=$KUBASH_DIR/templates/traefik-ds.yaml
   else
-    TRAEFIK_URL=$KUBASH_DIR/templats/traefik-deployment.yaml
+    TRAEFIK_URL=$KUBASH_DIR/templates/traefik-deployment.yaml
   fi
   kubectl --kubeconfig=$KUBECONFIG apply -f \
     $TRAEFIK_URL
