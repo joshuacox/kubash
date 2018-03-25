@@ -95,7 +95,7 @@ set_csv_columns () {
     KUBASH_CSV_VER=$(cat $KUBASH_CSV_VER_FILE)
   fi
   if [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
-    csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_sshPort K8S_network1 K8S_mac1 K8S_ip1 K8S_routingprefix1 K8S_subnetmask1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_routingprefix2 K8S_subnetmask2 K8S_network3 K8S_mac3 K8S_ip3 K8S_routingprefix3 K8S_subnetmask3"
+    csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_sshPort K8S_network1 K8S_mac1 K8S_ip1 K8S_routingprefix1 K8S_subnetmask1 K8S_broadcast1 K8S_gateway1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_routingprefix2 K8S_subnetmask2 K8S_broadcast2 K8S_gateway2 K8S_network3 K8S_mac3 K8S_ip3 K8S_routingprefix3 K8S_subnetmask3 K8S_broadcast3 K8S_gateway3"
   elif [ "$KUBASH_CSV_VER" = '1.0.0' ]; then
     csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_sshPort K8S_network1 K8S_mac1 K8S_ip1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
   else
@@ -774,12 +774,22 @@ configure_secondary_network_interfaces () {
             $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
         else
           #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
-          this_interface=eth1 \
-          this_ip="address $K8S_ip2" \
-          this_netmask='255.255.255.0' \
-          this_network="" \
-          this_broadcast="" \
-          this_gateway="" \
+          export this_interface=eth1
+          if [ ! -z "$K8S_ip2" ]; then
+            export this_ip="address $K8S_ip2"
+          fi
+          if [ ! -z "$K8S_subnetmask2" ]; then
+            export this_netmask="netmask $K8S_subnetmask2"
+          fi
+          if [ ! -z "$K8S_routingprefix2" ]; then
+            export this_network="netmask $K8S_routingprefix2"
+          fi
+          if [ ! -z "$K8S_broadcast2" ]; then
+            export this_broadcast="broadcast $K8S_broadcast2"
+          fi
+          if [ ! -z "$K8S_gateway2" ]; then
+            export this_gateway="gateway $K8S_gateway2"
+          fi
           envsubst < $KUBASH_DIR/templates/debian-static.interface \
           > $configure_static_network_addresses_tmp/kubash_interface
           rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
@@ -797,12 +807,22 @@ configure_secondary_network_interfaces () {
             $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
         else
           #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
-          this_interface=eth2 \
-          this_ip="address $K8S_ip3" \
-          this_netmask='255.255.255.0' \
-          this_network="" \
-          this_broadcast="" \
-          this_gateway="" \
+          export this_interface=eth2
+          if [ ! -z "$K8S_ip3" ]; then
+            export this_ip="address $K8S_ip3"
+          fi
+          if [ ! -z "$K8S_subnetmask3" ]; then
+            export this_netmask="netmask $K8S_subnetmask3"
+          fi
+          if [ ! -z "$K8S_routingprefix3" ]; then
+            export this_network="netmask $K8S_routingprefix3"
+          fi
+          if [ ! -z "$K8S_broadcast3" ]; then
+            export this_broadcast="broadcast $K8S_broadcast3"
+          fi
+          if [ ! -z "$K8S_gateway3" ]; then
+            export this_gateway="gateway $K8S_gateway3"
+          fi
           envsubst < $KUBASH_DIR/templates/debian-static.interface \
           > $configure_static_network_addresses_tmp/kubash_interface
           rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
@@ -896,12 +916,13 @@ refresh_network_addresses () {
         ((++countzero))
       done
       set -e
-      squawk 6 "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_network1,$K8S_mac1,$this_node_ip,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_network3,$K8S_mac3,$K8S_ip3"
       KUBASH_CSV_VER=$(cat $KUBASH_CSV_VER_FILE)
       if [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
-        echo "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_sshPort,$K8S_network1,$K8S_mac1,$K8S_ip1,$K8S_routingprefix1,$K8S_subnetmask1,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_routingprefix2,$K8S_subnetmask2,$K8S_network3,$K8S_mac3,$K8S_ip3,$K8S_routingprefix3,$K8S_subnetmask3" \
+        squawk 6 "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_sshPort,$K8S_network1,$K8S_mac1,$K8S_ip1,$K8S_routingprefix1,$K8S_subnetmask1,$K8S_broadcast1,$K8S_gateway1,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_routingprefix2,$K8S_subnetmask2,$K8S_broadcast2,$K8S_gateway2,$K8S_network3,$K8S_mac3,$K8S_ip3,$K8S_routingprefix3,$K8S_subnetmask3,$K8S_broadcast3,$K8S_gateway3" \
+        echo "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_sshPort,$K8S_network1,$K8S_mac1,$K8S_ip1,$K8S_routingprefix1,$K8S_subnetmask1,$K8S_broadcast1,$K8S_gateway1,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_routingprefix2,$K8S_subnetmask2,$K8S_broadcast2,$K8S_gateway2,$K8S_network3,$K8S_mac3,$K8S_ip3,$K8S_routingprefix3,$K8S_subnetmask3,$K8S_broadcast3,$K8S_gateway3" \
           >> $KUBASH_HOSTS_CSV
       elif [ "$KUBASH_CSV_VER" = '1.0.0' ]; then
+        squawk 6 "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_network1,$K8S_mac1,$this_node_ip,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_network3,$K8S_mac3,$K8S_ip3"
         echo "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_sshPort,$K8S_network1,$K8S_mac1,$this_node_ip,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_network3,$K8S_mac3,$K8S_ip3" \
           >> $KUBASH_HOSTS_CSV
       else
@@ -2948,7 +2969,7 @@ json2cluster () {
   if [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
     # provision.csv
     jq -r \
-      '.hosts[] | "\(.hostname),\(.role),\(.cpuCount),\(.Memory),\(.sshPort),\(.network1.network),\(.network1.mac),\(.network1.ip),\(.network1.routingprefix),\(.network1.subnetmask),\(.provisioner.Host),\(.provisioner.User),\(.provisioner.Port),\(.provisioner.BasePath),\(.os),\(.virt),\(.network2.network),\(.network2.mac),\(.network2.ip),\(.network2.routingprefix),\(.network2.subnetmask),\(.network3.network),\(.network3.mac),\(.network3.ip),\(.network3.routingprefix),\(.network3.subnetmask)"' \
+      '.hosts[] | "\(.hostname),\(.role),\(.cpuCount),\(.Memory),\(.sshPort),\(.network1.network),\(.network1.mac),\(.network1.ip),\(.network1.routingprefix),\(.network1.subnetmask),\(.network1.broadcast),\(.network1.gateway),\(.provisioner.Host),\(.provisioner.User),\(.provisioner.Port),\(.provisioner.BasePath),\(.os),\(.virt),\(.network2.network),\(.network2.mac),\(.network2.ip),\(.network2.routingprefix),\(.network2.subnetmask),\(.network2.broadcast),\(.network2.gateway),\(.network3.network),\(.network3.mac),\(.network3.ip),\(.network3.routingprefix),\(.network3.subnetmask),\(.network3.broadcast),\(.network3.gateway)"' \
       $this_json >  $json2cluster_tmp/tmp.csv
   elif [ "$KUBASH_CSV_VER" = '1.0.0' ]; then
     # provision.csv
