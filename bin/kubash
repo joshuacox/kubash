@@ -734,6 +734,70 @@ provisioner () {
   done <<< "$slurpy"
 }
 
+configure_secondary_network_interfaces () {
+  squawk 1 "refresh_network_addresses"
+  slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
+  squawk 8 "$slurpy"
+  rm $KUBASH_HOSTS_CSV
+  touch $KUBASH_HOSTS_CSV
+  # "K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_sshPort K8S_network1 K8S_mac1 K8S_ip1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
+  configure_static_network_addresses_tmp=$(mktemp -d)
+  while IFS="," read -r $csv_columns
+  do
+    if [ "$K8S_os" = 'debian' -o "$K8S_os" = 'ubunutu' ]; then
+      if [ ! -z "$K8S_network2" ]; then
+        if [ "$K8S_network2" = 'dhcp' ]; then
+          this_interface=eth1 \
+          envsubst < $KUBASH_DIR/templates/debian-dhcp.interface \
+          > $configure_static_network_addresses_tmp/kubash_interface
+          rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
+            $configure_static_network_addresses_tmp/kubash_interface \
+            $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
+        else
+          #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
+          this_interface=eth1 \
+          this_ip="address $K8S_ip2" \
+          this_netmask='255.255.255.0' \
+          this_network="" \
+          this_broadcast="" \
+          this_gateway="" \
+          envsubst < $KUBASH_DIR/templates/debian-static.interface \
+          > $configure_static_network_addresses_tmp/kubash_interface
+          rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
+            $configure_static_network_addresses_tmp/kubash_interface \
+            $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
+        fi
+      fi
+      if [ ! -z "$K8S_network3" ]; then
+        if [ "$K8S_network3" = 'dhcp' ]; then
+          this_interface=eth2 \
+          envsubst < $KUBASH_DIR/templates/debian-dhcp.interface \
+          > $configure_static_network_addresses_tmp/kubash_interface
+          rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
+            $configure_static_network_addresses_tmp/kubash_interface \
+            $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
+        else
+          #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
+          this_interface=eth2 \
+          this_ip="address $K8S_ip3" \
+          this_netmask='255.255.255.0' \
+          this_network="" \
+          this_broadcast="" \
+          this_gateway="" \
+          envsubst < $KUBASH_DIR/templates/debian-static.interface \
+          > $configure_static_network_addresses_tmp/kubash_interface
+          rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
+            $configure_static_network_addresses_tmp/kubash_interface \
+            $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
+        fi
+      fi
+    fi
+  done <<< "$slurpy"
+  rm $configure_static_network_addresses_tmp/kubash_interface
+  rmdir $configure_static_network_addresses_tmp
+  squawk 19 'static network addresses configured'
+}
+
 refresh_network_addresses () {
   squawk 1 "refresh_network_addresses"
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
