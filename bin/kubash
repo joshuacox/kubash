@@ -937,6 +937,7 @@ refresh_network_addresses () {
 copy_image_to_all_provisioning_hosts () {
   squawk 1 "copy_image_to_all_provisioning_hosts"
 
+  KUBASH_CSV_VER=$(cat $KUBASH_CSV_VER_FILE)
   if [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
     uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f13,14,15,16,17,18|sort|uniq)"
   elif [ "$KUBASH_CSV_VER" = '1.0.0' ]; then
