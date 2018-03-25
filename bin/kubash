@@ -937,7 +937,7 @@ refresh_network_addresses () {
 copy_image_to_all_provisioning_hosts () {
   squawk 1 "copy_image_to_all_provisioning_hosts"
 
-  uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f9,10,11,12,13,14|sort|uniq)"
+  uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f13,14,15,16,17,18|sort|uniq)"
   squawk 8 "$uniq_hosts"
   copy_image_tmp_para=$(mktemp -d)
   touch $copy_image_tmp_para/hopper
@@ -2633,7 +2633,7 @@ do_command_in_parallel_on_role () {
   fi
   set_csv_columns
   while IFS="," read -r $csv_columns
-  do 
+  do
     if [[ "$K8S_role" == "$role2runiton" ]]; then
       squawk 19 " count $countzero_do_nodes"
       squawk 5 "ssh -n -p $K8S_sshPort $K8S_SU_USER@$K8S_ip1 \"sudo bash -c '$command2run'\""
