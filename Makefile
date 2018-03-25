@@ -332,6 +332,15 @@ $(KUBASH_BIN)/ct:
 	&& mv ct $(KUBASH_BIN)/
 	rm -Rf $(TMP)
 
+onessl: $(KUBASH_BIN)/onessl
+
+$(KUBASH_BIN)/onessl:
+	$(eval TMP := $(shell mktemp -d --suffix=ONESSLTMP))
+	curl -fsSL -o $(TMP)/onessl https://github.com/kubepack/onessl/releases/download/0.1.0/onessl-linux-amd64
+	chmod +x $(TMP)/onessl
+	mv $(TMP)/onessl $(KUBASH_BIN)/
+	rm -Rf $(TMP)
+
 submodules/openebs:
 	cd submodules; git clone https://github.com/openebs/openebs.git
 

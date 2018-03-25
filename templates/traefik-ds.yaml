@@ -41,6 +41,16 @@ spec:
         - --api
         - --kubernetes
         - --logLevel=INFO
+      volumes:
+      - name: config
+        configMap:
+          name: traefik-ingress-lb
+      - name: ssl
+        secret:
+          secretName: traefik-ingress-lb-default-cert
+      - name: acme
+        persistentVolumeClaim:
+          claimName: traefik-ingress-lb-acme
 ---
 kind: Service
 apiVersion: v1
