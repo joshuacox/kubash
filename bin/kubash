@@ -51,6 +51,7 @@ KUBASH_VERSION='v1.9.3'
 : ${USE_TRAEFIK_DAEMON_SET:='true'}
 : ${USE_TRAEFIK_RBAC:='true'}
 : ${VOYAGER_PROVIDER:='baremetal'}
+: ${VOYAGER_BY_HELM:= "false"}
 : ${VOYAGER_ADMISSIONWEBHOOK:='--set apiserver.enableAdmissionWebhook=true'}
 
 set -e
@@ -932,10 +933,16 @@ do_net () {
 
 do_voyager () {
   squawk 1 " do_voyager"
+  if [ "$VOYAGER_BY_HELM" = "true" ]; then
   helm install stable/voyager --name voyager \
     --set cloudProvider=$VOYAGER_PROVIDER \
     --set apiserver.ca="$(onessl get kube-ca)" \
     $VOYAGER_ADMISSIONWEBHOOK
+  else
+  curl -fsSL \
+    https://raw.githubusercontent.com/appscode/voyager/6.0.0/hack/deploy/voyager.sh \
+    | bash -s -- --provider=$VOYAGER_PROVIDER
+  fi
 }
 
 do_traefik () {
