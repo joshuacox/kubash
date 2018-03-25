@@ -99,7 +99,7 @@ set_csv_columns () {
   elif [ "$KUBASH_CSV_VER" = '1.0.0' ]; then
     csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_sshPort K8S_network1 K8S_mac1 K8S_ip1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_network3 K8S_mac3 K8S_ip3"
   else
-    echo 'CSV columns cannot be set API Version not recognized'
+    echo 'CSV columns cannot be set CSV Version not recognized'
     exit 1
   fi
 }
@@ -926,7 +926,7 @@ refresh_network_addresses () {
         echo "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_sshPort,$K8S_network1,$K8S_mac1,$this_node_ip,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_network3,$K8S_mac3,$K8S_ip3" \
           >> $KUBASH_HOSTS_CSV
       else
-        echo 'CSV columns cannot be set API Version not recognized'
+        echo 'CSV columns cannot be set CSV Version not recognized'
         exit 1
       fi
       this_node_ip=''
@@ -937,7 +937,14 @@ refresh_network_addresses () {
 copy_image_to_all_provisioning_hosts () {
   squawk 1 "copy_image_to_all_provisioning_hosts"
 
-  uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f13,14,15,16,17,18|sort|uniq)"
+  if [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
+    uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f13,14,15,16,17,18|sort|uniq)"
+  elif [ "$KUBASH_CSV_VER" = '1.0.0' ]; then
+    uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f9,10,11,12,13,14|sort|uniq)"
+  else
+    echo 'CSV columns cannot be set CSV Version not recognized'
+    exit 1
+  fi
   squawk 8 "$uniq_hosts"
   copy_image_tmp_para=$(mktemp -d)
   touch $copy_image_tmp_para/hopper
@@ -2977,7 +2984,7 @@ json2cluster () {
       '.hosts[] | "\(.hostname),\(.role),\(.cpuCount),\(.Memory),\(.sshPort),\(.network1.network),\(.network1.mac),\(.network1.ip),\(.provisioner.Host),\(.provisioner.User),\(.provisioner.Port),\(.provisioner.BasePath),\(.os),\(.virt),\(.network2.network),\(.network2.mac),\(.network2.ip),\(.network3.network),\(.network3.mac),\(.network3.ip)"' \
       $this_json >  $json2cluster_tmp/tmp.csv
   else
-    echo 'CSV columns cannot be set API Version not recognized'
+    echo 'CSV columns cannot be set CSV Version not recognized'
     exit 1
   fi
 
@@ -3005,7 +3012,7 @@ json2cluster () {
       echo "$K8S_node,$K8S_role,$K8S_cpuCount,$K8S_Memory,$K8S_sshPort,$K8S_network1,$K8S_mac1,$K8S_ip1,$K8S_provisionerHost,$K8S_provisionerUser,$K8S_provisionerPort,$K8S_provisionerBasePath,$K8S_os,$K8S_virt,$K8S_network2,$K8S_mac2,$K8S_ip2,$K8S_network3,$K8S_mac3,$K8S_ip3" \
         >>  $json2cluster_tmp/provision.csv
     else
-      echo 'CSV columns cannot be set API Version not recognized'
+      echo 'CSV columns cannot be set CSV Version not recognized'
       exit 1
     fi
   done < "$json2cluster_tmp/tmp.csv"
