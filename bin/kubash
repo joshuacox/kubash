@@ -3411,21 +3411,28 @@ main () {
   elif [[ $RAISON == "voyager" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
-      init_usage
+      usage
       exit 1
     fi
     do_voyager
+  elif [[ $RAISON == "configure_interfaces" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+    configure_secondary_network_interfaces
   elif [[ $RAISON == "traefik" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
-      init_usage
+      usage
       exit 1
     fi
     do_traefik
   elif [[ $RAISON == "tiller" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
-      init_usage
+      usage
       exit 1
     fi
     do_tiller
