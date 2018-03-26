@@ -2029,7 +2029,7 @@ finish_pki_for_masters () {
   command2run='mkdir -p /etc/kubernetes/pki/etcd'
   sudo_command $this_port $this_user $this_host "$command2run"
   squawk 5 'cp the etcd pki files'
-  command2run='cp /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/'
+  command2run="cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/"
   sudo_command $this_port $this_user $this_host "$command2run"
 }
 
@@ -2059,7 +2059,7 @@ finish_etcd () {
     squawk 9 'Etcd binary already downloaded'
   else
     cd $KUBASH_DIR/tmp
-    wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz 
+    wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
   fi
   command2run='id -u etcd &>/dev/null || useradd etcd'
   sudo_command $this_port $this_user $this_host "$command2run"
