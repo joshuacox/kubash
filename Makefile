@@ -182,6 +182,18 @@ all-examples:
 	sed -i 's/node0/coreosn0/' $(KUBASH_DIR)/clusters/coreos/provision.csv
 	sed -i 's/8a/a1/g' $(KUBASH_DIR)/clusters/coreos/provision.csv
 	sed -i 's/^my-/coreos-/' $(KUBASH_DIR)/clusters/coreos/provision.csv
+	# Kubeadm196
+	rsync -av example/ kubeadm196; \
+	sed -i 's/kubeadm/kubeadm196/' $(KUBASH_DIR)/clusters/kubeadm196/provision.csv
+	sed -i 's/master0/kubeadm196m0/' $(KUBASH_DIR)/clusters/kubeadm196/provision.csv
+	sed -i 's/node0/kubeadm196n0/' $(KUBASH_DIR)/clusters/kubeadm196/provision.csv
+	sed -i 's/8a/c0/g' $(KUBASH_DIR)/clusters/kubeadm196/provision.csv
+	# ubuntu196
+	rsync -av example/ ubuntu196; \
+	sed -i 's/kubeadm/ubuntu196/' $(KUBASH_DIR)/clusters/ubuntu196/provision.csv
+	sed -i 's/master0/ubuntu196m0/' $(KUBASH_DIR)/clusters/ubuntu196/provision.csv
+	sed -i 's/node0/ubuntu196n0/' $(KUBASH_DIR)/clusters/ubuntu196/provision.csv
+	sed -i 's/8a/b0/g' $(KUBASH_DIR)/clusters/ubuntu196/provision.csv
 
 example:
 	rm -Rf $(KUBASH_DIR)/clusters/example
