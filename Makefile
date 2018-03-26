@@ -146,8 +146,9 @@ all-examples:
 	rsync -av example/ centos; \
 	rsync -av example/ debian; \
 	rsync -av example/ ubuntu; \
-	rsync -av example/ coreos;
+	rsync -av example/ coreos; \
 	rsync -av example/ kubeadm196; \
+	rsync -av example/ ubuntu196;
 	sed -i 's/kubeadm/openshift/' $(KUBASH_DIR)/clusters/openshift/provision.csv
 	sed -i 's/master0/openshiftm0/' $(KUBASH_DIR)/clusters/openshift/provision.csv
 	sed -i 's/node0/openshiftn0/' $(KUBASH_DIR)/clusters/openshift/provision.csv
