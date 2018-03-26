@@ -2195,7 +2195,7 @@ prep_init_etcd () {
   squawk 5 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' ${KUBASH_BIN}/cfssljson $this_user@$this_host:/tmp/cfssljson"
   rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" "${KUBASH_BIN}/cfssljson" $this_user@$this_host:/tmp/cfssljson
   copy_in_parallel_to_all "${KUBASH_BIN}/cfssljson" "/tmp/cfssljson"
-  command2run='mv /tmp/cfssljson /usr/local/bin/cfssljson'
+  command2run='cp /tmp/cfssljson /usr/local/bin/cfssljson'
   sudo_command $this_port $this_user $this_host "$command2run"
   do_command_in_parallel "$command2run"
 
@@ -2482,7 +2482,7 @@ do_command_in_parallel () {
   do_command_tmp_para=$(mktemp -d)
   command2run=$1
   touch $do_command_tmp_para/hopper
-  squawk 3 " do_command_in_parallel $1"
+  squawk 3 " do_command_in_parallel $@"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     squawk 19 'slurp empty'
     hosts_csv_slurp
@@ -2513,9 +2513,9 @@ do_command_in_parallel () {
 }
 
 do_command () {
-  squawk 3 " do_command $@" 
+  squawk 3 " do_command $@"
   if [[ ! $# -eq 4 ]]; then
-    echo "do_command $@ <--- arguments does not equal 4!!!" 
+    echo "do_command $@ <--- arguments does not equal 4!!!"
     exit 1
   fi
   this_port=$1
@@ -2533,10 +2533,10 @@ do_command () {
 
 sudo_command () {
   if [[ ! $# -eq 4 ]]; then
-    echo "sudo_command $@ <--- arguments does not equal 4!!!" 
+    echo "sudo_command $@ <--- arguments does not equal 4!!!"
     exit 1
   fi
-  squawk 3 " sudo_command '$1' '$2' '$3 '$4'" 
+  squawk 3 " sudo_command '$1' '$2' '$3 '$4'"
   this_port=$1
   this_user=$2
   this_host=$3
@@ -2647,7 +2647,7 @@ do_command_in_parallel_on_role () {
   role2runiton=$1
   command2run=$2
   touch $do_command_on_role_tmp_para/hopper
-  squawk 3 " do_command_in_parallel $@"
+  squawk 3 " do_command_in_parallel_on_role $@"
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
     hosts_csv_slurp
   fi
