@@ -2015,11 +2015,11 @@ grant_users () {
 }
 
 finish_pki_for_masters () {
-  squawk 5 'finish_pki_for_masters $@'
+  squawk 5 "finish_pki_for_masters $@"
   if [[ $# -ne 4 ]]; then
     kubash_interactive
     echo 'Arguments does not equal 4!'
-    echo 'Arguments: $@'
+    echo "Arguments: $@"
     exit 1
   fi
   this_user=$1
