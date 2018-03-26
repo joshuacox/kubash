@@ -159,3 +159,4 @@ EOF
 chmod +x /etc/network/if-up.d/show-ip-address
 
 echo 'PATH=/usr/local/bin:$PATH' >> /root/.bash_profile
+docker version
