@@ -774,7 +774,7 @@ configure_secondary_network_interfaces () {
         squawk 7 "K8S_network2 is null"
       else
         squawk 7 "K8S_network2 is $K8S_network2"
-        if [ "$K8S_network2" = 'dhcp' ]; then
+        if [ "$K8S_ip2" = 'dhcp' ]; then
           squawk 7 "network2 is DHCP"
           this_interface=eth1 \
           envsubst < $KUBASH_DIR/templates/debian-dhcp.interface \
@@ -816,7 +816,7 @@ configure_secondary_network_interfaces () {
         squawk 7 "K8S_network3 is null"
       else
         squawk 7 "K8S_network3 is $K8S_network3"
-        if [ "$K8S_network3" = 'dhcp' ]; then
+        if [ "$K8S_ip3" = 'dhcp' ]; then
           this_interface=eth2 \
           envsubst < $KUBASH_DIR/templates/debian-dhcp.interface \
           > $configure_static_network_addresses_tmp/kubash_interface
