@@ -810,6 +810,8 @@ configure_secondary_network_interfaces () {
           command2run="mv -v /tmp/kubash_interface-$this_interface.cfg /etc/network/interfaces.d/kubash_interface-$this_interface.cfg"
           sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
         fi
+        command2run="ifup $this_interface"
+        sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
       fi
       if [ "$K8S_network3" = 'null' ]; then
         squawk 7 "K8S_network3 is null"
@@ -849,6 +851,8 @@ configure_secondary_network_interfaces () {
           command2run="mv -v /tmp/kubash_interface-$this_interface.cfg /etc/network/interfaces.d/kubash_interface-$this_interface.cfg"
           sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
         fi
+        command2run="ifup $this_interface"
+        sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
       fi
     fi
   done <<< "$slurpy"
