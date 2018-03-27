@@ -794,7 +794,7 @@ configure_secondary_network_interfaces () {
             export this_netmask="netmask $K8S_subnetmask2"
           fi
           if [ ! "$K8S_routingprefix2" = 'null' ]; then
-            export this_network="netmask $K8S_routingprefix2"
+            export this_network="network $K8S_routingprefix2"
           fi
           if [ ! "$K8S_broadcast2" = 'null' ]; then
             export this_broadcast="broadcast $K8S_broadcast2"
@@ -835,7 +835,7 @@ configure_secondary_network_interfaces () {
             export this_netmask="netmask $K8S_subnetmask3"
           fi
           if [ ! "$K8S_routingprefix3" = 'null' ]; then
-            export this_network="netmask $K8S_routingprefix3"
+            export this_network="network $K8S_routingprefix3"
           fi
           if [ ! "$K8S_broadcast3" = 'null' ]; then
             export this_broadcast="broadcast $K8S_broadcast3"
