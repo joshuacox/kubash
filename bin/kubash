@@ -476,7 +476,7 @@ decom_kvm () {
   do
     squawk 19 "Loop $K8S_node $K8S_user $K8S_ip1 $K8S_provisionerPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
     set +e
-    kvm-decommer $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort $K8S_provisionerBasePath 
+    kvm-decommer $K8S_node $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerPort $K8S_provisionerBasePath
     set -e
   done <<< "$kubash_provision_csv_slurped"
   squawk 16 'Looped through all hosts to be decommissioned'
@@ -768,9 +768,14 @@ configure_secondary_network_interfaces () {
   set_csv_columns
   while IFS="," read -r $csv_columns
   do
+    squawk 7 "Os is $K8S_os"
     if [ "$K8S_os" = 'debian' -o "$K8S_os" = 'ubunutu' ]; then
-      if [ ! -z "$K8S_network2" ]; then
+      if [ "$K8S_network2" = 'null' ]; then
+        squawk 7 "K8S_network2 is null"
+      else
+        squawk 7 "K8S_network2 is $K8S_network2"
         if [ "$K8S_network2" = 'dhcp' ]; then
+          squawk 7 "network2 is DHCP"
           this_interface=eth1 \
           envsubst < $KUBASH_DIR/templates/debian-dhcp.interface \
           > $configure_static_network_addresses_tmp/kubash_interface
@@ -778,6 +783,7 @@ configure_secondary_network_interfaces () {
             $configure_static_network_addresses_tmp/kubash_interface \
             $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
         else
+          squawk 7 "network2 is static setting"
           #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
           export this_interface=eth1
           if [ ! -z "$K8S_ip2" ]; then
@@ -802,7 +808,10 @@ configure_secondary_network_interfaces () {
             $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
         fi
       fi
-      if [ ! -z "$K8S_network3" ]; then
+      if [ "$K8S_network3" = 'null' ]; then
+        squawk 7 "K8S_network3 is null"
+      else
+        squawk 7 "K8S_network3 is $K8S_network3"
         if [ "$K8S_network3" = 'dhcp' ]; then
           this_interface=eth2 \
           envsubst < $KUBASH_DIR/templates/debian-dhcp.interface \
