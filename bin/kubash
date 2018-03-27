@@ -781,7 +781,9 @@ configure_secondary_network_interfaces () {
           > $configure_static_network_addresses_tmp/kubash_interface
           rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
             $configure_static_network_addresses_tmp/kubash_interface \
-            $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
+            $K8S_SU_USER@$K8S_ip1:/tmp/kubash_interface-$this_interface.cfg
+          command2run="mv -v /tmp/kubash_interface-$this_interface.cfg /etc/network/interfaces.d/kubash_interface-$this_interface.cfg"
+          sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
         else
           squawk 7 "network2 is static setting"
           #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
@@ -805,7 +807,9 @@ configure_secondary_network_interfaces () {
           > $configure_static_network_addresses_tmp/kubash_interface
           rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
             $configure_static_network_addresses_tmp/kubash_interface \
-            $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
+            $K8S_SU_USER@$K8S_ip1:/tmp/kubash_interface-$this_interface.cfg
+          command2run="mv -v /tmp/kubash_interface-$this_interface.cfg /etc/network/interfaces.d/kubash_interface-$this_interface.cfg"
+          sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
         fi
       fi
       if [ "$K8S_network3" = 'null' ]; then
@@ -818,7 +822,9 @@ configure_secondary_network_interfaces () {
           > $configure_static_network_addresses_tmp/kubash_interface
           rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
             $configure_static_network_addresses_tmp/kubash_interface \
-            $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
+            $K8S_SU_USER@$K8S_ip1:/tmp/kubash_interface-$this_interface.cfg
+          command2run="mv -v /tmp/kubash_interface-$this_interface.cfg /etc/network/interfaces.d/kubash_interface-$this_interface.cfg"
+          sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
         else
           #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
           export this_interface=eth2
@@ -841,9 +847,10 @@ configure_secondary_network_interfaces () {
           > $configure_static_network_addresses_tmp/kubash_interface
           rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
             $configure_static_network_addresses_tmp/kubash_interface \
-            $K8S_SU_USER@$K8S_ip1:/etc/network/interfaces.d/kubash_interface-$this_interface.cfg
+            $K8S_SU_USER@$K8S_ip1:/tmp/kubash_interface-$this_interface.cfg
+          command2run="mv -v /tmp/kubash_interface-$this_interface.cfg /etc/network/interfaces.d/kubash_interface-$this_interface.cfg"
+          sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
         fi
-        sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
       fi
     fi
   done <<< "$slurpy"
