@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 KUBASH_VERSION='v1.9.6'
-: ${KUBERNETES_VERSION:=$KUBASH_VERSION}
 : ${KUBASH_CLUSTER_NAME=default}
 : ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_HISTORY:=$KUBASH_DIR/.kubash_history}
@@ -1763,7 +1762,7 @@ master_init_join () {
     squawk 3 'master_init_join kubeadm init'
     if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
       kubeadmin_config_tmp=$(mktemp)
-      KUBERNETES_VERSION=$KUBERNETES_VERSION \
+      KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
       my_master_ip=$my_master_ip \
       load_balancer_ip=$K8S_load_balancer_ip \
       my_KUBE_CIDR=$my_KUBE_CIDR \
@@ -2394,7 +2393,7 @@ do_masters_in_parallel () {
   if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
     kubeadmin_config_tmp=$(mktemp)
     my_master_ip=$my_master_ip \
-    KUBERNETES_VERSION=$KUBERNETES_VERSION \
+    KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
     load_balancer_ip=$K8S_load_balancer_ip \
     my_KUBE_CIDR=$my_KUBE_CIDR \
     ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
@@ -2983,6 +2982,10 @@ json2cluster () {
   # should be a string not an int!
   jq -r '.csv_version | "\(.)" ' \
     $this_json > $json2cluster_tmp/csv_version
+  # kubernetes_version
+  # should be a string not an int!
+  jq -r '.kubernetes_version | "\(.)" ' \
+    $this_json > $json2cluster_tmp/kubernetes_version
 
   KUBASH_CSV_VER=$(cat $json2cluster_tmp/csv_version)
   squawk 11 "CSV_VER=$KUBASH_CSV_VER"

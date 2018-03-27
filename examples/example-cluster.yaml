@@ -1,5 +1,6 @@
 ---
   csv_version: '2.0.0'
+  kubernetes_version: 'v1.9.6'
   hosts:
     my-master1:
       hostname: master01
