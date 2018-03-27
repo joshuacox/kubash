@@ -854,7 +854,7 @@ configure_secondary_network_interfaces () {
   done <<< "$slurpy"
   rm $configure_static_network_addresses_tmp/kubash_interface
   rmdir $configure_static_network_addresses_tmp
-  squawk 19 'static network addresses configured'
+  squawk 19 'secondary network interfaces configured'
 }
 
 refresh_network_addresses () {
