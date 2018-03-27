@@ -774,9 +774,9 @@ configure_secondary_network_interfaces () {
         squawk 7 "K8S_network2 is null"
       else
         squawk 7 "K8S_network2 is $K8S_network2"
+        export this_interface=eth1
         if [ "$K8S_ip2" = 'dhcp' ]; then
           squawk 7 "network2 is DHCP"
-          this_interface=eth1 \
           envsubst < $KUBASH_DIR/templates/debian-dhcp.interface \
           > $configure_static_network_addresses_tmp/kubash_interface
           rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
@@ -787,7 +787,6 @@ configure_secondary_network_interfaces () {
         else
           squawk 7 "network2 is static setting"
           #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
-          export this_interface=eth1
           if [ ! "$K8S_ip2" = 'null' ]; then
             export this_ip="address $K8S_ip2"
           fi
@@ -816,8 +815,8 @@ configure_secondary_network_interfaces () {
         squawk 7 "K8S_network3 is null"
       else
         squawk 7 "K8S_network3 is $K8S_network3"
+        export this_interface=eth2
         if [ "$K8S_ip3" = 'dhcp' ]; then
-          this_interface=eth2 \
           envsubst < $KUBASH_DIR/templates/debian-dhcp.interface \
           > $configure_static_network_addresses_tmp/kubash_interface
           rsync $KUBASH_RSYNC_OPTS "ssh -p $K8S_sshPort" \
@@ -827,7 +826,6 @@ configure_secondary_network_interfaces () {
           sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
         else
           #sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
-          export this_interface=eth2
           if [ ! "$K8S_ip3" = 'null' ]; then
             export this_ip="address $K8S_ip3"
           fi
