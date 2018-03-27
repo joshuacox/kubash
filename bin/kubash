@@ -764,8 +764,6 @@ configure_secondary_network_interfaces () {
   squawk 1 "configure_secondary_network_interfaces"
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   squawk 8 "$slurpy"
-  rm $KUBASH_HOSTS_CSV
-  touch $KUBASH_HOSTS_CSV
   configure_static_network_addresses_tmp=$(mktemp -d)
   set_csv_columns
   while IFS="," read -r $csv_columns
