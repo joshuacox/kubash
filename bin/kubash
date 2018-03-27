@@ -3484,6 +3484,15 @@ main () {
     DO_MASTER_JOIN=true
     initialize
     do_grab
+  elif [[ $RAISON == "minit" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      init_usage
+      exit 1
+    fi
+    DO_MASTER_JOIN=false
+    DO_NODE_JOIN=false
+    initialize
   elif [[ $RAISON == "nodes" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
