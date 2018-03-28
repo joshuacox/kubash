@@ -769,7 +769,7 @@ configure_secondary_network_interfaces () {
   while IFS="," read -r $csv_columns
   do
     squawk 7 "Os is $K8S_os"
-    if [ "$K8S_os" = 'debian' -o "$K8S_os" = 'ubuntu' ]; then
+    if [[ "$K8S_os" =~ 'debian*' -o "$K8S_os" =~ 'ubuntu*' ]]; then
       if [ "$K8S_network2" = 'null' ]; then
         squawk 7 "K8S_network2 is null"
       else
@@ -854,6 +854,8 @@ configure_secondary_network_interfaces () {
         command2run="ifup $this_interface"
         sudo_command $K8S_sshPort $K8S_SU_USER $K8S_ip1 "$command2run"
       fi
+    else
+      squawk 1 "OS not supported by network configurator"
     fi
   done <<< "$slurpy"
   rm $configure_static_network_addresses_tmp/kubash_interface
