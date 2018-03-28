@@ -768,7 +768,7 @@ configure_secondary_network_interfaces () {
   set_csv_columns
   while IFS="," read -r $csv_columns
   do
-    if [ "$K8S_os" = 'debian' -o "$K8S_os" = 'ubunutu' ]; then
+    if [[ "$K8S_os" =~ 'debian*' -o "$K8S_os" =~ 'ubuntu*' ]]; then
       if [ ! -z "$K8S_network2" ]; then
         if [ "$K8S_network2" = 'dhcp' ]; then
           this_interface=eth1 \
