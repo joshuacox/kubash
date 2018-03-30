@@ -54,6 +54,7 @@ KUBASH_VERSION='v1.9.6'
 : ${VOYAGER_PROVIDER:='baremetal'}
 : ${VOYAGER_BY_HELM:= "false"}
 : ${VOYAGER_ADMISSIONWEBHOOK:='--set apiserver.enableAdmissionWebhook=true'}
+: ${LINKERD_URL:='https://raw.githubusercontent.com/linkerd/linkerd-examples/master/k8s-daemonset/k8s/linkerd-ingress-controller.yml'}
 
 set -e
 
@@ -1099,6 +1100,19 @@ do_voyager () {
     https://raw.githubusercontent.com/appscode/voyager/6.0.0/hack/deploy/voyager.sh \
     | bash -s -- --provider=$VOYAGER_PROVIDER
   fi
+}
+
+do_linkerd () {
+  squawk 1 " do_linkerd"
+  kubectl --kubeconfig=$KUBECONFIG \
+    create ns l5d-system
+  kubectl --kubeconfig=$KUBECONFIG \
+    -n l5d-system \
+    apply -f \
+    $LINKERD_URL
+  squawk 1 "kubectl create ns l5d-system"
+  squawk 1 "kubectl apply -f https://raw.githubusercontent.com/linkerd/linkerd-examples/master/k8s-daemonset/k8s/linkerd-ingress-controller.yml -n l5d-system"
+  squawk 1 "visit this page: https://buoyant.io/2017/04/06/a-service-mesh-for-kubernetes-part-viii-linkerd-as-an-ingress-controller/"
 }
 
 do_traefik () {
@@ -3590,6 +3604,13 @@ main () {
       exit 1
     fi
     do_traefik
+  elif [[ $RAISON == "linkerd" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+    do_linkerd
   elif [[ $RAISON == "tiller" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
