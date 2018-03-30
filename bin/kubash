@@ -3536,6 +3536,8 @@ main () {
       kubeadm_reset
       initialize
       do_grab
+      ping
+      exit 0
     elif [[ "$initializer" == "kubespray" ]]; then
       kubespray_initialize
       exit 0
