@@ -1102,15 +1102,11 @@ do_voyager () {
     --set apiserver.ca="$(onessl get kube-ca)" \
     $VOYAGER_ADMISSIONWEBHOOK
   else
-  KUBECONFIG=$KUBECONFIG \
-  curl -fsSL \
+    KUBECONFIG=$KUBECONFIG \
+    curl -fsSL \
     https://raw.githubusercontent.com/appscode/voyager/6.0.0/hack/deploy/voyager.sh \
-    | bash -s -- --provider=$VOYAGER_PROVIDER
+        | bash -s -- --provider=$VOYAGER_PROVIDER --rbac
   fi
-  # lets encrypt
-  KUBECONFIG=$KUBECONFIG \
-  curl -fsSL https://raw.githubusercontent.com/appscode/voyager/6.0.0/hack/deploy/voyager.sh \
-      | bash -s -- --provider=$VOYAGER_PROVIDER --rbac
 }
 
 do_linkerd () {
