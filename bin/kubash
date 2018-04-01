@@ -3369,6 +3369,8 @@ main () {
       -n $KUBASH_CLUSTER_NAME
     kubash ping \
       -n $KUBASH_CLUSTER_NAME
+    kubash configure_interfaces \
+      -n $KUBASH_CLUSTER_NAME
     kubash init \
       -n $KUBASH_CLUSTER_NAME
     sleep 10
@@ -3378,7 +3380,11 @@ main () {
     kubash tiller  \
       -n $KUBASH_CLUSTER_NAME
     sleep 10
-    kubash ingress \
+    kubash voyager \
+      -n $KUBASH_CLUSTER_NAME
+    kubash searchlight \
+      -n $KUBASH_CLUSTER_NAME
+    kubash taint_ingress \
       -n $KUBASH_CLUSTER_NAME
     squawk 1 "Full auto finished"
     exit 0
