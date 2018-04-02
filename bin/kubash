@@ -1058,22 +1058,47 @@ do_nginx_ingress () {
 }
 
 demo () {
-   cd $KUBASH_DIR/submodules/openebs/k8s/demo/crunchy-postgres
-   KUBECONFIG=$KUBECONFIG bash run.sh
-   cd $KUBASH_DIR/submodules/openebs/k8s/demo/rabbitmq
-   KUBECONFIG=$KUBECONFIG bash run.sh
-   cd $KUBASH_DIR/submodules/openebs/k8s/demo/percona
-   kubectl --kubeconfig=$KUBECONFIG apply -f \
-     demo-percona-mysql-pvc.yaml
-   cd $KUBASH_DIR/submodules/openebs/k8s/demo/jupyter
-   kubectl --kubeconfig=$KUBECONFIG apply -f \
-     demo-jupyter-openebs.yaml
-   cd $KUBASH_DIR/submodules/openebs/k8s/demo/mongodb
-   kubectl --kubeconfig=$KUBECONFIG apply -f \
-     mongo-statefulset.yml
-   cd $KUBASH_DIR/submodules/openebs/k8s/demo/jenkins
-   kubectl --kubeconfig=$KUBECONFIG apply -f \
-     jenkins.yml
+  do_postgres
+  do_rabbitmq
+  do_percona
+  do_jupyter
+  do_mongodb
+  do_jenkins
+  do_kafka
+}
+
+do_postgres () {
+  cd $KUBASH_DIR/submodules/openebs/k8s/demo/crunchy-postgres
+  KUBECONFIG=$KUBECONFIG bash run.sh
+}
+
+do_rabbitmq () {
+  cd $KUBASH_DIR/submodules/openebs/k8s/demo/rabbitmq
+  KUBECONFIG=$KUBECONFIG bash run.sh
+}
+
+do_percona () {
+  cd $KUBASH_DIR/submodules/openebs/k8s/demo/percona
+  kubectl --kubeconfig=$KUBECONFIG apply -f \
+   demo-percona-mysql-pvc.yaml
+}
+
+do_jupyter () {
+  cd $KUBASH_DIR/submodules/openebs/k8s/demo/jupyter
+  kubectl --kubeconfig=$KUBECONFIG apply -f \
+   demo-jupyter-openebs.yaml
+}
+
+do_mongodb () {
+  cd $KUBASH_DIR/submodules/openebs/k8s/demo/mongodb
+  kubectl --kubeconfig=$KUBECONFIG apply -f \
+   mongo-statefulset.yml
+}
+
+do_jenkins () {
+  cd $KUBASH_DIR/submodules/openebs/k8s/demo/jenkins
+  kubectl --kubeconfig=$KUBECONFIG apply -f \
+   jenkins.yml
 }
 
 do_kafka () {
@@ -3663,6 +3688,48 @@ main () {
       exit 1
     fi
     do_kafka
+  elif [[ $RAISON == "postgres" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+  do_postgres
+  elif [[ $RAISON == "rabbitmq" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+  do_rabbitmq
+  elif [[ $RAISON == "percona" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+  do_percona
+  elif [[ $RAISON == "jupyter" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+  do_jupyter
+  elif [[ $RAISON == "mongodb" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+  do_mongodb
+  elif [[ $RAISON == "jenkins" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+  do_jenkins
   elif [[ $RAISON == "voyager" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
