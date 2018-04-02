@@ -1076,6 +1076,19 @@ demo () {
      jenkins.yml
 }
 
+do_kafka () {
+  squawk 1 " do_kafka"
+  KUBECONFIG=$KUBECONFIG \
+  helm \
+    repo add incubator http://storage.googleapis.com/kubernetes-charts-incubator
+
+  KUBECONFIG=$KUBECONFIG \
+  helm install \
+  --name my-kafka \
+  incubator/kafka \
+    --set persistence.storageClass=openebs-kafka
+}
+
 do_net () {
   squawk 1 " do_net"
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
@@ -1106,9 +1119,17 @@ taint_ingress () {
   done
 }
 
+do_dashboard () {
+  squawk 1 " do_dashboard"
+  kubectl --kubeconfig=$KUBECONFIG \
+    apply -f \
+    https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml
+}
+
 do_voyager () {
   squawk 1 " do_voyager"
   if [ "$VOYAGER_BY_HELM" = "true" ]; then
+  KUBECONFIG=$KUBECONFIG \
   helm install stable/voyager --name voyager \
     --set cloudProvider=$VOYAGER_PROVIDER \
     --set apiserver.ca="$(onessl get kube-ca)" \
@@ -1156,7 +1177,8 @@ do_tiller () {
   #kubectl --kubeconfig=$KUBECONFIG create serviceaccount tiller --namespace kube-system
   kubectl --kubeconfig=$KUBECONFIG create -f $KUBASH_DIR/tiller/rbac-tiller-config.yaml
   sleep 5
-  KUBECONFIG=$KUBECONFIG helm init --service-account tiller
+  KUBECONFIG=$KUBECONFIG \
+   helm init --service-account tiller
 }
 
 write_ansible_hosts () {
@@ -2971,7 +2993,8 @@ packer_build  () {
 
 activate_monitoring () {
   # Prometheus
-  KUBECONFIG=$KUBECONFIG helm install stable/prometheus
+  KUBECONFIG=$KUBECONFIG \
+    helm install stable/prometheus
 }
 
 build_all_in_parallel () {
@@ -3381,6 +3404,8 @@ main () {
     kubash tiller  \
       -n $KUBASH_CLUSTER_NAME
     sleep 10
+    kubash dashboard \
+      -n $KUBASH_CLUSTER_NAME
     kubash voyager \
       -n $KUBASH_CLUSTER_NAME
     kubash searchlight \
@@ -3624,6 +3649,20 @@ main () {
       exit 1
     fi
     taint_ingress $@
+  elif [[ $RAISON == "dashboard" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+    do_dashboard
+  elif [[ $RAISON == "kafka" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+    do_kafka
   elif [[ $RAISON == "voyager" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
