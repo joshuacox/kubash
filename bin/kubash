@@ -3385,8 +3385,6 @@ main () {
       -n $KUBASH_CLUSTER_NAME
     kubash searchlight \
       -n $KUBASH_CLUSTER_NAME
-    kubash taint_ingress \
-      -n $KUBASH_CLUSTER_NAME
     squawk 1 "Full auto finished"
     exit 0
   elif [[ $RAISON == "grab" ]]; then
