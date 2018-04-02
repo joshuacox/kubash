@@ -208,8 +208,9 @@ echo -n 'kubectl shorthand commands:
   # Drop into an interactive terminal on a container
   keti="kubectl exec -ti"
   # Pod management.
-  kgp="kubectl get pods"
-  kgpa="kubectl get pods --all-namespaces"
+  kgp="kubectl get pods| grep -v '^pvc-' "
+  kgpa="kubectl get pods --all-namespaces| grep -v '^pvc-' "
+  kgpvc="kubectl get pods | grep '^pvc-' "
   klp="kubectl logs pods"
   kep="kubectl edit pods"
   kdp="kubectl describe pods"
@@ -3205,9 +3206,10 @@ kubash_interactive () {
       l|list) helm_passthru list                          ;;
       d|describe) kubectl_passthru describe $args         ;;
       keti) kubectl_passthru exec -ti $args               ;;
-      kgn) kubectl_passthru get nodes $args                ;;
-      kgpa) kubectl_passthru get pods --all-namespaces $args ;;
-      kgp) kubectl_passthru get pods $args                ;;
+      kgn) kubectl_passthru get nodes $args               ;;
+      kgpa) kubectl_passthru get pods --all-namespaces $args | grep -v '^pvc-' ;;
+      kgp) kubectl_passthru get pods $args | grep -v '^pvc-' ;;
+      kgpvc) kubectl_passthru get pods $args | grep '^pvc-' ;;
       klp) kubectl_passthru logs pods $args               ;;
       kep) kubectl_passthru logs pods $args               ;;
       kdp) kubectl_passthru describe pods $args           ;;
