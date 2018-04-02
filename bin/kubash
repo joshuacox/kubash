@@ -1099,10 +1099,10 @@ taint_ingress () {
   squawk 1 " taint_ingress $@"
   for ingress_node in "$@"
   do
-    squawk 5 "kubectl taint --overwrite node $ingress_node IngressOnly=true:NoSchedule"
-    kubectl taint --overwrite node $ingress_node IngressOnly=true:NoSchedule
-    squawk 5 "kubectl label --overwrite node $ingress_node ingress=true"
-    kubectl label --overwrite node $ingress_node ingress=true
+    squawk 5 "kubectl --kubeconfig=$KUBECONFIG taint --overwrite node $ingress_node IngressOnly=true:NoSchedule"
+    kubectl --kubeconfig=$KUBECONFIG taint --overwrite node $ingress_node IngressOnly=true:NoSchedule
+    squawk 5 "kubectl --kubeconfig=$KUBECONFIG label --overwrite node $ingress_node ingress=true"
+    kubectl --kubeconfig=$KUBECONFIG label --overwrite node $ingress_node ingress=true
   done
 }
 
