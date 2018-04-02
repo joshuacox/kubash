@@ -859,6 +859,7 @@ configure_secondary_network_interfaces () {
       squawk 1 "OS not supported by network configurator"
     fi
   done <<< "$slurpy"
+  touch $configure_static_network_addresses_tmp/kubash_interface
   rm $configure_static_network_addresses_tmp/kubash_interface
   rmdir $configure_static_network_addresses_tmp
   squawk 19 'secondary network interfaces configured'
