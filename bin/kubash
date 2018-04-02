@@ -1054,7 +1054,11 @@ apparmor_fix_all_provisioning_hosts () {
 
 do_nginx_ingress () {
   INGRESS_NAME=$1
-  KUBECONFIG=$KUBECONFIG helm install stable/nginx-ingress --name $INGRESS_NAME --set rbac.create=true
+  KUBECONFIG=$KUBECONFIG \
+    helm install \
+    stable/nginx-ingress \
+    --name $INGRESS_NAME \
+    --set rbac.create=true
 }
 
 demo () {
@@ -1065,6 +1069,13 @@ demo () {
   do_mongodb
   do_jenkins
   do_kafka
+  do_redis
+}
+
+do_redis () {
+  cd $KUBASH_DIR/submodules/openebs/k8s/demo/redis
+  kubectl --kubeconfig=$KUBECONFIG apply -f \
+   redis-statefulset.yml
 }
 
 do_postgres () {
@@ -3688,6 +3699,13 @@ main () {
       exit 1
     fi
     do_kafka
+  elif [[ $RAISON == "redis" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+    do_redis
   elif [[ $RAISON == "postgres" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
