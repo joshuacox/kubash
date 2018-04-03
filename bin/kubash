@@ -3034,15 +3034,15 @@ activate_monitoring () {
   # Prometheus
   cd $KUBASH_DIR/submodules/openebs/k8s/openebs-monitoring
   kubectl --kubeconfig=$KUBECONFIG create -f \
-    prometheus-config.yaml
+    configs/prometheus-config.yaml
   kubectl --kubeconfig=$KUBECONFIG create -f \
-    prometheus-env.yaml
+    configs/prometheus-env.yaml
   kubectl --kubeconfig=$KUBECONFIG create -f \
-    prometheus-alert-rules.yaml
+    configs/prometheus-alert-rules.yaml
   kubectl --kubeconfig=$KUBECONFIG create -f \
-    alertmanager-templates.yaml
+    configs/alertmanager-templates.yaml
   kubectl --kubeconfig=$KUBECONFIG create -f \
-    alertmanager-config.yaml
+    configs/alertmanager-config.yaml
   kubectl --kubeconfig=$KUBECONFIG create -f \
     prometheus-operator.yaml
   kubectl --kubeconfig=$KUBECONFIG create -f \
