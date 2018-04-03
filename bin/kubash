@@ -3032,8 +3032,23 @@ packer_build  () {
 
 activate_monitoring () {
   # Prometheus
-  KUBECONFIG=$KUBECONFIG \
-    helm install stable/prometheus
+  cd $KUBASH_DIR/submodules/openebs/k8s/openebs-monitoring
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    prometheus-config.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    prometheus-env.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    prometheus-alert-rules.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    alertmanager-templates.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    alertmanager-config.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    prometheus-operator.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    alertmanager.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    grafana-operator.yaml
 }
 
 build_all_in_parallel () {
