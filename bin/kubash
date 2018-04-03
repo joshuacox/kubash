@@ -3032,17 +3032,18 @@ packer_build  () {
 
 activate_monitoring () {
   # Prometheus
+  cd $KUBASH_DIR/submodules/openebs/k8s/openebs-monitoring/configs
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    prometheus-config.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    prometheus-env.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    prometheus-alert-rules.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    alertmanager-templates.yaml
+  kubectl --kubeconfig=$KUBECONFIG create -f \
+    alertmanager-config.yaml
   cd $KUBASH_DIR/submodules/openebs/k8s/openebs-monitoring
-  kubectl --kubeconfig=$KUBECONFIG create -f \
-    configs/prometheus-config.yaml
-  kubectl --kubeconfig=$KUBECONFIG create -f \
-    configs/prometheus-env.yaml
-  kubectl --kubeconfig=$KUBECONFIG create -f \
-    configs/prometheus-alert-rules.yaml
-  kubectl --kubeconfig=$KUBECONFIG create -f \
-    configs/alertmanager-templates.yaml
-  kubectl --kubeconfig=$KUBECONFIG create -f \
-    configs/alertmanager-config.yaml
   kubectl --kubeconfig=$KUBECONFIG create -f \
     prometheus-operator.yaml
   kubectl --kubeconfig=$KUBECONFIG create -f \
