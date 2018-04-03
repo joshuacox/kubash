@@ -231,6 +231,8 @@ echo -n 'kubectl shorthand commands:
   kdeld="kubectl delete deployment"
   ksd="kubectl scale deployment"
   krsd="kubectl rollout status deployment"
+  # voyager management.
+  kei="kubectl edit ingress.voyager.appscode.com "
   # Rollout management.
   kgrs="kubectl get rs"
   krh="kubectl rollout history"
@@ -3223,6 +3225,7 @@ kubash_interactive () {
       kdelsec) kubectl_passthru delete secret $args       ;;
       kgd) kubectl_passthru get deployment $args          ;;
       ked) kubectl_passthru edit deployment $args         ;;
+      kei) kubectl_passthru edit ingress.voyager.appscode.com $args ;;
       kdd) kubectl_passthru describe deployment $args     ;;
       kdeld) kubectl_passthru delete deployment $args     ;;
       ksd) kubectl_passthru scale deployment $args        ;;
