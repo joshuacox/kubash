@@ -3458,14 +3458,14 @@ main () {
     kubash openebs \
       -n $KUBASH_CLUSTER_NAME
     sleep 10
-    kubash tiller  \
-      -n $KUBASH_CLUSTER_NAME
-    sleep 10
     kubash dashboard \
       -n $KUBASH_CLUSTER_NAME
     kubash voyager \
       -n $KUBASH_CLUSTER_NAME
     kubash searchlight \
+      -n $KUBASH_CLUSTER_NAME
+    sleep 10
+    kubash tiller  \
       -n $KUBASH_CLUSTER_NAME
     squawk 1 "Full auto finished"
     exit 0
