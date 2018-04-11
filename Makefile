@@ -353,6 +353,9 @@ $(KUBASH_BIN)/onessl:
 	mv $(TMP)/onessl $(KUBASH_BIN)/
 	rm -Rf $(TMP)
 
+gcloud:
+	curl https://sdk.cloud.google.com | bash
+
 submodules/openebs:
 	cd submodules; git clone https://github.com/openebs/openebs.git
 
