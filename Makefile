@@ -257,6 +257,7 @@ extended_tests:
 	free -m
 
 .minikube.made:
+	sudo cp -v $(KUBASH_BIN)/minikube /usr/local/bin/
 	sudo minikube \
 		--kubernetes-version $(MY_KUBE_VERSION) \
 		--dns-domain $(MINIKUBE_CLUSTER_DOMAIN) \
