@@ -81,14 +81,13 @@ script:
     #- /bin/bash -l -c "w8s/generic.w8 percona default"
     #- /bin/bash -l -c "w8s/generic.w8 pgset-0 default"
     #- /bin/bash -l -c "w8s/generic.w8 rabbitmq-0 default"
-
-  #- sudo chown -R $USER /usr/local
-  #- sudo ls -lh /usr/bin
-  #- sudo chown -R $USER /lib/systemd/system
-  #- sudo chown $USER /usr/bin
-  #- sudo mkdir -p /etc/kubernetes
-  #- sudo chown $USER /etc
-  #- sudo chown -R $USER /etc/kubernetes
-  #- sudo mkdir /etc/system.d
-  #- sudo chown -R $USER /etc/system.d
+    #- sudo chown -R $USER /usr/local
+    #- sudo ls -lh /usr/bin
+    #- sudo chown -R $USER /lib/systemd/system
+    #- sudo chown $USER /usr/bin
+    #- sudo mkdir -p /etc/kubernetes
+    #- sudo chown $USER /etc
+    #- sudo chown -R $USER /etc/kubernetes
+    #- sudo mkdir /etc/system.d
+    #- sudo chown -R $USER /etc/system.d
     #- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
