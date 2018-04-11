@@ -227,8 +227,8 @@ $(KUBASH_BIN)/bats:
 	&& sudo ./install.sh /usr/local
 	rm -Rf $(TMP)
 
-ci: chown autopilot 
-	
+ci: chown reqs
+
 ci-next: extended_tests monitoring
 
 chown:

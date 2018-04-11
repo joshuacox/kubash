@@ -1616,7 +1616,7 @@ remove_vagrant_user () {
     if [[ "$K8S_os" == 'coreos' ]]; then
       squawk 9 'coreos so skipping'
     else
-      REMMY="userdel -f vagrant && rm -Rf /home/vagrant"
+      REMMY="userdel -fr vagrant"
       squawk 5 "ssh -n -p $K8S_sshPort $K8S_user@$K8S_ip1 \"$REMMY\""
       echo "ssh -n -p $K8S_sshPort $K8S_user@$K8S_ip1 \"$REMMY\""\
         >> $remove_vagrant_user_tmp_para/hopper
@@ -1626,11 +1626,15 @@ remove_vagrant_user () {
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $remove_vagrant_user_tmp_para/hopper
   fi
+
+  set +e #some of the new builds have been erroring out as vagrant has been removed already, softening
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     $PARALLEL  -j $PARALLEL_JOBS -- < $remove_vagrant_user_tmp_para/hopper
   else
     bash $remove_vagrant_user_tmp_para/hopper
   fi
+  set -e # End softening
+
   rm -Rf $remove_vagrant_user_tmp_para
 }
 
