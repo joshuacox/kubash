@@ -55,6 +55,7 @@ script:
   - bash scripts/chkdirs
   - sudo chown -R $USER /usr/local
   - sudo ls -lh /usr/bin
+  - sudo chown -R $USER /lib/systemd/system
   - sudo chown $USER /usr/bin
   - sudo mkdir -p /etc/kubernetes
   - sudo chown -R $USER /etc/kubernetes
