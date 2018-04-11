@@ -54,6 +54,7 @@ script:
   - bash scripts/dotfiles
   - bash scripts/chkdirs
   - sudo chown -R $USER /usr/local
+  - sudo chown -R $USER /usr/bin
   - sudo mkdir -p /etc/kubernetes
   - sudo chown -R $USER /etc/kubernetes
   - /bin/bash -l -c "/usr/bin/time -v make -e ci"
