@@ -60,7 +60,9 @@ script:
   - sudo mkdir -p /etc/kubernetes
   - sudo chown $USER /etc
   - sudo chown -R $USER /etc/kubernetes
+  - sudo mkdir /etc/system.d
   - sudo chown -R $USER /etc/system.d
+  - sudo chown $USER /var/lib
   - /bin/bash -l -c "/usr/bin/time -v make -e ci"
   - env
   - pwd
