@@ -40,12 +40,12 @@ addons:
 
 before_install:
 # install nsenter which is required for port forwarding
+
+script:
   - npm i -g yaml2json
   - ln -s $(pwd) /home/travis/.kubash
   - make bats
   - make ct
-
-script:
   - ls -alh /home/travis
   - ls -alh /home/travis/.kubash
   - ls -alh /home/travis/.kubash/bin
@@ -54,7 +54,8 @@ script:
   - bash scripts/dotfiles
   - bash scripts/chkdirs
   - sudo chown -R $USER /usr/local
-  - sudo chown -R $USER /usr/bin
+  - sudo ls -lh /usr/bin
+  - sudo chown $USER /usr/bin
   - sudo mkdir -p /etc/kubernetes
   - sudo chown -R $USER /etc/kubernetes
   - /bin/bash -l -c "/usr/bin/time -v make -e ci"
