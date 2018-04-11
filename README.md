@@ -215,3 +215,14 @@ This project takes advantage of [GNU Parallel](https://www.gnu.org/software/para
   ;login: The USENIX Magazine, February 2011:42-47.                                                                                                                                                                
                                                        
 ```
+
+### Pseudo-etymology
+
+"The whole kubash" - a  bastardization of "The whole kit and kaboodle",
+["The whole shebang" (#!)](https://www.phrases.org.uk/meanings/the-whole-shebang.html)
+, kubernetes, and bash. The meaning here is that kubash is taking on
+everything else that kubeadm considers 'out of scope'.  From building
+images, provisioning, to usage of kubeadm itself, on through to a quick
+shell for interacting with the running cluster, and finally
+decommissioning the cluster.
+
