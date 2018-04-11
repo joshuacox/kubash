@@ -257,7 +257,7 @@ extended_tests:
 	free -m
 
 .minikube.made:
-	minikube \
+	sudo minikube \
 		--kubernetes-version $(MY_KUBE_VERSION) \
 		--dns-domain $(MINIKUBE_CLUSTER_DOMAIN) \
 		--memory $(MINIKUBE_MEMORY) \
