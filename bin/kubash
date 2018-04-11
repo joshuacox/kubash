@@ -1617,7 +1617,7 @@ remove_vagrant_user () {
       squawk 9 'coreos so skipping'
     else
       REMMY="userdel -fr vagrant"
-      squawk 5 "ssh -n -p $K8S_sshPort $K8S_user@$K8S_ip1 \"$REMMY\""
+      squawk 7 "ssh -n -p $K8S_sshPort $K8S_user@$K8S_ip1 \"$REMMY\""
       echo "ssh -n -p $K8S_sshPort $K8S_user@$K8S_ip1 \"$REMMY\""\
         >> $remove_vagrant_user_tmp_para/hopper
     fi
