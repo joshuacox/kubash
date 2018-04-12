@@ -694,8 +694,6 @@ gke-provisioner () {
     exit 1
   fi
 
-  source $KUBASH_DIR/lib/gke-kubash
-
   if [[ "${1: -5}" == '.yaml' ]]; then
     squawk 1 "gke_yaml2cluster $1"
     gke_yaml2cluster $1
