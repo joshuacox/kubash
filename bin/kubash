@@ -648,9 +648,9 @@ gke_gcloud_provision () {
   gke_additional_opts=${13}
 
   echo "gcloud beta container \
-  --project '$gke_projecct' \
+  --project '$gke_project' \
   clusters create '$gke_cluster_name' \
-  --zone '$gke_cluster_zone' \
+  --zone '$gke_zone' \
   --username '$gke_username' \
   --cluster-version '$gke_cluster_version' \
   --machine-type '$gke_machine_type' \
