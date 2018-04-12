@@ -629,7 +629,7 @@ gke_additional_opts=$gke_additional_opts
   echo -n '!'; sleep 1; echo -n '!'; sleep 1; echo -n '!'; sleep 1; echo '!'; sleep 1;
   sleep 2
 
-  gke_gcloud_provision $gke_project $gke_cluster_name $gke_zone $gke_username $gke_cluster_version $gke_machine_type $gke_image_type $gke_disk_size $gke_scopes $gke_num_nodes $gke_network $gke_subnetwork $gke_additional_opts
+  gke_gcloud_provision $gke_project $gke_cluster_name $gke_zone $gke_username $gke_cluster_version $gke_machine_type $gke_image_type $gke_disk_size $gke_scopes $gke_num_nodes $gke_network $gke_subnetwork "$gke_additional_opts"
 }
 
 gke_gcloud_provision () {
@@ -684,6 +684,11 @@ gke_gcloud_provision () {
     clusters \
     --zone $gke_zone \
     get-credentials $gke_cluster_name
+
+  KUBECONFIG=$KUBECONFIG \
+  kubectl create clusterrolebinding cluster-admin-binding \
+    --clusterrole cluster-admin \
+    --user $(gcloud config get-value account)
 }
 
 gke-provisioner () {
