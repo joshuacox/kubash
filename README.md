@@ -189,8 +189,7 @@ See the [debugging](./docs/debug.md) page for more
 
 ### [Interactive Mode](./docs/interactive.md)
 
-`kubash` --  alone will invoke an interactive shell (or if you prefer
-`kubash interactive`)
+`kubash` --  alone will invoke an interactive shell
 
 see the [Interactive Mode](./docs/interactive.md) documentation
 
