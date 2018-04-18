@@ -65,7 +65,7 @@ script:
   - curl -sL --silent https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get|bash
   - bash scripts/dotfiles
   - bash scripts/chkdirs
- - sudo chown $USER /var/lib
+  - sudo chown $USER /var/lib
   - /bin/bash -l -c "/usr/bin/time -v make -e ci"
   - env
   - pwd
