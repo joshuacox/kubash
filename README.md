@@ -224,4 +224,3 @@ everything else that kubeadm considers 'out of scope'.  From building
 images, provisioning, to usage of kubeadm itself, on through to a quick
 shell for interacting with the running cluster, and finally
 decommissioning the cluster.
-
