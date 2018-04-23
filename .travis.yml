@@ -19,6 +19,8 @@ matrix:
         - HELM_INSTALL_DIR=$HOME/.local/bin
         - NVM_DIR="$HOME/.nvm"
         - CHANGE_MINIKUBE_NONE_USER=true
+        - MINIKUBE_VERSION=v0.25.2
+        - KUBE_VERSION=v1.9.4
 
 language: node_js
 node_js:
@@ -45,9 +47,9 @@ before_install:
 before_script:
 # Download kubectl, which is a requirement for using minikube.
 # Download minikube.
-- curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/v1.9.0/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-- curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
-- sudo minikube start --vm-driver=none --kubernetes-version=v1.9.0
+- curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+- curl -Lo minikube https://storage.googleapis.com/minikube/releases/$MINIKUBE_VERSUION/latest/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+- sudo minikube start --vm-driver=none --kubernetes-version=$KUBE_VERSION
 # Fix the kubectl context, as it's often stale.
 - minikube update-context
 # Wait for Kubernetes to be up and ready.
