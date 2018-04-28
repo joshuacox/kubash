@@ -81,8 +81,10 @@ script:
   - sleep 5
   - bats .ci/.tests.bats
   - /bin/bash -l -c "kubash demo"
-  - /bin/bash -l -c "w8s/generic.w8 percona default"
-  - /bin/bash -l -c "w8s/generic.w8 pgset-0 default"
+  - /bin/bash -l -c "helm version"
+  - /bin/bash -l -c "kubectl get all --all-namespaces"
+    #- /bin/bash -l -c "w8s/generic.w8 percona default"
+    #- /bin/bash -l -c "w8s/generic.w8 pgset-0 default"
   # too much memory usage so we will end it there and destroy the VM
   # as the next though successful take too long
     #- /bin/bash -l -c "kubash demo"
