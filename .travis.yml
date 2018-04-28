@@ -12,6 +12,21 @@ matrix:
         - $HOME/.local/bin
         - .git
         - /usr/local
+      addons:
+        apt:
+          packages:
+            - curl
+            - rsync
+            - socat
+            - time
+            - devscripts
+            - ansible
+            - parallel
+            - golang
+            - nmap
+            - python-pip
+            - rlwrap
+            - hashalot
       env:
         - MINIKUBE_MEMORY=7777
         - MINIKUBE_CPU=4
@@ -27,20 +42,6 @@ language: node_js
 node_js:
   - "8"
 
-addons:
-  apt:
-    packages:
-      - curl
-      - rsync
-      - socat
-      - time
-      - devscripts
-      - ansible
-      - parallel
-      - golang
-      - nmap
-      - python-pip
-      - rlwrap
 
 before_install:
 # install nsenter which is required for port forwarding
