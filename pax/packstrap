@@ -43,6 +43,11 @@ echo 'export GOPATH=$HOME/.go
 export PATH=${GOPATH//://bin:}/bin:$PATH' \
 >> .bashrc
 
+install_pips () {
+  sudo -H pip install --upgrade pip
+  pip install docker-py jinja2cli
+}
+
 install_default_docker () {
   apt-get install -yqq --allow-downgrades \
    docker-ce=$(apt-cache madison docker-ce | grep $DOCKER_PKG | head -1 | awk '{print $3}') \
@@ -53,8 +58,7 @@ install_default_docker () {
   systemctl enable kubelet && systemctl start kubelet
 
   sudo rm -Rf /home/vagrant/.cache
-  sudo -H pip install --upgrade pip
-  pip install docker-py
+  install_pips
 
   #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
   #sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
@@ -72,8 +76,7 @@ install_spec_docker () {
   systemctl enable docker && systemctl start docker
   systemctl enable kubelet && systemctl start kubelet
 
-  pip install --upgrade pip
-  pip install docker-py
+  install_pips
 }
 
 apt-get update
