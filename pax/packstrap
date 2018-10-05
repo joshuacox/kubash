@@ -45,7 +45,7 @@ export PATH=${GOPATH//://bin:}/bin:$PATH' \
 
 install_pips () {
   sudo -H pip install --upgrade pip
-  pip install docker-py jinja2cli
+  sudo -H pip install --upgrade docker-py jinja2-cli jinja2
 }
 
 install_default_docker () {
