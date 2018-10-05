@@ -335,10 +335,10 @@
     "su_password_to_set": "{{ env `KUBASH_SET_SU_PW`}}",
     "kubeadm_install": "{{ env `KUBEADM_INSTALL`}}",
     "k8s_su_user": "{{ env `K8S_SU_USER`}}",
-    "DOCKER_PKG": "17.12",
+    "DOCKER_PKG": "17.03",
     "DOCKER_COMPOSE_PKG": "1.8.0",
-    "KUBEPKG_VERSION": "1.9.11",
-    "ETCD_VERSION": "3.2.7",
+    "KUBEPKG_VERSION": "1.12.0",
+    "ETCD_VERSION": "3.2.17",
     "cpus": "4",
     "disk_size": "65536",
     "git_revision": "__unknown_git_revision__",
@@ -353,10 +353,10 @@
     "memory": "2048",
     "mirror": "http://releases.ubuntu.com",
     "mirror_directory": "16.04.5",
-    "name": "ubuntu1.9.11-16.04",
+    "name": "ubuntu1.12.0-16.04",
     "no_proxy": "{{env `no_proxy`}}",
     "preseed_path": "preseed.cfg",
-    "template": "ubuntu1.9.11-16.04-amd64",
+    "template": "ubuntu1.12.0-16.04-amd64",
     "version": "TIMESTAMP"
   }
 }
