@@ -88,7 +88,7 @@ user_csv_columns="user_email user_role"
 uniq_hosts_list_columns="K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
 
 set_csv_columns () {
-  # prep the columns strings for csv input
+  squawk 25 "# prep the columns strings for csv input"
   if [ ! -z "$1" ]; then
     KUBASH_CSV_VER=$1
   else
@@ -2401,6 +2401,7 @@ start_etcd () {
   countzero=0
   touch $start_etcd_tmp_para/endpoints.line
   echo 'etcd:' >> $start_etcd_tmp_para/endpoints.line
+  echo ' external:' > $start_etcd_tmp_para/endpoints.line
   echo '  endpoints:' > $start_etcd_tmp_para/endpoints.line
   set_csv_columns
   while IFS="," read -r $csv_columns
@@ -2427,7 +2428,7 @@ start_etcd () {
 
 kubeadm_reset () {
   squawk 3 "Kubeadmin reset"
-  command2run="PATH=$K8S_SU_PATH kubeadm reset"
+  command2run="PATH=$K8S_SU_PATH yes y|kubeadm reset"
   # hack if debugging to skip this step
   set +e
   do_command_in_parallel "$command2run"
@@ -2550,6 +2551,7 @@ do_etcd () {
   countzero=0
   touch $do_etcd_tmp_para/endpoints.line
   echo 'etcd:' >> $do_etcd_tmp_para/endpoints.line
+  echo ' external:' > $start_etcd_tmp_para/endpoints.line
   echo '  endpoints:' > $do_etcd_tmp_para/endpoints.line
   set_csv_columns
   while IFS="," read -r $csv_columns
@@ -2572,11 +2574,13 @@ do_etcd () {
       fi
     fi
   done <<< "$kubash_hosts_csv_slurped"
+  squawk 19 "sed -i 's/,$//' $do_etcd_tmp_para/etcd.line"
   sed -i 's/,$//' $do_etcd_tmp_para/etcd.line
   echo '  caFile: /etc/kubernetes/pki/etcd/ca.pem' >> $do_etcd_tmp_para/endpoints.line
   echo '  certFile: /etc/kubernetes/pki/etcd/client.pem' >> $do_etcd_tmp_para/endpoints.line
   echo '  keyFile: /etc/kubernetes/pki/etcd/client-key.pem' >> $do_etcd_tmp_para/endpoints.line
 
+  squawk 19 "check number of etcd nodes"
   if [[ "$countzero" -lt "3" ]]; then
     horizontal_rule
     echo "not enough etcd nodes, [$countzero]"
@@ -2589,7 +2593,7 @@ do_etcd () {
     fi
   fi
 
-  # Only copy if etcd.line exists as the endpoints will have stuff in it regardless
+  squawk 19 " Only copy if etcd.line exists as the endpoints will have stuff in it regardless"
   if [[ -e "$do_etcd_tmp_para/etcd.line" ]]; then
     mv $do_etcd_tmp_para/etcd.line $KUBASH_CLUSTER_DIR/
     mv $do_etcd_tmp_para/endpoints.line $KUBASH_CLUSTER_DIR/
@@ -3841,6 +3845,7 @@ main () {
       DO_NODE_JOIN=true
       DO_MASTER_JOIN=true
       kubeadm_reset
+      squawk 5 "Initialize"
       initialize
       do_grab
       ping

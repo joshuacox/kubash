@@ -5,8 +5,9 @@ apiServerCertSANs:
 - 127.0.0.1
 - $my_master_ip
 - $load_balancer_ip
-controlPlaneEndpoint: "LOAD_BALANCER_DNS:LOAD_BALANCER_PORT"
+controlPlaneEndpoint: "$load_balancer_ip"
 etcd:
+ external:
 $ENDPOINTS_LINES
 networking:
   podSubnet: $my_KUBE_CIDR
