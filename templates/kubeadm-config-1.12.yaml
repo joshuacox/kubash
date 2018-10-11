@@ -2,12 +2,11 @@ apiVersion: kubeadm.k8s.io/v1alpha3
 kind: ClusterConfiguration
 kubernetesVersion: $KUBERNETES_VERSION
 apiServerCertSANs:
-- 127.0.0.1
-- $my_master_ip
-- $load_balancer_ip
+- "127.0.0.1"
+- "$my_master_ip"
+- "$load_balancer_ip"
 controlPlaneEndpoint: "$load_balancer_ip"
 etcd:
- external:
 $ENDPOINTS_LINES
 networking:
   podSubnet: $my_KUBE_CIDR
