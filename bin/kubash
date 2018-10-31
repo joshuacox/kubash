@@ -20,7 +20,8 @@ KUBASH_VERSION='v1.12.0'
 : ${KUBASH_USERS_CSV:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/users.csv}
 : ${KUBASH_INGRESS_NAME:='kubashingress'}
 : ${KUBASH_OIDC_AUTH:='false'}
-: ${KUBEADMIN_IGNORE_PREFLIGHT_CHECKS:='--ignore-preflight-errors cri'}
+#: ${KUBEADMIN_IGNORE_PREFLIGHT_CHECKS:='--ignore-preflight-errors cri'}
+: ${KUBEADMIN_IGNORE_PREFLIGHT_CHECKS:='--ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion,cri'}
 : ${VERBOSITY:=0}
 : ${KVM_builderBasePath:=/var/lib/libvirt/images}
 : ${KVM_builderHost:=localhost}
