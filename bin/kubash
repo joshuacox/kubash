@@ -61,6 +61,9 @@ KUBASH_VERSION='v1.12.0'
 : ${VOYAGER_BY_HELM:= "false"}
 : ${VOYAGER_ADMISSIONWEBHOOK:='--set apiserver.enableAdmissionWebhook=true'}
 : ${LINKERD_URL:='https://raw.githubusercontent.com/linkerd/linkerd-examples/master/k8s-daemonset/k8s/linkerd-ingress-controller.yml'}
+: ${TAB_1:='  '}
+: ${TAB_2:='    '}
+: ${TAB_3:='      '}
 
 set -e
 
@@ -2475,7 +2478,7 @@ start_etcd () {
 
   countzero=0
   touch $start_etcd_tmp_para/endpoints.line
-  echo 'etcd:' >> $start_etcd_tmp_para/endpoints.line
+  #echo 'etcd:' >> $start_etcd_tmp_para/endpoints.line
   echo ' external:' >> $start_etcd_tmp_para/endpoints.line
   echo '  endpoints:' >> $start_etcd_tmp_para/endpoints.line
   set_csv_columns
@@ -2752,10 +2755,10 @@ do_etcd () {
   countzero=0
   touch $do_etcd_tmp_para/endpoints.line
   touch $do_etcd_tmp_para/etcd.line
-  echo 'etcd:' > $do_etcd_tmp_para/etcd.line
-  echo ' local:' >> $do_etcd_tmp_para/etcd.line
+  #echo 'etcd:' > $do_etcd_tmp_para/etcd.line
+  echo "${TAB_1}local:" >> $do_etcd_tmp_para/etcd.line
   # servercertSANS
-  echo '  serverCertSANS:' >> $do_etcd_tmp_para/servercertsans.line
+  echo "${TAB_2}serverCertSANS:" >> $do_etcd_tmp_para/servercertsans.line
   set_csv_columns
   while IFS="," read -r $csv_columns
   do
@@ -2764,15 +2767,15 @@ do_etcd () {
     fi
   done <<< "$kubash_hosts_csv_slurped"
   # peercertSANS
-  echo '  peerCertSANS:' >> $do_etcd_tmp_para/peercertsans.line
+  echo '${TAB_2}peerCertSANS:' >> $do_etcd_tmp_para/peercertsans.line
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
       echo "  - '$K8S_ip1'" >> $do_etcd_tmp_para/peercertsans.line
     fi
   done <<< "$kubash_hosts_csv_slurped"
-  echo '  extraArgs:' >> $do_etcd_tmp_para/extraargs.line
-  echo -n '    initial-cluster: ' >> $do_etcd_tmp_para/extraargs.line
+  echo "${TAB_2}extraArgs:" >> $do_etcd_tmp_para/extraargs.line
+  echo -n "${TAB_3}initial-cluster: " >> $do_etcd_tmp_para/extraargs.line
   count_etcd=0
   countetcdnodes=0
   while IFS="," read -r $csv_columns
@@ -2801,18 +2804,19 @@ do_etcd () {
   count_etcd=0
   while IFS="," read -r $csv_columns
   do
-    echo  '    initial-cluster-state: new' >> $do_etcd_tmp_para/extraargs.line
     if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
-        echo  "    name: $K8S_node"       >> $do_etcd_tmp_para/${K8S_node}extraargs.line
-        echo -n "    listen-peer-urls: "  >> $do_etcd_tmp_para/${K8S_node}extraargs.line
+        echo  "${TAB_3}initial-cluster-state: new" >> $do_etcd_tmp_para/extraargs.line
+        echo  "${TAB_3}name: $K8S_node"       >> $do_etcd_tmp_para/${K8S_node}extraargs.line
+        echo -n "${TAB_3}listen-peer-urls: "  >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "https://${K8S_ip1}:2380"    >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         printf " \n" >> $do_etcd_tmp_para/${K8S_node}extraargs.line
       fi
     else
       if [[ "$K8S_role" == 'etcd' ]]; then
-        echo  "    name: $K8S_node"       >> $do_etcd_tmp_para/${K8S_node}extraargs.line
-        echo -n "    listen-peer-urls: "  >> $do_etcd_tmp_para/${K8S_node}extraargs.line
+        echo  "${TAB_3}initial-cluster-state: new" >> $do_etcd_tmp_para/extraargs.line
+        echo  "${TAB_3}name: $K8S_node"       >> $do_etcd_tmp_para/${K8S_node}extraargs.line
+        echo -n "${TAB_3}listen-peer-urls: "  >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "https://${K8S_ip1}:2380"    >> $do_etcd_tmp_para/${K8S_node}extraargs.line
       fi
     fi
@@ -2824,12 +2828,12 @@ do_etcd () {
   do
     if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
-        echo -n '    listen-client-urls: ' >> $do_etcd_tmp_para/${K8S_node}extraargs.line
+        echo -n "    listen-client-urls: " >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "https://${K8S_ip1}:2379"     >> $do_etcd_tmp_para/${K8S_node}extraargs.line
       fi
     else
       if [[ "$K8S_role" == 'etcd' ]]; then
-        echo -n '    listen-client-urls: ' >> $do_etcd_tmp_para/${K8S_node}extraargs.line
+        echo -n "    listen-client-urls: " >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "https://${K8S_ip1}:2379"     >> $do_etcd_tmp_para/${K8S_node}extraargs.line
       fi
     fi
@@ -2936,6 +2940,9 @@ do_etcd () {
         sudo_command $my_master_port $my_master_user $my_master_ip "$command2run"
         squawk 25 "scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml"
         scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml
+        #csv_columns="K8S_node K8S_role K8S_cpuCount K8S_Memory K8S_sshPort K8S_network1 K8S_mac1 K8S_ip1 K8S_routingprefix1 K8S_subnetmask1 K8S_broadcast1 K8S_gateway1 K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt K8S_network2 K8S_mac2 K8S_ip2 K8S_routingprefix2 K8S_subnetmask2 K8S_broadcast2 K8S_gateway2 K8S_network3 K8S_mac3 K8S_ip3 K8S_routingprefix3 K8S_subnetmask3 K8S_broadcast3 K8S_gateway3"
+        squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml"
+        scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml
       fi
     else
       if [[ "$K8S_role" == 'etcd' ]]; then
@@ -2962,6 +2969,8 @@ do_etcd () {
         sudo_command $my_master_port $my_master_user $my_master_ip "$command2run"
         squawk 25 "scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml"
         scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml
+        squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml"
+        scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml
       fi
     fi
   done <<< "$kubash_hosts_csv_slurped"
@@ -3005,10 +3014,12 @@ do_etcd () {
     #copy_in_parallel_to_role master "$kubeadmin_config_tmp" "/tmp/kubeadmcfg.yaml"
     #copy_in_parallel_to_role etcd "$kubeadmin_config_tmp" "/tmp/kubeadmcfg.yaml"
     rm $kubeadmin_config_tmp
+  else
+    echo 'not firing off as no endpoints.line exists....'
   fi
 
   squawk 75 "create the manifests"
-  command2run="kubeadm alpha phase etcd local --config=/tmp/kubeadmcfg.yaml"
+  command2run="kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
   do_command_in_parallel_on_role "primary_master"          "$command2run"
   do_command_in_parallel_on_role "master"                  "$command2run"
   do_command_in_parallel_on_role "etcd"                    "$command2run"
@@ -3029,7 +3040,7 @@ do_etcd_clumsy () {
   countzero=0
   touch $do_etcd_tmp_para/endpoints.line
   touch $do_etcd_tmp_para/etcd.line
-  echo 'etcd:' > $do_etcd_tmp_para/etcd.line
+  #echo 'etcd:' > $do_etcd_tmp_para/etcd.line
   echo ' local:' >> $do_etcd_tmp_para/endpoints.line
   # servercertSANS
   echo '  serverCertSANS:' >> $do_etcd_tmp_para/endpoints.line
@@ -3075,7 +3086,7 @@ do_etcd_clumsy () {
   done <<< "$kubash_hosts_csv_slurped"
   printf " \n" >> $do_etcd_tmp_para/endpoints.line
   echo  '    initial-cluster-state: new' >> $do_etcd_tmp_para/endpoints.line
-  #echo  '    name: NAME' >> $do_etcd_tmp_para/endpoints.line
+  echo  '    name: NAME' >> $do_etcd_tmp_para/endpoints.line
   echo -n '    listen-peer-urls: ' >> $do_etcd_tmp_para/endpoints.line
   count_etcd=0
   while IFS="," read -r $csv_columns
@@ -3261,7 +3272,8 @@ do_etcd_clumsy () {
   fi
 
   squawk 75 "create the manifests"
-  command2run="kubeadm alpha phase etcd local --config=/tmp/kubeadmcfg.yaml"
+  #command2run="kubeadm alpha phase etcd local --config=/tmp/kubeadmcfg.yaml"
+  command2run="kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
   do_command_in_parallel_on_role "primary_master"          "$command2run"
   do_command_in_parallel_on_role "master"                  "$command2run"
   do_command_in_parallel_on_role "etcd"                    "$command2run"
@@ -3281,7 +3293,8 @@ do_etcd_classic () {
 
   countzero=0
   touch $do_etcd_tmp_para/endpoints.line
-  echo 'etcd:' >> $do_etcd_tmp_para/endpoints.line
+  # suspected issue
+  #echo 'etcd:' >> $do_etcd_tmp_para/endpoints.line
   echo ' external:' >> $do_etcd_tmp_para/endpoints.line
   echo '  endpoints:' >> $do_etcd_tmp_para/endpoints.line
   set_csv_columns
@@ -4533,6 +4546,7 @@ main () {
       prep
       remove_vagrant_user
       hostname_in_parallel
+      copy_known_hosts
     fi
   elif [[ $RAISON == "hostnamer" ]]; then
     if [[ $print_help == "true" ]]; then
