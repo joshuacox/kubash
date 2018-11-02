@@ -4544,7 +4544,7 @@ main () {
       sleep 33
       refresh_network_addresses
       prep
-      remove_vagrant_user
+      #remove_vagrant_user
       hostname_in_parallel
       copy_known_hosts
     fi

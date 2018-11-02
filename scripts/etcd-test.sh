@@ -1,26 +1,44 @@
 #!/bin/bash
-
-# Update HOST0, HOST1, and HOST2 with the IPs or resolvable names of your hosts
-export HOST0=10.0.0.6
-export HOST1=10.0.0.7
-export HOST2=10.0.0.8
 USER=root
+# check and ensure that args were given
+if [ $# -eq 0 ]; then
+  # Print usage
+  echo 'Error! no arguments'
+  echo 'usage:'
+  echo "$0 host0 host1 host2"
+  exit 1
+fi
 
-cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
+ETCDHOSTS=($@)
+
+#ETCDHOSTS=(${HOST0} ${HOST1} ${HOST2})
+for i in "${!ETCDHOSTS[@]}"; do
+  HOST=${ETCDHOSTS[$i]}
+  #NAMES=("infra0" "infra1" "infra2")
+  THIS_NAMES="infra${i} ${THIS_NAMES}"
+  # Create temp directories to store files that will end up on other hosts.
+  echo mkdir -p /tmp/${HOST}/
+  mkdir -p /tmp/${HOST}/
+
+  # break indentation
+  command2run='cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
 [Service]
 ExecStart=
 ExecStart=/usr/bin/kubelet --address=127.0.0.1 --pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true
 Restart=always
-EOF
+EOF'
+  # unbreak indentation
 
-systemctl daemon-reload
-systemctl restart kubelet
-
-# Create temp directories to store files that will end up on other hosts.
-mkdir -p /tmp/${HOST0}/ /tmp/${HOST1}/ /tmp/${HOST2}/
-
-ETCDHOSTS=(${HOST0} ${HOST1} ${HOST2})
-NAMES=("infra0" "infra1" "infra2")
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+  command2run='systemctl daemon-reload'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+  command2run='systemctl restart kubelet'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+done
+NAMES=("${THIS_NAMES}")
 
 for i in "${!ETCDHOSTS[@]}"; do
   HOST=${ETCDHOSTS[$i]}
@@ -48,32 +66,20 @@ done
 kubeadm alpha phase certs etcd-ca
 
 # host 0
-cp -R /etc/kubernetes/pki /tmp/${HOST0}/
+cp -R /etc/kubernetes/pki /tmp/${ETCDHOSTS[0]}/
 
-kubeadm alpha phase certs etcd-server --config=/tmp/${HOST2}/kubeadmcfg.yaml
-kubeadm alpha phase certs etcd-peer --config=/tmp/${HOST2}/kubeadmcfg.yaml
-kubeadm alpha phase certs etcd-healthcheck-client --config=/tmp/${HOST2}/kubeadmcfg.yaml
-kubeadm alpha phase certs apiserver-etcd-client --config=/tmp/${HOST2}/kubeadmcfg.yaml
-cp -R /etc/kubernetes/pki /tmp/${HOST2}/
-# cleanup non-reusable certificates
-find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete
-
-kubeadm alpha phase certs etcd-server --config=/tmp/${HOST1}/kubeadmcfg.yaml
-kubeadm alpha phase certs etcd-peer --config=/tmp/${HOST1}/kubeadmcfg.yaml
-kubeadm alpha phase certs etcd-healthcheck-client --config=/tmp/${HOST1}/kubeadmcfg.yaml
-kubeadm alpha phase certs apiserver-etcd-client --config=/tmp/${HOST1}/kubeadmcfg.yaml
-cp -R /etc/kubernetes/pki /tmp/${HOST1}/
-find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete
-
-kubeadm alpha phase certs etcd-server --config=/tmp/${HOST0}/kubeadmcfg.yaml
-kubeadm alpha phase certs etcd-peer --config=/tmp/${HOST0}/kubeadmcfg.yaml
-kubeadm alpha phase certs etcd-healthcheck-client --config=/tmp/${HOST0}/kubeadmcfg.yaml
-kubeadm alpha phase certs apiserver-etcd-client --config=/tmp/${HOST0}/kubeadmcfg.yaml
-# No need to move the certs because they are for HOST0
-
-# clean up certs that should not be copied off this host
-find /tmp/${HOST2} -name ca.key -type f -delete
-find /tmp/${HOST1} -name ca.key -type f -delete
+for i in "${!ETCDHOSTS[@]}"; do
+  HOST=${ETCDHOSTS[$i]}
+  kubeadm alpha phase certs etcd-server --config=/tmp/${HOST}/kubeadmcfg.yaml
+  kubeadm alpha phase certs etcd-peer --config=/tmp/${HOST}/kubeadmcfg.yaml
+  kubeadm alpha phase certs etcd-healthcheck-client --config=/tmp/${HOST}/kubeadmcfg.yaml
+  kubeadm alpha phase certs apiserver-etcd-client --config=/tmp/${HOST}/kubeadmcfg.yaml
+  rsync -a /etc/kubernetes/pki /tmp/${HOST}/
+  # cleanup non-reusable certificates
+  find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete
+  # clean up certs that should not be copied off this host
+  find /tmp/${HOST} -name ca.key -type f -delete
+done
 
 for i in "${!ETCDHOSTS[@]}"; do
   HOST=${ETCDHOSTS[$i]}
@@ -96,4 +102,4 @@ command2run="docker run --rm  \
   --ca-file /etc/kubernetes/pki/etcd/ca.crt \
   --endpoints https://${HOST0}:2379 cluster-health"
 
-ssh ${USER}@${HOST0} "$command2run"
+ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
