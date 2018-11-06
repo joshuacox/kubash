@@ -10,12 +10,18 @@ if [ $# -eq 0 ]; then
 fi
 
 ETCDHOSTS=($@)
+NAMES=("0" "1")
 
 #ETCDHOSTS=(${HOST0} ${HOST1} ${HOST2})
 for i in "${!ETCDHOSTS[@]}"; do
   HOST=${ETCDHOSTS[$i]}
+  NAMES[$i]="infra${i}"
+  echo 'NAMES[$i]'
+  echo ${NAMES[$i]} $HOST
+  sleep 5
   #NAMES=("infra0" "infra1" "infra2")
-  THIS_NAMES="infra${i} ${THIS_NAMES}"
+  #THIS_NAMES="infra${i} ${THIS_NAMES}"
+  THIS_NAMES="${THIS_NAMES} infra${i}"
   # Create temp directories to store files that will end up on other hosts.
   echo mkdir -p /tmp/${HOST}/
   mkdir -p /tmp/${HOST}/
@@ -38,7 +44,7 @@ EOF'
   echo "ssh ${USER}@${HOST} $command2run"
   ssh ${USER}@${HOST} "$command2run"
 done
-NAMES=("${THIS_NAMES}")
+#NAMES=("${THIS_NAMES}")
 
 for i in "${!ETCDHOSTS[@]}"; do
   HOST=${ETCDHOSTS[$i]}
@@ -93,6 +99,15 @@ for i in "${!ETCDHOSTS[@]}"; do
   echo "ssh ${USER}@${HOST} kubeadm alpha phase etcd local --config=/root/kubeadmcfg.yaml"
   ssh ${USER}@${HOST} "kubeadm alpha phase etcd local --config=/root/kubeadmcfg.yaml"
 done
+for i in "${!ETCDHOSTS[@]}"; do
+  HOST=${ETCDHOSTS[$i]}
+  command2run='ls -alh /root'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+  command2run='ls -alh /etc/kubernetes/pki'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+done
 
 command2run="docker run --rm  \
   --net host \
@@ -100,6 +115,10 @@ command2run="docker run --rm  \
   --cert-file /etc/kubernetes/pki/etcd/peer.crt \
   --key-file /etc/kubernetes/pki/etcd/peer.key \
   --ca-file /etc/kubernetes/pki/etcd/ca.crt \
-  --endpoints https://${HOST0}:2379 cluster-health"
+  --endpoints https://${ETCDHOSTS[0]}:2379 cluster-health"
 
+echo 'To test run this commmand (will be automatically ran in 33 seconds'
+echo "$command2run"
+sleep 33
+echo "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
 ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
