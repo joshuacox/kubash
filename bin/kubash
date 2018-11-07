@@ -2073,8 +2073,8 @@ master_init_join () {
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$PSEUDO hostname;$PSEUDO  uname -a"
     my_grep='kubeadm join --token'
     squawk 3 'master_init_join kubeadm init'
-    #command2run='sudo systemctl stop kubelet'
-    #ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    command2run='sudo systemctl stop kubelet'
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     do_command_in_parallel_on_role "master" "$command2run"
     command2run='sudo netstat -ntpl'
     do_command_in_parallel_on_role "master" "$command2run"
@@ -2560,7 +2560,14 @@ prep_init_etcd_kubelet_download  () {
   rmdir $prep_init_etcd_kubelet_download_tmp
   command2run='systemctl daemon-reload; systemctl restart kubelet'
   sudo_command $this_port $this_user $this_host "$command2run"
+  sleep 33
+  command2run='netstat -ntpl'
+  sudo_command $this_port $this_user $this_host "$command2run"
   command2run='kubeadm  alpha phase certs etcd-ca'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run='ls -lh /etc/kubernetes/pki/etcd/ca.crt'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run='ls -lh /etc/kubernetes/pki/etcd/ca.key'
   sudo_command $this_port $this_user $this_host "$command2run"
   prep_etcd_gen_certs $this_port $this_user $this_host $this_port $this_user $this_host
 }
@@ -2983,7 +2990,7 @@ do_etcd () {
         load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
         my_KUBE_CIDR=$my_KUBE_CIDR \
         ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
-        envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
+        envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.12.yaml \
           > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
 
         #squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_SU_USER@$K8S_ip1:/tmp/kubeadmcfg.yaml"
@@ -3027,7 +3034,7 @@ do_etcd () {
         load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
         my_KUBE_CIDR=$my_KUBE_CIDR \
         ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
-        envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
+        envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.12.yaml \
           > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
 
         command2run="mkdir -p /tmp/${K8S_ip1}"

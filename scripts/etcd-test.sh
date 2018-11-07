@@ -1,9 +1,10 @@
 #!/bin/bash
 USER=root
+my_KUBE_CIDR="10.244.0.0/16"
 # check and ensure that args were given
-if [ $# -eq 0 ]; then
+if [ ! $# -eq 3 ]; then
   # Print usage
-  echo 'Error! no arguments'
+  echo 'Error! wrong number of arguments, this script expects three hosts'
   echo 'usage:'
   echo "$0 host0 host1 host2"
   exit 1
@@ -26,11 +27,12 @@ for i in "${!ETCDHOSTS[@]}"; do
   echo mkdir -p /tmp/${HOST}/
   mkdir -p /tmp/${HOST}/
 
+#ExecStart=/usr/bin/kubelet  --allow-privileged=true
   # break indentation
   command2run='cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
 [Service]
 ExecStart=
-ExecStart=/usr/bin/kubelet --address=127.0.0.1 --pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true
+ExecStart=/usr/bin/kubelet --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml
 Restart=always
 EOF'
   # unbreak indentation
@@ -41,6 +43,17 @@ EOF'
   echo "ssh ${USER}@${HOST} $command2run"
   ssh ${USER}@${HOST} "$command2run"
   command2run='systemctl restart kubelet'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+
+  # break indentation
+  command2run='cat << EOF > /var/lib/kubelet/config.yaml
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+address: 127.0.0.1
+staticpodpath: /etc/kubernetes/manifests
+EOF'
+  # unbreak indentation
   echo "ssh ${USER}@${HOST} $command2run"
   ssh ${USER}@${HOST} "$command2run"
 done
@@ -66,6 +79,26 @@ etcd:
             listen-client-urls: https://${HOST}:2379
             advertise-client-urls: https://${HOST}:2379
             initial-advertise-peer-urls: https://${HOST}:2380
+EOF
+  cat << EOF > /tmp/${HOST}/kubeadmcfg-external.yaml
+apiVersion: kubeadm.k8s.io/v1alpha3
+kind: ClusterConfiguration
+apiServerCertSANs:
+- "127.0.0.1"
+- "${ETCDHOSTS[0]}"
+- "${ETCDHOSTS[1]}"
+controlPlaneEndpoint: "${ETCDHOSTS[1]}"
+etcd:
+  external:
+      endpoints:
+      - https://${ETCDHOSTS[0]}:2379
+      - https://${ETCDHOSTS[1]}:2379
+      - https://${ETCDHOSTS[2]}:2379
+      caFile: /etc/kubernetes/pki/etcd/ca.crt
+      certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+      keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
+networking:
+  podSubnet: $my_KUBE_CIDR
 EOF
 done
 
@@ -109,6 +142,12 @@ for i in "${!ETCDHOSTS[@]}"; do
   ssh ${USER}@${HOST} "$command2run"
 done
 
+command2run="kubeadm config images pull"
+echo "$command2run"
+ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+ssh ${USER}@${ETCDHOSTS[1]} "$command2run"
+ssh ${USER}@${ETCDHOSTS[2]} "$command2run"
+
 command2run="docker run --rm  \
   --net host \
   -v /etc/kubernetes:/etc/kubernetes quay.io/coreos/etcd:v3.2.18 etcdctl \
@@ -117,8 +156,23 @@ command2run="docker run --rm  \
   --ca-file /etc/kubernetes/pki/etcd/ca.crt \
   --endpoints https://${ETCDHOSTS[0]}:2379 cluster-health"
 
-echo 'To test run this commmand (will be automatically ran in 33 seconds'
+echo 'To test etcd run this commmand'
 echo "$command2run"
-sleep 33
 echo "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+
+for i in "${!ETCDHOSTS[@]}"; do
+  HOST=${ETCDHOSTS[$i]}
+  command2run='systemctl daemon-reload'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+  command2run='systemctl stop kubelet'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+done
+
+sleep 11
+
+command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /root/kubeadmcfg-external.yaml"
+echo "$command2run"
 ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
