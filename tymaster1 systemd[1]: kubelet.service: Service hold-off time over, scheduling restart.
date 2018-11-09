@@ -1,0 +1,380 @@
+-- Logs begin at Wed 2018-11-07 13:13:46 UTC, end at Wed 2018-11-07 13:22:29 UTC. --
+Nov 07 13:13:48 vagrant systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:13:49 vagrant kubelet[807]: F1107 13:13:49.191505     807 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:13:49 vagrant systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:13:49 vagrant systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:13:49 vagrant systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:13:59 vagrant systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:13:59 vagrant systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:13:59 vagrant systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:13:59 vagrant kubelet[1569]: F1107 13:13:59.634290    1569 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:13:59 vagrant systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:13:59 vagrant systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:13:59 vagrant systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:19:45 vagrant systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:19:45 vagrant systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:19:45 vagrant systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:19:46 vagrant kubelet[2009]: F1107 13:19:46.140411    2009 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:19:46 vagrant systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:19:46 vagrant systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:19:46 vagrant systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:19:56 vagrant systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:19:56 vagrant systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:19:56 vagrant systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:19:56 vagrant kubelet[2186]: F1107 13:19:56.511210    2186 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:19:56 vagrant systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:19:56 vagrant systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:19:56 vagrant systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:20:06 vagrant systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:20:06 vagrant systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:20:06 vagrant systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:20:06 vagrant kubelet[2302]: F1107 13:20:06.914495    2302 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:20:06 vagrant systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:20:06 vagrant systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:20:06 vagrant systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:20:17 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:20:17 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:20:17 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:20:17 testymaster1 kubelet[2612]: F1107 13:20:17.246065    2612 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:20:17 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:20:17 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:20:17 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:20:27 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:20:27 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:20:27 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:20:27 testymaster1 kubelet[2687]: F1107 13:20:27.503820    2687 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:20:27 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:20:27 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:20:27 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:20:37 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:20:37 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:20:37 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:20:37 testymaster1 kubelet[2701]: F1107 13:20:37.756468    2701 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:20:37 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:20:37 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:20:37 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:20:47 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:20:47 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:20:47 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:20:48 testymaster1 kubelet[2719]: F1107 13:20:48.012452    2719 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:20:48 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:20:48 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:20:48 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:20:58 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:20:58 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:20:58 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:20:58 testymaster1 kubelet[2807]: F1107 13:20:58.268200    2807 server.go:190] failed to load Kubelet config file /var/lib/kubelet/config.yaml, error failed to read kubelet config file "/var/lib/kubelet/config.yaml", error: open /var/lib/kubelet/config.yaml: no such file or directory
+Nov 07 13:20:58 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:20:58 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:20:58 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:21:08 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:21:08 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:21:08 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:21:08 testymaster1 kubelet[2896]: I1107 13:21:08.507893    2896 server.go:408] Version: v1.12.2
+Nov 07 13:21:08 testymaster1 kubelet[2896]: I1107 13:21:08.508604    2896 plugins.go:99] No cloud provider specified.
+Nov 07 13:21:08 testymaster1 kubelet[2896]: F1107 13:21:08.516078    2896 server.go:262] failed to run Kubelet: unable to load bootstrap kubeconfig: stat /etc/kubernetes/bootstrap-kubelet.conf: no such file or directory
+Nov 07 13:21:08 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:21:08 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:21:08 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:21:15 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:21:15 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:21:15 testymaster1 kubelet[2998]: I1107 13:21:15.854977    2998 server.go:408] Version: v1.12.2
+Nov 07 13:21:15 testymaster1 kubelet[2998]: I1107 13:21:15.855857    2998 plugins.go:99] No cloud provider specified.
+Nov 07 13:21:15 testymaster1 kubelet[2998]: W1107 13:21:15.865856    2998 server.go:553] standalone mode, no API client
+Nov 07 13:21:15 testymaster1 kubelet[2998]: F1107 13:21:15.866292    2998 server.go:262] failed to run Kubelet: no client provided, cannot use webhook authentication
+Nov 07 13:21:15 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:21:15 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:21:15 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:21:26 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:21:26 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:21:26 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:21:26 testymaster1 kubelet[3156]: I1107 13:21:26.481606    3156 server.go:408] Version: v1.12.2
+Nov 07 13:21:26 testymaster1 kubelet[3156]: I1107 13:21:26.482229    3156 plugins.go:99] No cloud provider specified.
+Nov 07 13:21:26 testymaster1 kubelet[3156]: W1107 13:21:26.482619    3156 server.go:553] standalone mode, no API client
+Nov 07 13:21:26 testymaster1 kubelet[3156]: F1107 13:21:26.487976    3156 server.go:262] failed to run Kubelet: no client provided, cannot use webhook authentication
+Nov 07 13:21:26 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:21:26 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:21:26 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:21:36 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:21:36 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:21:36 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:21:36 testymaster1 kubelet[3371]: I1107 13:21:36.838144    3371 server.go:408] Version: v1.12.2
+Nov 07 13:21:36 testymaster1 kubelet[3371]: I1107 13:21:36.841276    3371 plugins.go:99] No cloud provider specified.
+Nov 07 13:21:36 testymaster1 kubelet[3371]: W1107 13:21:36.841722    3371 server.go:553] standalone mode, no API client
+Nov 07 13:21:36 testymaster1 kubelet[3371]: F1107 13:21:36.842067    3371 server.go:262] failed to run Kubelet: no client provided, cannot use webhook authentication
+Nov 07 13:21:36 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:21:36 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:21:36 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:21:47 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:21:47 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:21:47 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:21:47 testymaster1 kubelet[3473]: I1107 13:21:47.285211    3473 server.go:408] Version: v1.12.2
+Nov 07 13:21:47 testymaster1 kubelet[3473]: I1107 13:21:47.285967    3473 plugins.go:99] No cloud provider specified.
+Nov 07 13:21:47 testymaster1 kubelet[3473]: W1107 13:21:47.288642    3473 server.go:553] standalone mode, no API client
+Nov 07 13:21:47 testymaster1 kubelet[3473]: F1107 13:21:47.288979    3473 server.go:262] failed to run Kubelet: no client provided, cannot use webhook authentication
+Nov 07 13:21:47 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:21:47 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:21:47 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:21:57 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:21:57 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:21:57 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:21:57 testymaster1 kubelet[3517]: I1107 13:21:57.527348    3517 server.go:408] Version: v1.12.2
+Nov 07 13:21:57 testymaster1 kubelet[3517]: I1107 13:21:57.528147    3517 plugins.go:99] No cloud provider specified.
+Nov 07 13:21:57 testymaster1 kubelet[3517]: W1107 13:21:57.531273    3517 server.go:553] standalone mode, no API client
+Nov 07 13:21:57 testymaster1 kubelet[3517]: F1107 13:21:57.531650    3517 server.go:262] failed to run Kubelet: no client provided, cannot use webhook authentication
+Nov 07 13:21:57 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:21:57 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:21:57 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:22:07 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:22:07 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:22:07 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:22:07 testymaster1 kubelet[3545]: I1107 13:22:07.755671    3545 server.go:408] Version: v1.12.2
+Nov 07 13:22:07 testymaster1 kubelet[3545]: I1107 13:22:07.756315    3545 plugins.go:99] No cloud provider specified.
+Nov 07 13:22:07 testymaster1 kubelet[3545]: W1107 13:22:07.759313    3545 server.go:553] standalone mode, no API client
+Nov 07 13:22:07 testymaster1 kubelet[3545]: F1107 13:22:07.759662    3545 server.go:262] failed to run Kubelet: no client provided, cannot use webhook authentication
+Nov 07 13:22:07 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:22:07 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:22:07 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:22:17 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:22:17 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:22:17 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:22:18 testymaster1 kubelet[3599]: I1107 13:22:18.020527    3599 server.go:408] Version: v1.12.2
+Nov 07 13:22:18 testymaster1 kubelet[3599]: I1107 13:22:18.021517    3599 plugins.go:99] No cloud provider specified.
+Nov 07 13:22:18 testymaster1 kubelet[3599]: W1107 13:22:18.021913    3599 server.go:553] standalone mode, no API client
+Nov 07 13:22:18 testymaster1 kubelet[3599]: F1107 13:22:18.022269    3599 server.go:262] failed to run Kubelet: no client provided, cannot use webhook authentication
+Nov 07 13:22:18 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:22:18 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:22:18 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.
+Nov 07 13:22:28 testymaster1 systemd[1]: kubelet.service: Service hold-off time over, scheduling restart.
+Nov 07 13:22:28 testymaster1 systemd[1]: Stopped kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished shutting down.
+Nov 07 13:22:28 testymaster1 systemd[1]: Started kubelet: The Kubernetes Node Agent.
+-- Subject: Unit kubelet.service has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- 
+-- Unit kubelet.service has finished starting up.
+-- 
+-- The start-up result is done.
+Nov 07 13:22:28 testymaster1 kubelet[3715]: I1107 13:22:28.295053    3715 server.go:408] Version: v1.12.2
+Nov 07 13:22:28 testymaster1 kubelet[3715]: I1107 13:22:28.295701    3715 plugins.go:99] No cloud provider specified.
+Nov 07 13:22:28 testymaster1 kubelet[3715]: W1107 13:22:28.298444    3715 server.go:553] standalone mode, no API client
+Nov 07 13:22:28 testymaster1 kubelet[3715]: F1107 13:22:28.300739    3715 server.go:262] failed to run Kubelet: no client provided, cannot use webhook authentication
+Nov 07 13:22:28 testymaster1 systemd[1]: kubelet.service: Main process exited, code=exited, status=255/n/a
+Nov 07 13:22:28 testymaster1 systemd[1]: kubelet.service: Unit entered failed state.
+Nov 07 13:22:28 testymaster1 systemd[1]: kubelet.service: Failed with result 'exit-code'.

@@ -1,6 +1,5 @@
 #!/bin/bash
 USER=root
-my_KUBE_CIDR="10.244.0.0/16"
 # check and ensure that args were given
 if [ ! $# -eq 3 ]; then
   # Print usage
@@ -27,11 +26,6 @@ for i in "${!ETCDHOSTS[@]}"; do
   echo mkdir -p /tmp/${HOST}/
   mkdir -p /tmp/${HOST}/
 
-# config file is not ready yet: https://github.com/kubernetes/kubernetes/issues/70745
-#ExecStart=/usr/bin/kubelet  --allow-privileged=true
-#ExecStart=/usr/bin/kubelet --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml
-#ExecStart=/usr/bin/kubelet --config=/var/lib/kubelet/config.yaml
-
   # break indentation
   command2run='cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
 [Service]
@@ -43,17 +37,12 @@ EOF'
 
   echo "ssh ${USER}@${HOST} $command2run"
   ssh ${USER}@${HOST} "$command2run"
-
-  # break indentation
-  #command2run='cat << EOF > /var/lib/kubelet/config.yaml
-#kind: KubeletConfiguration
-#apiVersion: kubelet.config.k8s.io/v1beta1
-#address: 127.0.0.1
-#staticpodpath: /etc/kubernetes/manifests
-#EOF'
-  # unbreak indentation
-  #echo "ssh ${USER}@${HOST} $command2run"
-  #ssh ${USER}@${HOST} "$command2run"
+  command2run='systemctl daemon-reload'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
+  command2run='systemctl restart kubelet'
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
 done
 #NAMES=("${THIS_NAMES}")
 
@@ -98,12 +87,6 @@ etcd:
 networking:
   podSubnet: $my_KUBE_CIDR
 EOF
-  command2run='systemctl daemon-reload'
-  echo "ssh ${USER}@${HOST} $command2run"
-  ssh ${USER}@${HOST} "$command2run"
-  command2run='systemctl restart kubelet'
-  echo "ssh ${USER}@${HOST} $command2run"
-  ssh ${USER}@${HOST} "$command2run"
 done
 
 kubeadm alpha phase certs etcd-ca
@@ -141,17 +124,16 @@ for i in "${!ETCDHOSTS[@]}"; do
   command2run='ls -alh /root'
   echo "ssh ${USER}@${HOST} $command2run"
   ssh ${USER}@${HOST} "$command2run"
-  command2run='ls -Ralh /etc/kubernetes/pki'
+  command2run='ls -alh /etc/kubernetes/pki'
   echo "ssh ${USER}@${HOST} $command2run"
   ssh ${USER}@${HOST} "$command2run"
 done
 
 command2run="kubeadm config images pull"
 echo "$command2run"
-#ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
-#ssh ${USER}@${ETCDHOSTS[1]} "$command2run"
-#ssh ${USER}@${ETCDHOSTS[2]} "$command2run"
-sleep 33
+ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+ssh ${USER}@${ETCDHOSTS[1]} "$command2run"
+ssh ${USER}@${ETCDHOSTS[2]} "$command2run"
 
 command2run="docker run --rm  \
   --net host \
@@ -169,15 +151,15 @@ ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
 for i in "${!ETCDHOSTS[@]}"; do
   HOST=${ETCDHOSTS[$i]}
   command2run='systemctl daemon-reload'
-  #echo "ssh ${USER}@${HOST} $command2run"
-  #ssh ${USER}@${HOST} "$command2run"
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
   command2run='systemctl stop kubelet'
-  #echo "ssh ${USER}@${HOST} $command2run"
-  #ssh ${USER}@${HOST} "$command2run"
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
 done
 
 sleep 11
 
 command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /root/kubeadmcfg-external.yaml"
-#echo "$command2run"
-#ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+echo "$command2run"
+ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
