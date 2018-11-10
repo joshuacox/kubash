@@ -127,14 +127,14 @@ done
 for i in "${!ETCDHOSTS[@]}"; do
   HOST=${ETCDHOSTS[$i]}
   echo "scp -r /tmp/${HOST}/* ${USER}@${HOST}:"
-  scp -r /tmp/${HOST}/* ${USER}@${HOST}:
-  echo "ssh ${USER}@${HOST} sudo chown -R root:root pki"
-  ssh ${USER}@${HOST} "sudo chown -R root:root pki"
+  scp -r /tmp/${HOST}/* ${USER}@${HOST}:/etc/kubernetes/
+  echo "ssh ${USER}@${HOST} sudo chown -R root:root /etc/kubernetes/pki"
+  ssh ${USER}@${HOST} "sudo chown -R root:root /etc/kubernetes/pki"
   #ssh ${USER}@${HOST} "sudo mv -f pki /etc/kubernetes/"
-  echo "ssh ${USER}@${HOST} sudo rsync -a pki /etc/kubernetes/"
-  ssh ${USER}@${HOST} "sudo rsync -a pki /etc/kubernetes/"
-  echo "ssh ${USER}@${HOST} kubeadm alpha phase etcd local --config=/root/kubeadmcfg.yaml"
-  ssh ${USER}@${HOST} "kubeadm alpha phase etcd local --config=/root/kubeadmcfg.yaml"
+  #echo "ssh ${USER}@${HOST} sudo rsync -a pki /etc/kubernetes/"
+  #ssh ${USER}@${HOST} "sudo rsync -a pki /etc/kubernetes/"
+  echo "ssh ${USER}@${HOST} kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
+  ssh ${USER}@${HOST} "kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
 done
 for i in "${!ETCDHOSTS[@]}"; do
   HOST=${ETCDHOSTS[$i]}

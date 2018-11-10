@@ -2525,22 +2525,23 @@ kubeadm_reset () {
 }
 
 prep_init_etcd () {
-  this_user=$1
-  this_host=$2
-  this_name=$3
-  this_port=$4
+  prep_init_etcd_user=$1
+  prep_init_etcd_host=$2
+  prep_init_etcd_name=$3
+  prep_init_etcd_port=$4
 
-  get_major_minor_kube_version $this_user $this_host $this_name $this_port
+  get_major_minor_kube_version $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
   if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
     squawk 175 'Kube Major Version 1 for prep init etcd'
     if [[ $KUBE_MINOR_VER -lt 12 ]]; then
       echo 'less than 12 broken atm'
       exit 1
       #squawk 175 'Kube Minor Version less than 12 for prep init etcd'
-      #prep_init_etcd_classic $this_user $this_host $this_name $this_port
+      #prep_init_etcd_classic $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
     else
       squawk 175 'Kube Major Version less than 12 for prep init etcd'
-      prep_init_etcd_kubelet_download $this_user $this_host $this_name $this_port
+      squawk 55 "prep_init_etcd_kubelet_download $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port"
+      prep_init_etcd_kubelet_download $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
     fi
   elif [[ $MAJOR_VER -eq 0 ]]; then
     squawk 1 'Major Version 0 unsupported'
@@ -2554,44 +2555,55 @@ prep_init_etcd () {
 prep_init_etcd_kubelet_download  () {
   squawk 5 prep_init_etcd_kubelet_download
   prep_init_etcd_kubelet_download_tmp=$(mktemp -d)
-  this_user=$1
-  this_host=$2
-  this_name=$3
-  this_port=$4
+  prep_init_etcd_kubelet_download_user=$1
+  prep_init_etcd_kubelet_download_host=$2
+  prep_init_etcd_kubelet_download_name=$3
+  prep_init_etcd_kubelet_download_port=$4
 
-  prep_20-etcd-service-manager $this_user $this_host $this_name $this_port
+  squawk 55 "prep_20-etcd-service-manager $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_name $prep_init_etcd_kubelet_download_port"
+  prep_20-etcd-service-manager $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_name $prep_init_etcd_kubelet_download_port
 
   sleep 3
 
   command2run='netstat -ntpl'
-  sudo_command $this_port $this_user $this_host "$command2run"
+  sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
   command2run='kubeadm  alpha phase certs etcd-ca'
-  sudo_command $this_port $this_user $this_host "$command2run"
+  sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
   command2run='ls -lh /etc/kubernetes/pki/etcd/ca.crt'
-  sudo_command $this_port $this_user $this_host "$command2run"
+  sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
   command2run='ls -lh /etc/kubernetes/pki/etcd/ca.key'
-  sudo_command $this_port $this_user $this_host "$command2run"
+  sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
 
-  prep_etcd_gen_certs $this_port $this_user $this_host $this_port $this_user $this_host
+  squawk 55 "prep_etcd_gen_certs $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host"
+  prep_etcd_gen_certs $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host
 }
 
 prep_20-etcd-service-manager () {
+  if [ $# -ne 4 ]; then
+    # Print usage
+    echo 'Error! wrong number of arguments'
+    echo 'usage:'
+    echo "$0 user host name port"
+    exit 1
+  fi
   squawk 5 prep_init_etcd_kubelet_download
   prep_init_etcd_kubelet_download_tmp=$(mktemp -d)
-  this_user=$1
-  this_host=$2
-  this_name=$3
-  this_port=$4
+  prep_20_etcd_service_manager_user=$1
+  prep_20_etcd_service_manager_host=$2
+  prep_20_etcd_service_manager_name=$3
+  prep_20_etcd_service_manager_port=$4
 
-  this_host=$2 \
+  prep_20_etcd_service_manager_host=$2 \
   envsubst < \
     $KUBASH_DIR/templates/20-etcd-service-manager.conf \
     > $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf
-  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf $this_user@$this_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
+  squawk 55 "rsync -zave ssh -p $prep_20_etcd_service_manager_port $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf $prep_20_etcd_service_manager_user@$prep_20_etcd_service_manager_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf"
+  rsync -zave "ssh -p $prep_20_etcd_service_manager_port" $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf $prep_20_etcd_service_manager_user@$prep_20_etcd_service_manager_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
   rm $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf
   rmdir $prep_init_etcd_kubelet_download_tmp
-  command2run='systemctl daemon-reload; systemctl restart kubelet'
-  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run='systemctl daemon-reload && systemctl restart kubelet'
+  squawk 55 "sudo_command $prep_20_etcd_service_manager_port $prep_20_etcd_service_manager_user $prep_20_etcd_service_manager_host $command2run"
+  sudo_command $prep_20_etcd_service_manager_port $prep_20_etcd_service_manager_user $prep_20_etcd_service_manager_host "$command2run"
 }
 
 prep_etcd_gen_certs () {
@@ -2602,19 +2614,18 @@ prep_etcd_gen_certs () {
   prepetcdgencerts_primary_etcd_master_user=$5
   prepetcdgencerts_primary_etcd_master=$6
   squawk 55 "prep_etcd_gen_certs port $prepetcdgencerts_port user $prepetcdgencerts_user host $prepetcdgencerts_host on master $prepetcdgencerts_primary_etcd_master_user '@' $prepetcdgencerts_primary_etcd_master : $prepetcdgencerts_primary_etcd_master_port"
-  command2run="kubeadm alpha phase certs etcd-server --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
+  command2run="find /tmp/${prepetcdgencerts_host} -name ca.key -type f -delete -print \
+    && find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete -print \
+    && kubeadm alpha phase certs etcd-server --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
     && kubeadm alpha phase certs etcd-peer --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
     && kubeadm alpha phase certs etcd-healthcheck-client --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
     && kubeadm alpha phase certs apiserver-etcd-client --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
     && cp -R /etc/kubernetes/pki /tmp/${prepetcdgencerts_host}/"
   sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
   squawk 86 'cleanup non-reusable certificates'
-  # this line needs more discrimination
- # command2run="find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete -print"
- # sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
+  command2run="find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete -print"
+  sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
   if [[ "$prepetcdgencerts_host" == "$prepetcdgencerts_primary_etcd_master" ]]; then
-    echo "$prepetcdgencerts_host =  $prepetcdgencerts_primary_etcd_master"
-    sleep 3
     command2run="rsync -av /tmp/${prepetcdgencerts_host}/* /etc/kubernetes/"
     squawk 25 "$command2run"
     sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
@@ -2631,6 +2642,17 @@ prep_etcd_gen_certs () {
   squawk 86 "clean up certs that should not be copied off prepetcdgencerts host"
   command2run="find /tmp/${prepetcdgencerts_host} -name ca.key -type f -delete -print"
   sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
+}
+
+finalize_etcd_gen_certs () {
+  finalize_etcdgencerts_port=$1
+  finalize_etcdgencerts_user=$2
+  finalize_etcdgencerts_host=$3
+  squawk 55 "finalize_etcd_gen_certs port $finalize_etcdgencerts_port user $finalize_etcdgencerts_user host $finalize_etcdgencerts_host"
+  command2run="cp -R  /tmp/${finalize_etcdgencerts_host}/kubeadmcfg.yaml /etc/kubernetes/ \
+    && cp -R  /tmp/${finalize_etcdgencerts_host}/pki /etc/kubernetes/ \
+    && chown -R root:root /etc/kubernetes/pki"
+  sudo_command $finalize_etcdgencerts_port $finalize_etcdgencerts_user $finalize_etcdgencerts_host "$command2run"
 }
 
 prep_init_etcd_classic () {
@@ -2743,7 +2765,6 @@ prep_etcd () {
         echo 'no master found'
         exit 1
       fi
-      prep_20-etcd-service-manager $this_user $this_host $this_name $this_port
       prep_etcd_gen_certs $this_port $this_user $this_host $kube_primary_port $kube_primary_user $kube_primary
       #prep_etcd_gen_certs $this_port $this_user $this_host $this_port $kube_primary_user $kube_primary
     fi
@@ -2832,24 +2853,27 @@ do_etcd () {
   touch $do_etcd_tmp_para/endpoints.line
   touch $do_etcd_tmp_para/etcd.line
   #echo 'etcd:' > $do_etcd_tmp_para/etcd.line
+
   # servercertSANS
-  #echo "${TAB_2}serverCertSANS:" >> $do_etcd_tmp_para/servercertsans.line
-  #set_csv_columns
-  #while IFS="," read -r $csv_columns
-  #do
-    #if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
-      #echo "${TAB_2}- '$K8S_ip1'" >> $do_etcd_tmp_para/servercertsans.line
-    #fi
-  #done <<< "$kubash_hosts_csv_slurped"
+  echo "${TAB_2}serverCertSANS:" >> $do_etcd_tmp_para/servercertsans.line
+  echo "${TAB_2}- '127.0.0.1'" >> $do_etcd_tmp_para/servercertsans.line
+  set_csv_columns
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
+      echo "${TAB_2}- '$K8S_ip1'" >> $do_etcd_tmp_para/servercertsans.line
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
   # peercertSANS
-  #echo "${TAB_2}peerCertSANS:" >> $do_etcd_tmp_para/peercertsans.line
-  #while IFS="," read -r $csv_columns
-  #do
-    #if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
-      #echo "${TAB_2}- '$K8S_ip1'" >> $do_etcd_tmp_para/peercertsans.line
-    #fi
-  #done <<< "$kubash_hosts_csv_slurped"
-  #printf " \n" >> $do_etcd_tmp_para/extraargs.line
+  echo "${TAB_2}peerCertSANS:" >> $do_etcd_tmp_para/peercertsans.line
+  echo "${TAB_2}- '127.0.0.1'" >> $do_etcd_tmp_para/peercertsans.line
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
+      echo "${TAB_2}- '$K8S_ip1'" >> $do_etcd_tmp_para/peercertsans.line
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
+
   echo "${TAB_2}extraArgs:" > $do_etcd_tmp_para/extraargs.head
   echo -n "${TAB_3}initial-cluster: " > $do_etcd_tmp_para/initial-cluster.head
   count_etcd=0
@@ -2875,6 +2899,7 @@ do_etcd () {
     fi
     ((++count_etcd))
   done <<< "$kubash_hosts_csv_slurped"
+  printf " \n" >> $do_etcd_tmp_para/initial-cluster.line
   echo "${TAB_1}external:" >> $do_etcd_tmp_para/external-endpoints.line
   echo "${TAB_2}endpoints:" >> $do_etcd_tmp_para/external-endpoints.line
   while IFS="," read -r $csv_columns
@@ -2898,11 +2923,11 @@ do_etcd () {
     if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
         echo "${TAB_1}local:" > $do_etcd_tmp_para/${K8S_node}etcd.line
-        echo "${TAB_2}serverCertSANS:" >> $do_etcd_tmp_para/${K8S_node}etcd.line
-        echo "${TAB_2}- '$K8S_ip1'"    >> $do_etcd_tmp_para/${K8S_node}etcd.line
-        echo "${TAB_2}peerCertSANS:"   >> $do_etcd_tmp_para/${K8S_node}etcd.line
-        echo "${TAB_2}- '$K8S_ip1'"    >> $do_etcd_tmp_para/${K8S_node}etcd.line
-        printf " \n" >> $do_etcd_tmp_para/${K8S_node}extraargs.line
+        #echo "${TAB_2}serverCertSANS:" >> $do_etcd_tmp_para/${K8S_node}etcd.line
+        #echo "${TAB_2}- '$K8S_ip1'"    >> $do_etcd_tmp_para/${K8S_node}etcd.line
+        #echo "${TAB_2}peerCertSANS:"   >> $do_etcd_tmp_para/${K8S_node}etcd.line
+        #echo "${TAB_2}- '$K8S_ip1'"    >> $do_etcd_tmp_para/${K8S_node}etcd.line
+        #printf " \n" >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "${TAB_3}initial-cluster-state: new" >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "${TAB_3}name: $K8S_node"            >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "${TAB_3}listen-peer-urls: https://${K8S_ip1}:2380"    >> $do_etcd_tmp_para/${K8S_node}extraargs.line
@@ -2910,11 +2935,11 @@ do_etcd () {
     else
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'primary_etcd' ]]; then
         echo "${TAB_1}local:" > $do_etcd_tmp_para/${K8S_node}etcd.line
-        echo "${TAB_2}serverCertSANS:" >> $do_etcd_tmp_para/${K8S_node}etcd.line
-        echo "${TAB_2}- '$K8S_ip1'"    >> $do_etcd_tmp_para/${K8S_node}etcd.line
-        echo "${TAB_2}peerCertSANS:"   >> $do_etcd_tmp_para/${K8S_node}etcd.line
-        echo "${TAB_2}- '$K8S_ip1'"    >> $do_etcd_tmp_para/${K8S_node}etcd.line
-        printf " \n" >> $do_etcd_tmp_para/${K8S_node}extraargs.line
+        #echo "${TAB_2}serverCertSANS:" >> $do_etcd_tmp_para/${K8S_node}etcd.line
+        #echo "${TAB_2}- '$K8S_ip1'"    >> $do_etcd_tmp_para/${K8S_node}etcd.line
+        #echo "${TAB_2}peerCertSANS:"   >> $do_etcd_tmp_para/${K8S_node}etcd.line
+        #echo "${TAB_2}- '$K8S_ip1'"    >> $do_etcd_tmp_para/${K8S_node}etcd.line
+        #printf " \n" >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "${TAB_3}initial-cluster-state: new" >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "${TAB_3}name: $K8S_node"       >> $do_etcd_tmp_para/${K8S_node}extraargs.line
         echo "${TAB_3}listen-peer-urls: https://${K8S_ip1}:2380"    >> $do_etcd_tmp_para/${K8S_node}extraargs.line
@@ -3004,6 +3029,8 @@ do_etcd () {
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
         cat $do_etcd_tmp_para/endpoints.line \
         $do_etcd_tmp_para/${K8S_node}etcd.line \
+        $do_etcd_tmp_para/servercertsans.line \
+        $do_etcd_tmp_para/peercertsans.line \
         $do_etcd_tmp_para/extraargs.head \
         $do_etcd_tmp_para/initial-cluster.head \
         $do_etcd_tmp_para/initial-cluster.line \
@@ -3044,11 +3071,14 @@ do_etcd () {
         squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml"
         scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml
         scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg-external.yaml
+        prep_20-etcd-service-manager $K8S_user ${K8S_ip1} ${K8S_node} $K8S_sshPort
       fi
     else
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'primary_etcd' ]]; then
         cat $do_etcd_tmp_para/endpoints.line \
         $do_etcd_tmp_para/${K8S_node}etcd.line \
+        $do_etcd_tmp_para/servercertsans.line \
+        $do_etcd_tmp_para/peercertsans.line \
         $do_etcd_tmp_para/extraargs.head \
         $do_etcd_tmp_para/initial-cluster.head \
         $do_etcd_tmp_para/initial-cluster.line \
@@ -3070,6 +3100,7 @@ do_etcd () {
         scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml
         squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml"
         scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml
+        prep_20-etcd-service-manager $K8S_user ${K8S_ip1} ${K8S_node} $K8S_sshPort
 
       elif [[ "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
         # now for the external
@@ -3092,6 +3123,7 @@ do_etcd () {
         scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml
         squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml"
         scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml
+        prep_20-etcd-service-manager $K8S_user ${K8S_ip1} ${K8S_node} $K8S_sshPort
       fi
     fi
   done <<< "$kubash_hosts_csv_slurped"
@@ -3107,7 +3139,7 @@ do_etcd () {
           ((++countprimarymaster))
           prep_init_etcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort
           # save these values for clusterwide usage
-          kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort
+          #kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort
         else
           echo 'there should only be one primary master'
           exit 1
@@ -3119,7 +3151,7 @@ do_etcd () {
           ((++countprimarymaster))
           prep_init_etcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort
           # save these values for clusterwide usage
-          kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort
+          #kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort
         else
           echo 'there should only be one primary etcd'
           exit 1
@@ -3133,33 +3165,66 @@ do_etcd () {
   # Then prep the other etcd hosts
   while IFS="," read -r $csv_columns
   do
-    squawk 3 "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort"
-    echo     "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort" >> $prepTMP/hopper
-    #if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
-      ##if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
+    #squawk 3 "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort"
+    #echo     "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort" >> $prepTMP/hopper
+    if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+      #if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
       #if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_etcd' ]]; then
-          ##squawk 19 "$K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_ip1 $K8S_provisionerHost $K8S_provisionerUser $K8S_sshPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
-          ##squawk 3 "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort"
-          ##echo      "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort" >> $prepTMP/hopper
-      #fi
-    #else
-      ##if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
-      ##if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'primary_etcd' ]]; then
+      if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_etcd' ]]; then
+          #squawk 19 "$K8S_node $K8S_role $K8S_cpuCount $K8S_Memory $K8S_network1 $K8S_mac1 $K8S_ip1 $K8S_provisionerHost $K8S_provisionerUser $K8S_sshPort $K8S_provisionerBasePath $K8S_os $K8S_virt $K8S_network2 $K8S_mac2 $K8S_ip2 $K8S_network3 $K8S_mac3 $K8S_ip3"
+          squawk 3 "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort"
+          echo     "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort" >> $prepTMP/hopper
+      fi
+    else
+      #if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
+      #if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'primary_etcd' ]]; then
       #if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
-          ##squawk 3 "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort"
-          ##echo      "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort" >> $prepTMP/hopper
-      #fi
-    #fi
+      if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
+          squawk 3 "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort"
+          echo     "kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort" >> $prepTMP/hopper
+      fi
+    fi
   done <<< "$kubash_hosts_csv_slurped"
   if [[ "$VERBOSITY" -gt "9" ]] ; then
     cat $prepTMP/hopper
   fi
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    $PARALLEL  -j $PARALLEL_JOBS -- < $prepTMP/hopper
+    #$PARALLEL  -j $PARALLEL_JOBS -- < $prepTMP/hopper
+    bash $prepTMP/hopper
   else
     bash $prepTMP/hopper
   fi
   rm -Rf $prepTMP
+
+  countprimarymaster=0
+  set_csv_columns
+  # First find the primary etcd master
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+      if [[ "$K8S_role" == "primary_master"  ]]; then
+        if [[ "$countprimarymaster" -eq "0" ]]; then
+          ((++countprimarymaster))
+          kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort
+          finalize_etcd_gen_certs $K8S_sshPort $K8S_provisionerUser $K8S_ip1
+        else
+          echo 'there should only be one primary master'
+          exit 1
+        fi
+      fi
+    else
+      if [[ "$K8S_role" == "primary_etcd"  ]]; then
+        if [[ "$countprimarymaster" -eq "0" ]]; then
+          ((++countprimarymaster))
+          kubash -n $KUBASH_CLUSTER_NAME --verbosity=$VERBOSITY prepetcd $K8S_provisionerUser $K8S_ip1 $K8S_node $K8S_sshPort
+          finalize_etcd_gen_certs $K8S_sshPort $K8S_provisionerUser $K8S_ip1
+        else
+          echo 'there should only be one primary etcd'
+          exit 1
+        fi
+      fi
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
 
   squawk 75 "create the manifests"
   command2run="kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
@@ -3172,6 +3237,8 @@ do_etcd () {
     do_command_in_parallel_on_role "primary_etcd"            "$command2run"
     do_command_in_parallel_on_role "etcd"                    "$command2run"
   fi
+  squawk 5 'sleep 33'
+  sleep 33
 }
 
 do_primary_master () {
