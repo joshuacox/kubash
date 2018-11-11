@@ -151,6 +151,424 @@ squawk () {
   fi
 }
 
+grab_pki_docs_method () {
+  local USER=$1
+  local HOST=$2
+  local PORT=$3
+  # Make a list of required etcd certificate files
+  # break indentation
+    command2run='cat << EOF > etcd-pki-files.txt
+/etc/kubernetes/pki/etcd/ca.crt
+/etc/kubernetes/pki/apiserver-etcd-client.crt
+/etc/kubernetes/pki/apiserver-etcd-client.key
+EOF'
+  # unbreak indentation
+  squawk 55 "ssh ${USER}@${HOST} $command2run"
+  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
+
+  # create the archive
+  command2run="tar -czf /tmp/etcd-pki.tar.gz -T etcd-pki-files.txt"
+  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
+  squawk 55 "scp -P ${PORT} ${USER}@${HOST}/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz"
+  scp -P ${PORT} ${USER}@${HOST}:/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz
+  command2run="rm /tmp/etcd-pki.tar.gz"
+  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
+}
+
+push_pki_docs_method () {
+  local USER=$1
+  local HOST=$2
+  push_PORT=$3
+  squawk 9 "rsync $KUBASH_RSYNC_OPTS ssh -p $push_PORT ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz $USER@$HOST:/tmp/"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $push_PORT" ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz $USER@$HOST:/tmp/
+  command2run='mkdir -p /etc/kubernetes/pki && tar -xzvf /tmp/etcd-pki.tar.gz -C /etc/kubernetes/pki --strip-components=3'
+  sudo_command ${push_PORT} ${USER} ${HOST} "$command2run"
+  command2run='rm /tmp/etcd-pki.tar.gz'
+  sudo_command ${push_PORT} ${USER} ${HOST} "$command2run"
+}
+
+etcd_kubernetes_docs_method () {
+  etcd_test_tmp=$(mktemp -d)
+  USER=root
+  #my_KUBE_CIDR="10.244.0.0/16"
+  set_csv_columns
+  etc_count_zero=0
+  master_count_zero=0
+  node_count_zero=0
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+      if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
+        ETCDHOSTS[$etc_count_zero]=$K8S_ip1
+        ETCDNAMES[$etc_count_zero]=$K8S_node
+        ETCDPORTS[$etc_count_zero]=$K8S_sshPort
+        MASTERHOSTS[$master_count_zero]=$K8S_ip1
+        MASTERNAMES[$master_count_zero]=$K8S_node
+        MASTERPORTS[$master_count_zero]=$K8S_sshPort
+        ((++etc_count_zero))
+        ((++master_count_zero))
+      elif [[ "$K8S_role" == 'node' ]]; then
+        NODEHOSTS[$node_count_zero]=$K8S_ip1
+        NODENAMES[$node_count_zero]=$K8S_node
+        NODEPORTS[$node_count_zero]=$K8S_sshPort
+        ((++node_count_zero))
+      fi
+    else
+      if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'primary_etcd' ]]; then
+        ETCDHOSTS[$etc_count_zero]=$K8S_ip1
+        ETCDNAMES[$etc_count_zero]=$K8S_node
+        ETCDPORTS[$etc_count_zero]=$K8S_sshPort
+        ((++etc_count_zero))
+      elif [[ "$K8S_role" == 'node' ]]; then
+        NODEHOSTS[$node_count_zero]=$K8S_ip1
+        NODENAMES[$node_count_zero]=$K8S_node
+        NODEPORTS[$node_count_zero]=$K8S_sshPort
+        ((++node_count_zero))
+      elif [[ "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
+        MASTERHOSTS[$master_count_zero]=$K8S_ip1
+        MASTERNAMES[$master_count_zero]=$K8S_node
+        MASTERPORTS[$master_count_zero]=$K8S_sshPort
+        ((++master_count_zero))
+      fi
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
+  echo $ETCDHOSTS
+  sleep 33
+
+  echo -n "            initial-cluster: " > $etcd_test_tmp/initial-cluster.head
+  count_etcd=0
+  countetcdnodes=0
+  while IFS="," read -r $csv_columns
+  do
+    echo "- '${K8S_ip1}'" >> $etcd_test_tmp/apiservercertsans.line
+    if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+      if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
+        if [[ $countetcdnodes -gt 0 ]]; then
+          printf ',' >> $etcd_test_tmp/initial-cluster.line
+        fi
+        printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
+        echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+        ((++countetcdnodes))
+      fi
+    else
+      if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'primary_etcd' ]]; then
+        if [[ $countetcdnodes -gt 0 ]]; then
+          printf ',' >> $etcd_test_tmp/initial-cluster.line
+        fi
+        printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
+        echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+        ((++countetcdnodes))
+      fi
+    fi
+    ((++count_etcd))
+  done <<< "$kubash_hosts_csv_slurped"
+  printf " \n" >> $etcd_test_tmp/initial-cluster.line
+  initial_cluster_line=$(cat $etcd_test_tmp/initial-cluster.head $etcd_test_tmp/initial-cluster.line)
+  api_server_cert_sans_line=$(cat $etcd_test_tmp/apiservercertsans.line)
+  endpoints_line=$(cat $etcd_test_tmp/endpoints.line)
+  rm $etcd_test_tmp/initial-cluster.head $etcd_test_tmp/initial-cluster.line $etcd_test_tmp/apiservercertsans.line $etcd_test_tmp/endpoints.line
+
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    # Create temp directories to store files that will end up on other hosts.
+    squawk 55 mkdir -p $etcd_test_tmp/${HOST}/
+    mkdir -p $etcd_test_tmp/${HOST}/
+
+    # break indentation
+    command2run='cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
+[Service]
+ExecStart=
+ExecStart=/usr/bin/kubelet --address=127.0.0.1 --pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true
+Restart=always
+EOF'
+    # unbreak indentation
+
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+
+    # break indentation
+    #command2run='cat << EOF > /var/lib/kubelet/config.yaml
+  #kind: KubeletConfiguration
+  #apiVersion: kubelet.config.k8s.io/v1beta1
+  #address: 127.0.0.1
+  #staticpodpath: /etc/kubernetes/manifests
+  #EOF'
+    # unbreak indentation
+    #squawk 55 "ssh ${USER}@${HOST} $command2run"
+    #ssh ${USER}@${HOST} "$command2run"
+  done
+
+  for i in "${!MASTERHOSTS[@]}"; do
+    HOST=${MASTERHOSTS[$i]}
+    squawk 55 mkdir -p $etcd_test_tmp/${HOST}/
+    mkdir -p $etcd_test_tmp/${HOST}/
+    # break indentation
+    command2run='cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
+[Service]
+ExecStart=
+ExecStart=/usr/bin/kubelet --address=127.0.0.1 --pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true
+Restart=always
+EOF'
+    # unbreak indentation
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+  done
+
+ if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    NAME=${ETCDNAMES[$i]}
+    cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
+apiVersion: "kubeadm.k8s.io/v1alpha3"
+kind: ClusterConfiguration
+etcd:
+    local:
+        serverCertSANs:
+        - "${HOST}"
+        peerCertSANs:
+        - "${HOST}"
+        extraArgs:
+$initial_cluster_line
+            initial-cluster-state: new
+            name: ${NAME}
+            listen-peer-urls: https://${HOST}:2380
+            listen-client-urls: https://${HOST}:2379
+            advertise-client-urls: https://${HOST}:2379
+            initial-advertise-peer-urls: https://${HOST}:2380
+EOF
+    cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg-external.yaml
+apiVersion: kubeadm.k8s.io/v1alpha3
+kind: ClusterConfiguration
+apiServerCertSANs:
+- "127.0.0.1"
+$api_server_cert_sans_line
+controlPlaneEndpoint: "${MASTERHOSTS[0]}"
+etcd:
+  external:
+      endpoints:
+$endpoints_line
+      caFile: /etc/kubernetes/pki/etcd/ca.crt
+      certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+      keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
+networking:
+  podSubnet: $my_KUBE_CIDR
+EOF
+    command2run='systemctl daemon-reload'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+    command2run='systemctl restart kubelet'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+  done
+else
+
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    NAME=${ETCDNAMES[$i]}
+    cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
+apiVersion: "kubeadm.k8s.io/v1alpha3"
+kind: ClusterConfiguration
+etcd:
+    local:
+        serverCertSANs:
+        - "${HOST}"
+        peerCertSANs:
+        - "${HOST}"
+        extraArgs:
+$initial_cluster_line
+            initial-cluster-state: new
+            name: ${NAME}
+            listen-peer-urls: https://${HOST}:2380
+            listen-client-urls: https://${HOST}:2379
+            advertise-client-urls: https://${HOST}:2379
+            initial-advertise-peer-urls: https://${HOST}:2380
+EOF
+    command2run='systemctl daemon-reload'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+    command2run='systemctl restart kubelet'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+  done
+  for i in "${!MASTERHOSTS[@]}"; do
+    HOST=${MASTERHOSTS[$i]}
+    NAME=${ETCDNAMES[$i]}
+    cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
+apiVersion: kubeadm.k8s.io/v1alpha3
+kind: ClusterConfiguration
+apiServerCertSANs:
+- "127.0.0.1"
+$api_server_cert_sans_line
+controlPlaneEndpoint: "${MASTERHOSTS[0]}"
+etcd:
+  external:
+      endpoints:
+$endpoints_line
+      caFile: /etc/kubernetes/pki/etcd/ca.crt
+      certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+      keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
+networking:
+  podSubnet: $my_KUBE_CIDR
+EOF
+    command2run='systemctl daemon-reload'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+    command2run='systemctl restart kubelet'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+  done
+fi
+
+  command2run='kubeadm alpha phase certs etcd-ca'
+  squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+  ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+
+  squawk 5 "copy pki directory to host 0"
+  command2run='tar zcf - pki'
+  PREV_PWD=$(pwd)
+  cd $etcd_test_tmp/${ETCDHOSTS[0]}/
+  squawk 56 "ssh ${USER}@${HOST} cd /etc/kubernetes;$command2run|tar pzxvf -"
+  ssh ${USER}@${ETCDHOSTS[0]} "cd /etc/kubernetes;$command2run"|tar pzxvf -
+  cd $PREV_PWD
+
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    PREV_PWD=$(pwd)
+    cd $etcd_test_tmp/
+    squawk 55 "tar zcf - ${HOST} | ssh ${USER}@${ETCDHOSTS[0]} cd /tmp; tar pzxvf -"
+    tar zcf - ${HOST} | ssh ${USER}@${ETCDHOSTS[0]} "cd /tmp; tar pzxvf -"
+    cd $PREV_PWD
+  done
+
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    command2run="kubeadm alpha phase certs etcd-server --config=/tmp/${HOST}/kubeadmcfg.yaml"
+    squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+    ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+    command2run="kubeadm alpha phase certs etcd-peer --config=/tmp/${HOST}/kubeadmcfg.yaml"
+    squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+    ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+    command2run="kubeadm alpha phase certs etcd-healthcheck-client --config=/tmp/${HOST}/kubeadmcfg.yaml"
+    squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+    ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+    command2run="kubeadm alpha phase certs apiserver-etcd-client --config=/tmp/${HOST}/kubeadmcfg.yaml"
+    squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+    ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+    command2run="rsync -a /etc/kubernetes/pki /tmp/${HOST}/"
+    squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+    ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+    squawk 5 "cleanup non-reusable certificates"
+    command2run="find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete"
+    squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+    ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+    squawk 5 "clean up certs that should not be copied off this host"
+    command2run="find /tmp/${HOST} -name ca.key -type f -delete"
+    squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
+    ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+  done
+
+  squawk 5 "gather the pki and configs"
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    PREV_PWD=$(pwd)
+    cd $etcd_test_tmp/
+    squawk 55 "ssh ${USER}@${ETCDHOSTS[0]} cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
+    ssh ${USER}@${ETCDHOSTS[0]} "cd /tmp;tar zcf - ${HOST}" | tar pzxvf -
+    cd $PREV_PWD
+  done
+  squawk 5 "distribute the pki and configs to etcd hosts"
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    PREV_PWD=$(pwd)
+    cd $etcd_test_tmp/${HOST}
+    squawk 55 "tar zcf - pki | ssh ${USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - pki | ssh ${USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh ${USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - kubeadmcfg.yaml | ssh ${USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    cd $PREV_PWD
+  done
+
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    squawk 55 "ssh ${USER}@${HOST} sudo chown -R root:root /etc/kubernetes/pki"
+    ssh ${USER}@${HOST} "sudo chown -R root:root /etc/kubernetes/pki"
+    squawk 55 "ssh ${USER}@${HOST} kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
+    ssh ${USER}@${HOST} "kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
+  done
+  for i in "${!ETCDHOSTS[@]}"; do
+    HOST=${ETCDHOSTS[$i]}
+    command2run='ls -alh /root'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+    command2run='ls -Ralh /etc/kubernetes/pki'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+  done
+
+  command2run="kubeadm config images pull"
+  squawk 55 "$command2run"
+  #ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+  #ssh ${USER}@${ETCDHOSTS[1]} "$command2run"
+  #ssh ${USER}@${ETCDHOSTS[2]} "$command2run"
+  #sleep 33
+  sleep 11
+
+  command2run="docker run --rm  \
+    --net host \
+    -v /etc/kubernetes:/etc/kubernetes quay.io/coreos/etcd:v3.2.18 etcdctl \
+    --cert-file /etc/kubernetes/pki/etcd/peer.crt \
+    --key-file /etc/kubernetes/pki/etcd/peer.key \
+    --ca-file /etc/kubernetes/pki/etcd/ca.crt \
+    --endpoints https://${ETCDHOSTS[0]}:2379 cluster-health"
+
+  squawk 55 'To test etcd run this commmand'
+  squawk 55 "$command2run"
+  squawk 55 "ssh -p ${ETCDPORTS[0]} ${K8S_User}@${ETCDHOSTS[0]} $command2run"
+  #ssh -p ${ETCDPORTS[0]} ${K8S_User}@${ETCDHOSTS[0]} "$command2run"
+  squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_SU_USER ${ETCDHOSTS[0]} $command2run"
+  sudo_command ${ETCDPORTS[0]} $K8S_SU_USER ${ETCDHOSTS[0]} "$command2run"
+  grab_pki_docs_method $K8S_SU_USER ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
+  for i in "${!MASTERHOSTS[@]}"; do
+    squawk 55 "push_pki_docs_method  $K8S_SU_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
+    push_pki_docs_method  $K8S_SU_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
+  done
+
+  # distribute the pki and configs
+  for i in "${!MASTERHOSTS[@]}"; do
+    squawk 55 "cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/"
+    cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/
+  done
+  for i in "${!MASTERHOSTS[@]}"; do
+    HOST=${MASTERHOSTS[$i]}
+    PREV_PWD=$(pwd)
+    cd $etcd_test_tmp/${HOST}
+    squawk 55 "tar zcf - pki | ssh ${USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - pki | ssh ${USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh ${USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - kubeadmcfg.yaml | ssh ${USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    cd $PREV_PWD
+  done
+  for i in "${!MASTERHOSTS[@]}"; do
+    HOST=${MASTERHOSTS[$i]}
+    command2run='systemctl daemon-reload'
+    echo "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+    command2run='systemctl stop kubelet'
+    echo "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+  done
+
+  command2run="kubeadm init --dry-run --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
+  echo "$command2run"
+  ssh ${USER}@${MASTERHOSTS[0]} "$command2run"
+  sleep 11
+  #command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
+  command2run="kubeadm init --config /etc/kubernetes/kubeadmcfg.yaml"
+  echo "$command2run"
+#  ssh ${USER}@${MASTERHOSTS[0]} "$command2run"
+  rm -Rf $etcd_test_tmp
+}
+
 horizontal_rule () {
   printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
 }
@@ -801,7 +1219,7 @@ qemu-provisioner () {
   qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG $qemunodeimg"
 
   if [[ "$K8S_os" == "coreos" ]]; then
-    squawk 5 Keyer
+    squawk 5 "Keyer"
     KEYTMP=$(mktemp -d)
     touch $KEYTMP/keys
     if [ ! -z  "$KEYS_URL" ]; then
@@ -2570,9 +2988,9 @@ prep_init_etcd_kubelet_download  () {
   command2run='kubeadm  alpha phase certs etcd-ca'
   sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
   command2run='ls -lh /etc/kubernetes/pki/etcd/ca.crt'
-  sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
+  #sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
   command2run='ls -lh /etc/kubernetes/pki/etcd/ca.key'
-  sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
+  #sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
 
   squawk 55 "prep_etcd_gen_certs $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host"
   prep_etcd_gen_certs $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host
@@ -2672,7 +3090,7 @@ prep_init_etcd_classic () {
   squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' $init_etcd_tmp/pki $this_user@$this_host:/tmp/"
   rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $init_etcd_tmp/pki $this_user@$this_host:/tmp/
   command2run='ls -lh /tmp/pki'
-  sudo_command $this_port $this_user $this_host "$command2run"
+  #sudo_command $this_port $this_user $this_host "$command2run"
   command2run='rm -Rf /etc/etcd/pki'
   sudo_command $this_port $this_user $this_host "$command2run"
   command2run='mv /tmp/pki /etc/etcd/pki'
@@ -3654,7 +4072,8 @@ do_command_in_parallel_on_os () {
 
 process_hosts_csv () {
   squawk 3 " process_hosts_csv"
-  do_etcd
+  #do_etcd
+  etcd_kubernetes_docs_method
   #start_etcd
   do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
@@ -4682,6 +5101,13 @@ main () {
       exit 1
     fi
     build_all_in_parallel
+  elif [[ $RAISON == "etcd_ext" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+    etcd_kubernetes_docs_method
   elif [[ $RAISON == "build" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule

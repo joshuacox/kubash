@@ -382,3 +382,10 @@ coreos_key:
 	curl -O https://coreos.com/security/image-signing-key/CoreOS_Image_Signing_Key.asc -o $(TMP)/CoreOS_Image_Signing_Key.asc
 	gpg --import --keyid-format LONG CoreOS_Image_Signing_Key.asc
 	rm -Rf $(TMP)
+
+testy:
+	kubash -n testy decommission -y
+	rm -Rf ~/.kubash/clusters/testy
+	kubash yaml2cluster -n testy ~/.kubash/examples/testy-cluster.yaml
+	kubash -n testy -y provision
+	kubash -n testy --verbosity=105 etcd_ext

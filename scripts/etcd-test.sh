@@ -27,10 +27,10 @@ for i in "${!ETCDHOSTS[@]}"; do
   echo mkdir -p /tmp/${HOST}/
   mkdir -p /tmp/${HOST}/
 
-# config file is not ready yet: https://github.com/kubernetes/kubernetes/issues/70745
-#ExecStart=/usr/bin/kubelet  --allow-privileged=true
-#ExecStart=/usr/bin/kubelet --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml
-#ExecStart=/usr/bin/kubelet --config=/var/lib/kubelet/config.yaml
+  # config file is not ready yet: https://github.com/kubernetes/kubernetes/issues/70745
+  #ExecStart=/usr/bin/kubelet  --allow-privileged=true
+  #ExecStart=/usr/bin/kubelet --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml
+  #ExecStart=/usr/bin/kubelet --config=/var/lib/kubelet/config.yaml
 
   # break indentation
   command2run='cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
@@ -54,7 +54,11 @@ EOF'
   # unbreak indentation
   #echo "ssh ${USER}@${HOST} $command2run"
   #ssh ${USER}@${HOST} "$command2run"
+  # unbreak indentation
+
 done
+
+
 #NAMES=("${THIS_NAMES}")
 
 for i in "${!ETCDHOSTS[@]}"; do
@@ -169,15 +173,15 @@ ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
 for i in "${!ETCDHOSTS[@]}"; do
   HOST=${ETCDHOSTS[$i]}
   command2run='systemctl daemon-reload'
-  #echo "ssh ${USER}@${HOST} $command2run"
-  #ssh ${USER}@${HOST} "$command2run"
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
   command2run='systemctl stop kubelet'
-  #echo "ssh ${USER}@${HOST} $command2run"
-  #ssh ${USER}@${HOST} "$command2run"
+  echo "ssh ${USER}@${HOST} $command2run"
+  ssh ${USER}@${HOST} "$command2run"
 done
 
 sleep 11
 
-command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /root/kubeadmcfg-external.yaml"
-#echo "$command2run"
-#ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
+command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg-external.yaml"
+echo "$command2run"
+ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
