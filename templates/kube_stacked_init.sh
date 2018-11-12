@@ -8,6 +8,8 @@ export CP0_HOSTNAME=$2
 export CP1_IP=$3
 export CP1_HOSTNAME=$4
 export KUBECONFIG=/etc/kubernetes/admin.conf
+mkdir -p ~/.kube/config
+cp /etc/kubernetes/admin.conf ~/.kube/config
 
 kubeadm alpha phase certs all --config /etc/kubernetes/kubeadmcfg.yaml
 kubeadm alpha phase kubelet config write-to-disk --config /etc/kubernetes/kubeadmcfg.yaml
