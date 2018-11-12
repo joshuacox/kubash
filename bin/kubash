@@ -680,6 +680,11 @@ EOF
 
     if [[ -e "$KUBASH_CLUSTER_DIR/join.sh" ]]; then
       rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" $KUBASH_DIR/templates/kube_stacked_init.sh $STACKED_USER@$HOST:/tmp/
+      #rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[0]}" root@${MASTERHOSTS[0]}:/etc/kubernetes/admin.conf $STACKED_USER@$HOST:/etc/kubernetes/admin.conf
+      #rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[0]}" root@${MASTERHOSTS[0]}:/etc/kubernetes/admin.conf $STACKED_USER@$HOST:/tmp/admin.conf
+      rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[0]}" \
+        root@${MASTERHOSTS[0]}:/etc/kubernetes/admin.conf \
+        root@$HOST:/etc/kubernetes/admin.conf
       command2run='mv /tmp/kube_stacked_init.sh /etc/kubernetes/'
       squawk 55 "ssh ${STACKED_USER}@${HOST} $command2run"
       ssh ${STACKED_USER}@${HOST} "$command2run"
