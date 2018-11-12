@@ -565,8 +565,145 @@ fi
   #command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
   command2run="kubeadm init --config /etc/kubernetes/kubeadmcfg.yaml"
   echo "$command2run"
-#  ssh ${USER}@${MASTERHOSTS[0]} "$command2run"
+  #  ssh ${USER}@${MASTERHOSTS[0]} "$command2run"
   rm -Rf $etcd_test_tmp
+}
+
+etcd_kubernetes_docs_stacked_method () {
+  number_limiter=$1
+  etcd_stacked_tmp=$(mktemp -d)
+  USER=root
+  #my_KUBE_CIDR="10.244.0.0/16"
+  set_csv_columns
+  etc_count_zero=0
+  master_count_zero=0
+  node_count_zero=0
+  rm -f $KUBASH_DIR/join.sh
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
+      ETCDHOSTS[$etc_count_zero]=$K8S_ip1
+      ETCDNAMES[$etc_count_zero]=$K8S_node
+      ETCDPORTS[$etc_count_zero]=$K8S_sshPort
+      MASTERHOSTS[$master_count_zero]=$K8S_ip1
+      MASTERNAMES[$master_count_zero]=$K8S_node
+      MASTERPORTS[$master_count_zero]=$K8S_sshPort
+      ((++etc_count_zero))
+      ((++master_count_zero))
+    elif [[ "$K8S_role" == 'node' ]]; then
+      NODEHOSTS[$node_count_zero]=$K8S_ip1
+      NODENAMES[$node_count_zero]=$K8S_node
+      NODEPORTS[$node_count_zero]=$K8S_sshPort
+      ((++node_count_zero))
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
+  echo $ETCDHOSTS
+  sleep 33
+
+  echo -n '            initial-cluster: "' > $etcd_stacked_tmp/initial-cluster.head
+  echo -n '            listen-client-urls: "https://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
+  count_etcd=0
+  countetcdnodes=0
+  while IFS="," read -r $csv_columns
+  do
+    echo "- '${K8S_ip1}'" >> $etcd_stacked_tmp/apiservercertsans.line
+    if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
+      if [[ $countetcdnodes -gt 0 ]]; then
+        printf ',' >> $etcd_stacked_tmp/initial-cluster.line
+        printf ',' >> $etcd_stacked_tmp/listen-client_urls.line
+      fi
+      echo "      - https://${K8S_ip1}:2379" >> $etcd_stacked_tmp/endpoints.line
+      printf "${K8S_node}=https://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
+      cp $etcd_stacked_tmp/initial-cluster.line $etcd_stacked_tmp/${countetcdnodes}-initial-cluster.line
+      printf '"' >> $etcd_stacked_tmp/${countetcdnodes}-initial-cluster.line
+      printf " \n" >> $etcd_stacked_tmp/${countetcdnodes}-initial-cluster.line
+      printf "https://${K8S_ip1}:2379" >> $etcd_stacked_tmp/listen-client_urls.line
+      cp $etcd_stacked_tmp/listen-client_urls.line $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
+      printf '"' >> $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
+      printf " \n" >> $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
+      ((++countetcdnodes))
+    fi
+    ((++count_etcd))
+  done <<< "$kubash_hosts_csv_slurped"
+  printf '"' >> $etcd_stacked_tmp/initial-cluster.line
+  printf '"' >> $etcd_stacked_tmp/listen-client_urls.line
+  printf " \n" >> $etcd_stacked_tmp/initial-cluster.line
+  printf " \n" >> $etcd_stacked_tmp/listen-client_urls.line
+
+  initial_cluster_line=$(cat $etcd_stacked_tmp/initial-cluster.head $etcd_stacked_tmp/initial-cluster.line)
+  api_server_cert_sans_line=$(cat $etcd_stacked_tmp/apiservercertsans.line)
+  endpoints_line=$(cat $etcd_stacked_tmp/endpoints.line)
+  #rm $etcd_stacked_tmp/initial-cluster.head $etcd_stacked_tmp/initial-cluster.line $etcd_stacked_tmp/apiservercertsans.line $etcd_stacked_tmp/endpoints.line
+
+
+  for i in "${!MASTERHOSTS[@]}"; do
+    initial_cluster_line=$(cat $etcd_stacked_tmp/initial-cluster.head $etcd_stacked_tmp/${i}-initial-cluster.line)
+    listen_client_urls_line=$(cat $etcd_stacked_tmp/listen-client_urls.head $etcd_stacked_tmp/${i}-listen-client_urls.line)
+    api_server_cert_sans_line=$(cat $etcd_stacked_tmp/apiservercertsans.line)
+    endpoints_line=$(cat $etcd_stacked_tmp/endpoints.line)
+    HOST=${MASTERHOSTS[$i]}
+    NAME=${MASTERNAMES[$i]}
+    mkdir -p $etcd_stacked_tmp/${HOST}
+    if [ "$i" -eq '0' ]; then
+      INITIAL_CLUSTER_STATE=new
+    else
+      INITIAL_CLUSTER_STATE=existing
+    fi
+    cat << EOF > $etcd_stacked_tmp/${HOST}/kubeadmcfg.yaml
+apiVersion: "kubeadm.k8s.io/v1alpha3"
+kind: ClusterConfiguration
+etcd:
+    local:
+        serverCertSANs:
+        - "${HOST}"
+        - "${NAME}"
+        peerCertSANs:
+        - "${HOST}"
+        - "${NAME}"
+        extraArgs:
+$initial_cluster_line
+            initial-cluster-state: $INITIAL_CLUSTER_STATE
+$listen_client_urls_line
+            name: ${NAME}
+            listen-peer-urls: https://${HOST}:2380
+            listen-client-urls: https://${HOST}:2379
+            advertise-client-urls: https://${HOST}:2379
+            initial-advertise-peer-urls: https://${HOST}:2380
+networking:
+  podSubnet: $my_KUBE_CIDR
+EOF
+    squawk 55 "push_pki_docs_method  $K8S_SU_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
+    rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" $etcd_stacked_tmp/${HOST}/kubeadmcfg.yaml $USER@$HOST:/tmp/
+    command2run='mv /tmp/kubeadmcfg.yaml /etc/kubernetes/'
+    squawk 55 "ssh ${USER}@${HOST} $command2run"
+    ssh ${USER}@${HOST} "$command2run"
+
+    if [[ -e "$KUBASH_CLUSTER_DIR/join.sh" ]]; then
+      my_KUBE_INIT=$(cat $KUBASH_CLUSTER_DIR/join.sh)
+      squawk 5 "kube init $my_KUBE_INIT"
+      ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_stacked_tmp/${HOST}-rawresults.k8s
+      w8_node $my_node_name
+      rolero $my_node_name master
+    else
+      #my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg.yaml"
+      my_KUBE_INIT="kubeadm init --config=/etc/kubernetes/kubeadmcfg.yaml"
+      squawk 5 "master kube init $my_KUBE_INIT"
+      my_grep='kubeadm join .* --token'
+      #run_join=$(ssh -n ${USER}@${HOST} "$my_KUBE_INIT" | tee $etcd_stacked_tmp/rawresults.k8s | grep -- "$my_grep")
+      ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_stacked_tmp/${HOST}-rawresults.k8s
+      cat $etcd_stacked_tmp/rawresults.k8s | grep -- "$my_grep"
+      run_join=$(cat $etcd_stacked_tmp/rawresults.k8s | grep -P -- "$my_grep")
+      if [[ -z "$run_join" ]]; then
+        horizontal_rule
+        echo 'kubeadm init failed!'
+        exit 1
+      else
+        echo $run_join > $KUBASH_CLUSTER_DIR/join.sh
+      fi
+    fi
+  done
+  rm -Rf $etcd_stacked_tmp
+
 }
 
 horizontal_rule () {
@@ -4074,6 +4211,8 @@ process_hosts_csv () {
   squawk 3 " process_hosts_csv"
   #do_etcd
   etcd_kubernetes_docs_method
+
+  #etcd_kubernetes_docs_stacked_method
   #start_etcd
   do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
@@ -5107,7 +5246,8 @@ main () {
       usage
       exit 1
     fi
-    etcd_kubernetes_docs_method
+    #etcd_kubernetes_docs_method
+    etcd_kubernetes_docs_stacked_method
   elif [[ $RAISON == "build" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
