@@ -693,7 +693,8 @@ EOF
       rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" \
         $etcd_stacked_tmp/${HOST}/kubernetes \
         root@$HOST:/etc/
-      command2run="rm /etc/kubernetes/controller-manager.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/kubelet.conf"
+      #command2run="rm -v /etc/kubernetes/controller-manager.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/kubelet.conf"
+      command2run="rm -v /etc/kubernetes/controller-manager.conf /etc/kubernetes/kubelet.conf"
       sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
       escaped_master=$( echo ${MASTERHOSTS[0]} |sed 's/\./\\./g')
       sedder="s/$escaped_master/$HOST/g"
