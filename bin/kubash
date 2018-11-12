@@ -679,26 +679,35 @@ EOF
     ssh ${STACKED_USER}@${HOST} "$command2run"
 
     if [[ -e "$KUBASH_CLUSTER_DIR/join.sh" ]]; then
-      my_KUBE_INIT=$(cat $KUBASH_CLUSTER_DIR/join.sh)
-      squawk 5 "kube init $my_KUBE_INIT"
+      rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" $KUBASH_DIR/templates/kube_stacked_init.sh $STACKED_USER@$HOST:/tmp/
+      command2run='mv /tmp/kube_stacked_init.sh /etc/kubernetes/'
+      squawk 55 "ssh ${STACKED_USER}@${HOST} $command2run"
+      ssh ${STACKED_USER}@${HOST} "$command2run"
+      #my_KUBE_INIT=$(cat $KUBASH_CLUSTER_DIR/join.sh)
+      my_KUBE_INIT="bash /etc/kubernetes/kube_stacked_init.sh ${MASTERHOSTS[0]} ${MASTERNAMES[0]} ${MASTERHOSTS[$i]} ${MASTERNAMES[$i]}"
+      squawk 5 "kube init --> $my_KUBE_INIT"
       ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_stacked_tmp/${HOST}-rawresults.k8s
       w8_node $my_node_name
       rolero $my_node_name master
     else
       #my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg.yaml"
       my_KUBE_INIT="kubeadm init --config=/etc/kubernetes/kubeadmcfg.yaml"
-      squawk 5 "master kube init $my_KUBE_INIT"
+      squawk 5 "master kube init --> $my_KUBE_INIT"
       my_grep='kubeadm join .* --token'
       #run_join=$(ssh -n ${STACKED_USER}@${HOST} "$my_KUBE_INIT" | tee $etcd_stacked_tmp/rawresults.k8s | grep -- "$my_grep")
       ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_stacked_tmp/${HOST}-rawresults.k8s
       #cat $etcd_stacked_tmp/${HOST}-rawresults.k8s | grep -- "$my_grep"
       run_join=$(cat $etcd_stacked_tmp/${HOST}-rawresults.k8s | grep -P -- "$my_grep")
+      join_token=$(cat $etcd_stacked_tmp/${HOST}-rawresults.k8s \
+        | grep -P -- "$my_grep" \
+        | sed 's/\(.*\)--token\ \(\S*\)\ --discovery-token-ca-cert-hash\ .*/\2/')
       if [[ -z "$run_join" ]]; then
         horizontal_rule
         echo 'kubeadm init failed!'
         exit 1
       else
         echo $run_join > $KUBASH_CLUSTER_DIR/join.sh
+        echo $join_token > $KUBASH_CLUSTER_DIR/join_token
         master_grab_kube_config ${NAME} ${HOST} ${STACKED_USER} ${MASTERPORTS[$i]}
       fi
     fi
