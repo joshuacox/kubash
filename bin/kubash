@@ -151,6 +151,49 @@ squawk () {
   fi
 }
 
+grab_kube_pki_docs_method () {
+  local USER=$1
+  local HOST=$2
+  local PORT=$3
+  # Make a list of required etcd certificate files
+  # break indentation
+    command2run='cat << EOF > kube-pki-files.txt
+/etc/kubernetes/pki/ca.crt
+/etc/kubernetes/pki/ca.key
+/etc/kubernetes/pki/sa.key
+/etc/kubernetes/pki/sa.pub
+/etc/kubernetes/pki/front-proxy-ca.crt
+/etc/kubernetes/pki/front-proxy-ca.key
+/etc/kubernetes/pki/etcd/ca.crt
+/etc/kubernetes/pki/etcd/ca.key
+/etc/kubernetes/admin.conf
+EOF'
+  # unbreak indentation
+  squawk 55 "ssh ${USER}@${HOST} $command2run"
+  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
+
+  # create the archive
+  command2run="tar -czf /tmp/kube-pki.tar.gz -T kube-pki-files.txt"
+  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
+  squawk 55 "scp -P ${PORT} ${USER}@${HOST}/tmp/kube-pki.tar.gz ${KUBASH_CLUSTER_DIR}/kube-pki.tar.gz"
+  scp -P ${PORT} ${USER}@${HOST}:/tmp/kube-pki.tar.gz ${KUBASH_CLUSTER_DIR}/kube-pki.tar.gz
+  command2run="rm /tmp/kube-pki.tar.gz"
+  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
+}
+
+push_kube_pki_docs_method () {
+  local USER=$1
+  local HOST=$2
+  push_PORT=$3
+  squawk 9 "rsync $KUBASH_RSYNC_OPTS ssh -p $push_PORT ${KUBASH_CLUSTER_DIR}/kube-pki.tar.gz $USER@$HOST:/tmp/"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $push_PORT" ${KUBASH_CLUSTER_DIR}/kube-pki.tar.gz $USER@$HOST:/tmp/
+  #command2run='mkdir -p /etc/kubernetes/pki && tar -xzvf /tmp/kube-pki.tar.gz -C /etc/kubernetes/pki --strip-components=3'
+  command2run='mkdir -p /etc/kubernetes/pki && cd / && tar -xzvf /tmp/kube-pki.tar.gz'
+  sudo_command ${push_PORT} ${USER} ${HOST} "$command2run"
+  command2run='rm /tmp/kube-pki.tar.gz'
+  sudo_command ${push_PORT} ${USER} ${HOST} "$command2run"
+}
+
 grab_pki_docs_method () {
   local USER=$1
   local HOST=$2
@@ -687,19 +730,25 @@ EOF
       #rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" \
         #$etcd_stacked_tmp/${HOST}/admin.conf \
         #root@$HOST:/etc/kubernetes/admin.conf
-      rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[0]}" \
-        root@${MASTERHOSTS[0]}:/etc/kubernetes \
-        $etcd_stacked_tmp/${HOST}/
-      rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" \
-        $etcd_stacked_tmp/${HOST}/kubernetes \
-        root@$HOST:/etc/
-      #command2run="rm -v /etc/kubernetes/controller-manager.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/kubelet.conf"
-      command2run="rm -v /etc/kubernetes/controller-manager.conf /etc/kubernetes/kubelet.conf"
+      #rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[0]}" \
+        #root@${MASTERHOSTS[0]}:/etc/kubernetes \
+        #$etcd_stacked_tmp/${HOST}/
+      #rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" \
+        #$etcd_stacked_tmp/${HOST}/kubernetes \
+        #root@$HOST:/etc/
+      squawk 55 "push_kube_pki_docs_method  $K8S_SU_INIT_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
+      push_kube_pki_docs_method ${STACKED_USER} ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
+      command2run="ls -Rl /etc/kubernetes"
+      sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
+      #command2run="rm -v /etc/kubernetes/controller-manager.conf /etc/kubernetes/kubelet.conf"
+      command2run="rm -fv /etc/kubernetes/controller-manager.conf /etc/kubernetes/scheduler.conf /etc/kubernetes/kubelet.conf"
       sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
       escaped_master=$( echo ${MASTERHOSTS[0]} |sed 's/\./\\./g')
       sedder="s/$escaped_master/$HOST/g"
+      #command2run="rm -v /etc/kubernetes/admin.conf"
+      #sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
       command2run="sed -i "$sedder" /etc/kubernetes/admin.conf"
-      sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
+      #sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
       command2run='mv /tmp/kube_stacked_init.sh /etc/kubernetes/'
       sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
       #my_KUBE_INIT=$(cat $KUBASH_CLUSTER_DIR/join.sh)
@@ -707,7 +756,7 @@ EOF
       squawk 5 "kube init --> $my_KUBE_INIT"
       ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_stacked_tmp/${HOST}-rawresults.k8s
       w8_node $my_node_name
-      rolero $my_node_name master
+      #rolero $my_node_name master
     else
       #my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg.yaml"
       my_KUBE_INIT="kubeadm init --config=/etc/kubernetes/kubeadmcfg.yaml"
@@ -728,6 +777,7 @@ EOF
         echo $run_join > $KUBASH_CLUSTER_DIR/join.sh
         echo $join_token > $KUBASH_CLUSTER_DIR/join_token
         master_grab_kube_config ${NAME} ${HOST} ${STACKED_USER} ${MASTERPORTS[$i]}
+        grab_kube_pki_docs_method ${STACKED_USER} ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
       fi
     fi
   done
