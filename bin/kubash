@@ -388,7 +388,7 @@ EOF
   done
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
-    NAME=${ETCDNAMES[$i]}
+    NAME=${MASTERNAMES[$i]}
     cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
 apiVersion: kubeadm.k8s.io/v1alpha3
 kind: InitConfiguration
