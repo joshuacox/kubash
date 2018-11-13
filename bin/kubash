@@ -385,7 +385,7 @@ kind: ClusterConfiguration
 apiServerCertSANs:
 - "127.0.0.1"
 $api_server_cert_sans_line
-controlPlaneEndpoint: "${MASTERHOSTS[0]}"
+controlPlaneEndpoint: "${MASTERHOSTS[0]}:6443"
 etcd:
   external:
       endpoints:
@@ -5325,8 +5325,11 @@ main () {
       usage
       exit 1
     fi
-    #etcd_kubernetes_docs_method
-    etcd_kubernetes_docs_stacked_method
+    if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+      etcd_kubernetes_docs_stacked_method
+    else
+      etcd_kubernetes_docs_method
+    fi
   elif [[ $RAISON == "build" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
