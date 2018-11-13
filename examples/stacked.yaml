@@ -1,8 +1,8 @@
 ---
   csv_version: '2.0.0'
   hosts:
-    testy-master1:
-      hostname: testymaster1
+    stacked-master1:
+      hostname: stackedmaster1
       role: primary_master
       cpuCount: 22
       Memory: 2800
@@ -16,10 +16,10 @@
       sshPort: 22
       network1:
         network: bridge=br1
-        mac: '52:54:00:e2:3d:11'
+        mac: '52:54:00:e2:9e:11'
         ip: dhcp
-    testy-master2:
-      hostname: testymaster2
+    stacked-master2:
+      hostname: stackedmaster2
       role: master
       cpuCount: 1
       Memory: 1500
@@ -33,10 +33,10 @@
       sshPort: 22
       network1:
         network: bridge=br1
-        mac: '52:54:00:e2:3d:12'
+        mac: '52:54:00:e2:9e:12'
         ip: dhcp
-    testy-master3:
-      hostname: testymaster3
+    stacked-master3:
+      hostname: stackedmaster3
       role: master
       cpuCount: 1
       Memory: 1500
@@ -50,61 +50,10 @@
       sshPort: 22
       network1:
         network: bridge=br1
-        mac: '52:54:00:e2:3d:13'
+        mac: '52:54:00:e2:9e:13'
         ip: dhcp
-    testy-etcd1:
-      hostname: testyetcd1
-      role: primary_etcd
-      cpuCount: 1
-      Memory: 1496
-      provisioner:
-        Host: '10.0.23.12'
-        User: root
-        Port: 22
-        BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
-      virt: qemu
-      sshPort: 22
-      network1:
-        network: bridge=br1
-        mac: '52:54:00:e2:3d:14'
-        ip: dhcp
-    testy-etcd2:
-      hostname: testyetcd2
-      role: etcd
-      cpuCount: 1
-      Memory: 1222
-      provisioner:
-        Host: '10.0.23.12'
-        User: root
-        Port: 22
-        BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
-      virt: qemu
-      sshPort: 22
-      network1:
-        network: bridge=br1
-        mac: '52:54:00:e2:3d:15'
-        ip: dhcp
-    testy-etcd3:
-      hostname: testyetcd3
-      role: etcd
-      cpuCount: 1
-      Memory: 1122
-      provisioner:
-        Host: '10.0.23.12'
-        User: root
-        Port: 22
-        BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
-      virt: qemu
-      sshPort: 22
-      network1:
-        network: bridge=br1
-        mac: '52:54:00:e2:3d:16'
-        ip: dhcp
-    testy-node1:
-      hostname: testynode1
+    stacked-node1:
+      hostname: stackednode1
       role: node
       cpuCount: 4
       Memory: 4096
@@ -118,10 +67,10 @@
       sshPort: 22
       network1:
         network: bridge=br1
-        mac: '52:54:00:e2:3d:17'
+        mac: '52:54:00:e2:9e:17'
         ip: dhcp
-    testy-node2:
-      hostname: testynode2
+    stacked-node2:
+      hostname: stackednode2
       role: node
       cpuCount: 3
       Memory: 2222
@@ -135,10 +84,10 @@
       sshPort: 22
       network1:
         network: bridge=br1
-        mac: '52:54:00:e2:3d:18'
+        mac: '52:54:00:e2:9e:18'
         ip: dhcp
-    testy-node3:
-      hostname: testynode3
+    stacked-node3:
+      hostname: stackednode3
       role: node
       cpuCount: 2
       Memory: 2222
@@ -152,14 +101,14 @@
       sshPort: 22
       network1:
         network: bridge=br1
-        mac: '52:54:00:e2:3d:19'
+        mac: '52:54:00:e2:9e:19'
         ip: dhcp
   ca:
     cert:
       CERT_COMMON_NAME: etcd
       CERT_COUNTRY: US
       CERT_LOCALITY: Austin
-      CERT_ORGANISATION: testy
+      CERT_ORGANISATION: stacked
       CERT_STATE: Texas
       CERT_ORG_UNIT: Deployment
   net_set: flannel

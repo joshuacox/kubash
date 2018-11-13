@@ -52,57 +52,6 @@
         network: bridge=br1
         mac: '52:54:00:e2:3d:13'
         ip: dhcp
-    testy-etcd1:
-      hostname: testyetcd1
-      role: primary_etcd
-      cpuCount: 1
-      Memory: 1496
-      provisioner:
-        Host: '10.0.23.12'
-        User: root
-        Port: 22
-        BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
-      virt: qemu
-      sshPort: 22
-      network1:
-        network: bridge=br1
-        mac: '52:54:00:e2:3d:14'
-        ip: dhcp
-    testy-etcd2:
-      hostname: testyetcd2
-      role: etcd
-      cpuCount: 1
-      Memory: 1222
-      provisioner:
-        Host: '10.0.23.12'
-        User: root
-        Port: 22
-        BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
-      virt: qemu
-      sshPort: 22
-      network1:
-        network: bridge=br1
-        mac: '52:54:00:e2:3d:15'
-        ip: dhcp
-    testy-etcd3:
-      hostname: testyetcd3
-      role: etcd
-      cpuCount: 1
-      Memory: 1122
-      provisioner:
-        Host: '10.0.23.12'
-        User: root
-        Port: 22
-        BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
-      virt: qemu
-      sshPort: 22
-      network1:
-        network: bridge=br1
-        mac: '52:54:00:e2:3d:16'
-        ip: dhcp
     testy-node1:
       hostname: testynode1
       role: node

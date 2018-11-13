@@ -381,6 +381,18 @@ $initial_cluster_line
 EOF
     cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg-external.yaml
 apiVersion: kubeadm.k8s.io/v1alpha3
+kind: InitConfiguration
+apiEndpoint:
+  advertiseAddress: ${HOST}
+  bindPort: 6443
+nodeRegistration:
+  criSocket: /var/run/dockershim.sock
+  name: ${NAME}
+  taints:
+  - effect: NoSchedule
+    key: node-role.kubernetes.io/master
+---
+apiVersion: kubeadm.k8s.io/v1alpha3
 kind: ClusterConfiguration
 apiServerCertSANs:
 - "127.0.0.1"
@@ -442,7 +454,7 @@ kind: ClusterConfiguration
 apiServerCertSANs:
 - "127.0.0.1"
 $api_server_cert_sans_line
-controlPlaneEndpoint: "${MASTERHOSTS[0]}"
+controlPlaneEndpoint: "${MASTERHOSTS[0]}:6443"
 etcd:
   external:
       endpoints:
@@ -568,12 +580,12 @@ fi
   squawk 55 "$command2run"
   squawk 55 "ssh -p ${ETCDPORTS[0]} ${K8S_User}@${ETCDHOSTS[0]} $command2run"
   #ssh -p ${ETCDPORTS[0]} ${K8S_User}@${ETCDHOSTS[0]} "$command2run"
-  squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_SU_INIT_USER ${ETCDHOSTS[0]} $command2run"
-  sudo_command ${ETCDPORTS[0]} $K8S_SU_INIT_USER ${ETCDHOSTS[0]} "$command2run"
-  grab_pki_docs_method $K8S_SU_INIT_USER ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
+  squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
+  sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
+  grab_pki_docs_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
   for i in "${!MASTERHOSTS[@]}"; do
-    squawk 55 "push_pki_docs_method  $K8S_SU_INIT_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
-    push_pki_docs_method  $K8S_SU_INIT_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
+    squawk 55 "push_pki_docs_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
+    push_pki_docs_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
   done
 
   # distribute the pki and configs
@@ -608,7 +620,7 @@ fi
   #command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
   command2run="kubeadm init --config /etc/kubernetes/kubeadmcfg.yaml"
   echo "$command2run"
-  #  ssh ${INIT_USER}@${MASTERHOSTS[0]} "$command2run"
+  sudo_command ${MASTERPORTS[0]} $K8S_user ${MASTERHOSTS[0]} "$command2run"
   rm -Rf $etcd_test_tmp
 }
 
@@ -736,7 +748,7 @@ EOF
       #rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" \
         #$etcd_stacked_tmp/${HOST}/kubernetes \
         #root@$HOST:/etc/
-      squawk 55 "push_kube_pki_docs_method  $K8S_SU_INIT_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
+      squawk 55 "push_kube_pki_docs_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
       push_kube_pki_docs_method ${STACKED_USER} ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
       command2run="ls -Rl /etc/kubernetes"
       sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
