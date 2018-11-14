@@ -127,6 +127,7 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   kubeadm config images pull
   kubeadm init
   kubeadm reset
+  rm -Rf /etc/kubernetes/*
 else
   echo 'Sticking to defaults'
   install_default_docker

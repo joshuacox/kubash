@@ -535,9 +535,11 @@ EOF
   squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
   sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
   grab_pki_docs_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
+  #grab_kube_pki_docs_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
   for i in "${!MASTERHOSTS[@]}"; do
     squawk 55 "push_pki_docs_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
     push_pki_docs_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
+    #push_kube_pki_docs_method $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
   done
 
   # distribute the pki and configs
@@ -2281,7 +2283,7 @@ write_ansible_kubespray_hosts () {
   echo '[etcd]'  >> $KUBASH_ANSIBLE_HOSTS
   while IFS="," read -r $csv_columns
   do
-    if [[ "$K8S_role" = "etcd" ]]; then
+    if [[ "$K8S_role" = "etcd"  || "$K8S_role" == "primary_etcd" ]]; then
       echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
     elif [[ "$MASTERS_AS_ETCD" == "true" ]]; then
       if [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
