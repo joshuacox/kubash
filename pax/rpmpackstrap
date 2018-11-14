@@ -126,7 +126,7 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   #systemctl restart docker
   kubeadm config images pull
   kubeadm init
-  kubeadm reset
+  yes y|kubeadm reset
   rm -Rf /etc/kubernetes/*
 else
   # Defaults to nothing barebones
