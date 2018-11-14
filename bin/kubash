@@ -2,7 +2,7 @@
 # set default fall-through variables
 # if set in the environment these variables will fall-through and retain their value
 # otherwise use the defaults here
-KUBASH_VERSION='v1.12.2'
+#KUBASH_VERSION='v1.12.2'
 : ${KUBE_MAJOR_VER:=1}
 : ${KUBE_MINOR_VER:=12}
 : ${KUBASH_CLUSTER_NAME=default}
@@ -52,6 +52,7 @@ KUBASH_VERSION='v1.12.2'
 : ${DO_KEEPALIVED:='false'}
 : ${DO_CRICTL:='false'}
 : ${ETCD_VERSION:=v3.2.7}
+: ${ETCD_TLS:='true'}
 : ${KUBASH_RSYNC_OPTS:='-H -aze'}
 : ${CALICO_URL:=https://docs.projectcalico.org/v3.0/getting-started/kubernetes/installation/hosted/kubeadm/1.7/calico.yaml}
 : ${FLANNEL_URL:=https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml}
@@ -290,7 +291,11 @@ etcd_kubernetes_docs_method () {
           printf ',' >> $etcd_test_tmp/initial-cluster.line
         fi
         printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
-        echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+        if [[ $ETCD_TLS = 'true' ]]; then
+          echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+        else
+          echo "      - http://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+        fi
         ((++countetcdnodes))
       fi
     else
@@ -299,12 +304,22 @@ etcd_kubernetes_docs_method () {
           printf ',' >> $etcd_test_tmp/initial-cluster.line
         fi
         printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
-        echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+        if [[ $ETCD_TLS = 'true' ]]; then
+          echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+        else
+          echo "      - http://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+        fi
         ((++countetcdnodes))
       fi
     fi
     ((++count_etcd))
   done <<< "$kubash_hosts_csv_slurped"
+  if [[ $ETCD_TLS = 'true' ]]; then
+    echo '      caFile: /etc/kubernetes/pki/etcd/ca.crt
+      certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+      keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key' \
+    >> $etcd_test_tmp/endpoints.line
+  fi
   printf " \n" >> $etcd_test_tmp/initial-cluster.line
   initial_cluster_line=$(cat $etcd_test_tmp/initial-cluster.head $etcd_test_tmp/initial-cluster.line)
   api_server_cert_sans_line=$(cat $etcd_test_tmp/apiservercertsans.line)
@@ -412,9 +427,6 @@ etcd:
   external:
       endpoints:
 $endpoints_line
-      caFile: /etc/kubernetes/pki/etcd/ca.crt
-      certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
-      keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key
 networking:
   podSubnet: $my_KUBE_CIDR
 EOF

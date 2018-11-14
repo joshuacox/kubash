@@ -143,7 +143,7 @@ cat << EOF > /usr/local/bin/get-ip-address
 echo -n 'IP address = '
 /sbin/ifconfig | grep "inet addr" | grep -v "127.0.0.1" | awk '{ print \$2 }' | awk -F: '{ print \$2 }'
 echo -n 'SSH is on port: '
-grep Port /etc/ssh/sshd_config 
+grep Port /etc/ssh/sshd_config
 EOF
 
 chmod +x /usr/local/bin/get-ip-address

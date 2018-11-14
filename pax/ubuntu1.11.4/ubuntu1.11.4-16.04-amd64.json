@@ -333,7 +333,7 @@
     "keys_url": "{{ env `KEYS_URL`}}",
     "root_password_to_set": "{{ env `KUBASH_SET_ROOT_PW`}}",
     "su_password_to_set": "{{ env `KUBASH_SET_SU_PW`}}",
-    "kubeadm_install": "{{ env `KUBEADM_INSTALL`}}",
+    "kubeadm_install": "kubeadm",
     "k8s_su_user": "{{ env `K8S_SU_USER`}}",
     "DOCKER_PKG": "17.03",
     "DOCKER_COMPOSE_PKG": "1.8.0",
