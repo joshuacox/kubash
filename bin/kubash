@@ -231,6 +231,33 @@ push_pki_docs_method () {
   sudo_command ${push_PORT} ${USER} ${HOST} "$command2run"
 }
 
+determine_api_version () {
+  if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+    squawk 20 'Major Version 1'
+    if [[ $KUBE_MINOR_VER -lt 9 ]]; then
+      echo "$KUBE_MINOR_VER is too old may not ever be supported"
+      exit 1
+    elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
+      squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
+      export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
+      kubeadm_cfg_kind=MasterConfiguration
+    elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+      squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1alpha3"
+      export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha3"
+      kubeadm_cfg_kind=ClusterConfiguration
+    else
+      echo "$KUBE_MINOR_VER not supported yet"
+      exit 1
+    fi
+  elif [[ $MAJOR_VER -eq 0 ]]; then
+    squawk 1 'Major Version 0 unsupported'
+    exit 1
+  else
+    squawk 1 'Major Version Unknown'
+    exit 1
+  fi
+}
+
 etcd_kubernetes_docs_method () {
   etcd_test_tmp=$(mktemp -d)
   INIT_USER=root
@@ -278,6 +305,8 @@ etcd_kubernetes_docs_method () {
   done <<< "$kubash_hosts_csv_slurped"
   echo $ETCDHOSTS
   sleep 33
+  get_major_minor_kube_version $K8S_user ${MASTERHOSTS[0]} ${MASTERNAMES[0]} ${MASTERPORTS[0]}
+  determine_api_version
 
   echo -n "            initial-cluster: " > $etcd_test_tmp/initial-cluster.head
   count_etcd=0
@@ -378,7 +407,7 @@ EOF'
     NAME=${ETCDNAMES[$i]}
     cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
 apiVersion: "$kubeadm_apiVersion"
-kind: ClusterConfiguration
+kind: $kubeadm_cfg_kind
 etcd:
     local:
         serverCertSANs:
@@ -404,7 +433,9 @@ EOF
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
     NAME=${MASTERNAMES[$i]}
-    cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
+    if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+      if [[ $KUBE_MINOR_VER -gt 11 ]]; then
+        cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
 apiVersion: "$kubeadm_apiVersion"
 kind: InitConfiguration
 apiEndpoint:
@@ -417,8 +448,12 @@ nodeRegistration:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
 ---
+EOF
+     fi
+   fi
+    cat << EOF >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
 apiVersion: "$kubeadm_apiVersion"
-kind: ClusterConfiguration
+kind: $kubeadm_cfg_kind
 apiServerCertSANs:
 - "127.0.0.1"
 $api_server_cert_sans_line
@@ -590,31 +625,8 @@ EOF
   rm -Rf $etcd_test_tmp
 }
 
-determine_api_version () {
-  if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
-    squawk 20 'Major Version 1'
-    if [[ $KUBE_MINOR_VER -lt 9 ]]; then
-      echo "$KUBE_MINOR_VER is too old may not ever be supported"
-      exit 1
-    elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
-      kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
-    elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
-      kubeadm_apiVersion="kubeadm.k8s.io/v1alpha3"
-    else
-      echo "$KUBE_MINOR_VER not supported yet"
-      exit 1
-    fi
-  elif [[ $MAJOR_VER -eq 0 ]]; then
-    squawk 1 'Major Version 0 unsupported'
-    exit 1
-  else
-    squawk 1 'Major Version Unknown'
-    exit 1
-  fi
-}
-
 etcd_kubernetes_docs_stacked_method () {
-  determine_api_version
+  sleep 4
   number_limiter=$1
   etcd_stacked_tmp=$(mktemp -d)
   STACKED_USER=root
@@ -644,6 +656,8 @@ etcd_kubernetes_docs_stacked_method () {
   done <<< "$kubash_hosts_csv_slurped"
   echo $ETCDHOSTS
   sleep 33
+  get_major_minor_kube_version $K8S_user ${MASTERHOSTS[0]} ${MASTERNAMES[0]} ${MASTERPORTS[0]}
+  determine_api_version
 
   echo -n '            initial-cluster: "' > $etcd_stacked_tmp/initial-cluster.head
   echo -n '            listen-client-urls: "https://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
@@ -696,7 +710,7 @@ etcd_kubernetes_docs_stacked_method () {
     fi
     cat << EOF > $etcd_stacked_tmp/${HOST}/kubeadmcfg.yaml
 apiVersion: "$kubeadm_apiVersion"
-kind: ClusterConfiguration
+kind: $kubeadm_cfg_kind
 etcd:
     local:
         serverCertSANs:
