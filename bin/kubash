@@ -2,7 +2,7 @@
 # set default fall-through variables
 # if set in the environment these variables will fall-through and retain their value
 # otherwise use the defaults here
-#KUBASH_VERSION='v1.12.2'
+KUBASH_VERSION='v1.12.2'
 : ${KUBE_MAJOR_VER:=1}
 : ${KUBE_MINOR_VER:=12}
 : ${KUBASH_CLUSTER_NAME=default}
@@ -377,7 +377,7 @@ EOF'
     HOST=${ETCDHOSTS[$i]}
     NAME=${ETCDNAMES[$i]}
     cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
-apiVersion: "kubeadm.k8s.io/v1alpha3"
+apiVersion: "$kubeadm_apiVersion"
 kind: ClusterConfiguration
 etcd:
     local:
@@ -405,7 +405,7 @@ EOF
     HOST=${MASTERHOSTS[$i]}
     NAME=${MASTERNAMES[$i]}
     cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
-apiVersion: kubeadm.k8s.io/v1alpha3
+apiVersion: "$kubeadm_apiVersion"
 kind: InitConfiguration
 apiEndpoint:
   advertiseAddress: ${HOST}
@@ -417,7 +417,7 @@ nodeRegistration:
   - effect: NoSchedule
     key: node-role.kubernetes.io/master
 ---
-apiVersion: kubeadm.k8s.io/v1alpha3
+apiVersion: "$kubeadm_apiVersion"
 kind: ClusterConfiguration
 apiServerCertSANs:
 - "127.0.0.1"
@@ -590,7 +590,31 @@ EOF
   rm -Rf $etcd_test_tmp
 }
 
+determine_api_version () {
+  if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+    squawk 20 'Major Version 1'
+    if [[ $KUBE_MINOR_VER -lt 9 ]]; then
+      echo "$KUBE_MINOR_VER is too old may not ever be supported"
+      exit 1
+    elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
+      kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
+    elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+      kubeadm_apiVersion="kubeadm.k8s.io/v1alpha3"
+    else
+      echo "$KUBE_MINOR_VER not supported yet"
+      exit 1
+    fi
+  elif [[ $MAJOR_VER -eq 0 ]]; then
+    squawk 1 'Major Version 0 unsupported'
+    exit 1
+  else
+    squawk 1 'Major Version Unknown'
+    exit 1
+  fi
+}
+
 etcd_kubernetes_docs_stacked_method () {
+  determine_api_version
   number_limiter=$1
   etcd_stacked_tmp=$(mktemp -d)
   STACKED_USER=root
@@ -671,7 +695,7 @@ etcd_kubernetes_docs_stacked_method () {
       INITIAL_CLUSTER_STATE=existing
     fi
     cat << EOF > $etcd_stacked_tmp/${HOST}/kubeadmcfg.yaml
-apiVersion: "kubeadm.k8s.io/v1alpha3"
+apiVersion: "$kubeadm_apiVersion"
 kind: ClusterConfiguration
 etcd:
     local:
@@ -3649,28 +3673,80 @@ do_etcd () {
         $do_etcd_tmp_para/${K8S_node}extraargs.line \
         > $do_etcd_tmp_para/${K8S_node}endpoints.line
 
-        kubeadmin_config_tmp=$(mktemp)
-        my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
-        KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
-        load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
-        my_KUBE_CIDR=$my_KUBE_CIDR \
-        ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
-        envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
-          > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
+        if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+          squawk 20 'Major Version 1'
+          if [[ $KUBE_MINOR_VER -lt 9 ]]; then
+            echo "$KUBE_MINOR_VER is too old may not ever be supported"
+            exit 1
+          elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.11.yaml \
+              > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
+          elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
+              > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
+          else
+            echo "$KUBE_MINOR_VER not supported yet"
+            exit 1
+          fi
+        elif [[ $MAJOR_VER -eq 0 ]]; then
+          squawk 1 'Major Version 0 unsupported'
+          exit 1
+        else
+          squawk 1 'Major Version Unknown'
+          exit 1
+        fi
 
         # now for the external
         cat $do_etcd_tmp_para/endpoints.line \
         $do_etcd_tmp_para/external-endpoints.line \
         > $do_etcd_tmp_para/${K8S_node}endpoints.line
 
-        kubeadmin_config_tmp=$(mktemp)
-        my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
-        KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
-        load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
-        my_KUBE_CIDR=$my_KUBE_CIDR \
-        ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
-        envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.12.yaml \
-          > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
+        if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+          squawk 20 'Major Version 1'
+          if [[ $KUBE_MINOR_VER -lt 9 ]]; then
+            echo "$KUBE_MAJOR_VER.$KUBE_MINOR_VER is too old may not ever be supported"
+            exit 1
+          elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.11.yaml \
+              > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
+          elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.12.yaml \
+              > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
+          else
+            echo "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported yet"
+            exit 1
+          fi
+        elif [[ $MAJOR_VER -eq 0 ]]; then
+          squawk 1 'Major Version 0 unsupported'
+          exit 1
+        else
+          squawk 1 'Major Version Unknown'
+          exit 1
+        fi
 
         #squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_SU_USER@$K8S_ip1:/tmp/kubeadmcfg.yaml"
         #scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_SU_USER@$K8S_ip1:/tmp/kubeadmcfg.yaml
@@ -3697,14 +3773,40 @@ do_etcd () {
         $do_etcd_tmp_para/${K8S_node}extraargs.line \
         > $do_etcd_tmp_para/${K8S_node}endpoints.line
 
-        kubeadmin_config_tmp=$(mktemp)
-        my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
-        KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
-        load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
-        my_KUBE_CIDR=$my_KUBE_CIDR \
-        ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
-        envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
-          > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
+        if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+          squawk 20 'Major Version 1'
+          if [[ $KUBE_MINOR_VER -lt 9 ]]; then
+            echo "$KUBE_MINOR_VER is too old may not ever be supported"
+            exit 1
+          elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.11.yaml \
+              > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
+          elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
+              > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
+          else
+            echo "$KUBE_MINOR_VER not supported yet"
+            exit 1
+          fi
+        elif [[ $MAJOR_VER -eq 0 ]]; then
+          squawk 1 'Major Version 0 unsupported'
+          exit 1
+        else
+          squawk 1 'Major Version Unknown'
+          exit 1
+        fi
 
         command2run="mkdir -p /tmp/${K8S_ip1}"
         sudo_command $my_master_port $my_master_user $my_master_ip "$command2run"
@@ -3720,15 +3822,41 @@ do_etcd () {
         $do_etcd_tmp_para/external-endpoints.line \
         > $do_etcd_tmp_para/${K8S_node}endpoints.line
 
-        kubeadmin_config_tmp=$(mktemp)
-        my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
-        KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
-        load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
-        my_KUBE_CIDR=$my_KUBE_CIDR \
-        ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
-        envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.12.yaml \
-          > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
 
+        if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+          squawk 20 'Major Version 1'
+          if [[ $KUBE_MINOR_VER -lt 9 ]]; then
+            echo "$KUBE_MAJOR_VER.$KUBE_MINOR_VER is too old may not ever be supported"
+            exit 1
+          elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.11.yaml \
+              > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
+          elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary) \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.12.yaml \
+              > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
+          else
+            echo "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported yet"
+            exit 1
+          fi
+        elif [[ $MAJOR_VER -eq 0 ]]; then
+          squawk 1 'Major Version 0 unsupported'
+          exit 1
+        else
+          squawk 1 'Major Version Unknown'
+          exit 1
+        fi
         command2run="mkdir -p /tmp/${K8S_ip1}"
         sudo_command $my_master_port $my_master_user $my_master_ip "$command2run"
         squawk 25 "scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml"
@@ -3908,14 +4036,40 @@ do_masters_in_parallel () {
   #command2run='sudo  rm /etc/kubernetes/pki/apiserver.crt'
   #do_command_in_parallel_on_role "master" "$command2run"
   if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
-    kubeadmin_config_tmp=$(mktemp)
-    my_master_ip=$my_master_ip \
-    KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
-    load_balancer_ip=$K8S_load_balancer_ip \
-    my_KUBE_CIDR=$my_KUBE_CIDR \
-    ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
-    envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
-      > $kubeadmin_config_tmp
+    if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+      squawk 20 'Major Version 1'
+      if [[ $KUBE_MINOR_VER -lt 9 ]]; then
+        echo "$KUBE_MINOR_VER is too old may not ever be supported"
+        exit 1
+      elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
+        kubeadmin_config_tmp=$(mktemp)
+        my_master_ip=$my_master_ip \
+        KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+        load_balancer_ip=$K8S_load_balancer_ip \
+        my_KUBE_CIDR=$my_KUBE_CIDR \
+        ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
+        envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.11.yaml \
+          > $kubeadmin_config_tmp
+      elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+        kubeadmin_config_tmp=$(mktemp)
+        my_master_ip=$my_master_ip \
+        KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+        load_balancer_ip=$K8S_load_balancer_ip \
+        my_KUBE_CIDR=$my_KUBE_CIDR \
+        ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
+        envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
+          > $kubeadmin_config_tmp
+      else
+        echo "$KUBE_MINOR_VER not supported yet"
+        exit 1
+      fi
+    elif [[ $MAJOR_VER -eq 0 ]]; then
+      squawk 1 'Major Version 0 unsupported'
+      exit 1
+    else
+      squawk 1 'Major Version Unknown'
+      exit 1
+    fi
     squawk 5 "copy_in_parallel_to_role master '$kubeadmin_config_tmp' '/tmp/config.yaml'"
     copy_in_parallel_to_role master "$kubeadmin_config_tmp" "/tmp/config.yaml"
     rm $kubeadmin_config_tmp
@@ -4266,11 +4420,10 @@ do_command_in_parallel_on_os () {
 
 process_hosts_csv () {
   squawk 3 " process_hosts_csv"
-  #do_etcd
-  etcd_kubernetes_docs_method
-
+  do_etcd
+  #etcd_kubernetes_docs_method
   #etcd_kubernetes_docs_stacked_method
-  #start_etcd
+  start_etcd
   do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     do_masters_in_parallel
