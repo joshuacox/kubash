@@ -2086,9 +2086,10 @@ write_ansible_kubeadm2ha_hosts () {
   fi
   # Write all hosts to inventory for id
   set_csv_columns
+  echo '[all]'  >> $KUBASH_ANSIBLE_HOSTS
   while IFS="," read -r $csv_columns
   do
-    echo "$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_sshPort ansible_user=$K8S_provisionerUser" >> $KUBASH_ANSIBLE_HOSTS
+    echo "$K8S_node ip=$K8S_ip1 etcd_member_name=$K8S_node ansible_ssh_host=$K8S_ip1 ansible_ssh_port=$K8S_sshPort ansible_user=$K8S_provisionerUser" >> $KUBASH_ANSIBLE_HOSTS
   done <<< "$slurpy"
 
   echo '' >> $KUBASH_ANSIBLE_HOSTS
@@ -2122,6 +2123,20 @@ write_ansible_kubeadm2ha_hosts () {
   echo '' >> $KUBASH_ANSIBLE_HOSTS
 
   echo '[etcd]'  >> $KUBASH_ANSIBLE_HOSTS
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" = "etcd" ]]; then
+      echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+    elif [[ "$K8S_role" == "master" || "$K8S_role" == "primary_master" ]]; then
+      if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+        echo "$K8S_node" >> $KUBASH_ANSIBLE_HOSTS
+      fi
+    fi
+  done <<< "$slurpy"
+
+  echo '' >> $KUBASH_ANSIBLE_HOSTS
+
+  echo '[vault]'  >> $KUBASH_ANSIBLE_HOSTS
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" = "etcd" ]]; then
@@ -2725,8 +2740,13 @@ master_init_join () {
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$PSEUDO hostname;$PSEUDO  uname -a"
     my_grep='kubeadm join --token'
     squawk 3 'master_init_join kubeadm init'
+    command2run='sudo systemctl restart kubelet'
+    do_command_in_parallel_on_role "primary_master" "$command2run"
+    do_command_in_parallel_on_role "master" "$command2run"
+    #ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     command2run='sudo systemctl stop kubelet'
-    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    #ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    do_command_in_parallel_on_role "primary_master" "$command2run"
     do_command_in_parallel_on_role "master" "$command2run"
     command2run='sudo netstat -ntpl'
     do_command_in_parallel_on_role "master" "$command2run"
@@ -3115,7 +3135,7 @@ finish_etcd_direct_download () {
   sudo_command $this_port $this_user $this_host "$command2run"
 
   rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_host:/tmp/etcd.service
-  command2run='cp /tmp/etcd.service /lib/systemd/system/etcd.service'
+  command2run='mv /tmp/etcd.service /lib/systemd/system/etcd.service'
   sudo_command $this_port $this_user $this_host "$command2run"
 
   rm $etctmp
@@ -3339,9 +3359,10 @@ prep_init_etcd_classic () {
   sudo_command $this_port $this_user $this_host "$command2run"
 
   # crictl
-  if [[ "$DO_CRICTL" == 'true' ]]; then
-    copy_in_parallel_to_all "${KUBASH_BIN}/crictl" "/tmp/crictl"
-    command2run='mv /tmp/crictl /usr/bin/crictl'
+  if [[ $DO_CRICTL = 'true' ]]; then
+    real_path_crictl=$(realpath ${KUBASH_BIN}/crictl)
+    copy_in_parallel_to_all "$real_path_crictl" "/tmp/crictl"
+    command2run='mv /tmp/crictl /usr/local/bin/crictl'
     do_command_in_parallel "$command2run"
   fi
 
@@ -3473,8 +3494,8 @@ set_ip_files () {
   done <<< "$kubash_hosts_csv_slurped"
 }
 
-do_etcd () {
-  squawk 3 " do_etcd"
+write_kubeadmcfg_yaml () {
+  squawk 3 " write kubeadmcfg.yaml files"
   do_etcd_tmp_para=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
   touch $do_etcd_tmp_para/hopper
   if [[ -z "$kubash_hosts_csv_slurped" ]]; then
@@ -3926,6 +3947,27 @@ do_etcd () {
       fi
     fi
   done <<< "$kubash_hosts_csv_slurped"
+}
+
+do_etcd () {
+  squawk 3 " do_etcd"
+  do_etcd_tmp_para=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  touch $do_etcd_tmp_para/hopper
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    hosts_csv_slurp
+  fi
+
+  countprimarymaster=0
+  countprimaryetcd=0
+  countmaster=1
+  countetcd=1
+  set_csv_columns
+  set_ip_files
+  my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary)
+  my_master_user=$( cat $KUBASH_CLUSTER_DIR/kube_primary_user)
+  my_master_port=$( cat $KUBASH_CLUSTER_DIR/kube_primary_port)
+  # create  config files
+  write_kubeadmcfg_yaml
 
   countprimarymaster=0
   set_csv_columns
@@ -4308,13 +4350,13 @@ copy_known_hosts () {
   copy_in_parallel_to_all ~/.ssh/known_hosts /tmp/known_hosts
   command2run="cp -v /tmp/known_hosts /root/.ssh/known_hosts"
   do_command_in_parallel "$command2run"
-  command2run="cp -v /tmp/known_hosts /home/$K8S_SU_USER/.ssh/known_hosts"
+  command2run="mv -v /tmp/known_hosts /home/$K8S_SU_USER/.ssh/known_hosts"
   do_command_in_parallel "$command2run"
 }
 
 copy_in_parallel_to_all () {
   copy_in_to_all_tmp_para=$(mktemp -d)
-  file2copy=$1
+  file2copy=$(realpath $1)
   destination=$2
   touch $copy_in_to_all_tmp_para/hopper
   squawk 3 " copy_in_parallel_to_all $@"
@@ -4343,7 +4385,7 @@ copy_in_parallel_to_all () {
 copy_in_parallel_to_role () {
   copy_in_to_role_tmp_para=$(mktemp -d)
   role2copy2=$1
-  file2copy=$2
+  file2copy=$(realpath $2)
   destination=$3
   touch $copy_in_to_role_tmp_para/hopper
   squawk 3 " copy_in_parallel_to_role $@"
@@ -4375,7 +4417,7 @@ copy_in_parallel_to_role () {
 copy_in_parallel_to_os () {
   copy_in_to_os_tmp_para=$(mktemp -d)
   os2copy2=$1
-  file2copy=$2
+  file2copy=$(realpath $2)
   destination=$3
   touch $copy_in_to_os_tmp_para/hopper
   squawk 3 " copy_in_parallel_to_os $@"
@@ -4499,10 +4541,11 @@ do_command_in_parallel_on_os () {
 
 process_hosts_csv () {
   squawk 3 " process_hosts_csv"
-  do_etcd
+  #do_etcd
+  write_kubeadmcfg_yaml
   #etcd_kubernetes_docs_method
   #etcd_kubernetes_docs_stacked_method
-  start_etcd
+  #start_etcd
   do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     do_masters_in_parallel
