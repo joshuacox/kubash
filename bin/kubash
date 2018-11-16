@@ -50,10 +50,10 @@ KUBASH_VERSION='v1.12.2'
 : ${BROADCAST_TO_NETWORK:='10.0.23.0/24'}
 : ${INTERFACE_NET:='eth0'}
 : ${DO_KEEPALIVED:='false'}
-: ${DO_CRICTL:='false'}
+: ${DO_CRICTL:='true'}
 : ${ETCD_VERSION:=v3.2.7}
 : ${ETCD_TLS:='true'}
-: ${KUBASH_RSYNC_OPTS:='-H -aze'}
+: ${KUBASH_RSYNC_OPTS:='-L -H -aze'}
 : ${CALICO_URL:=https://docs.projectcalico.org/v3.0/getting-started/kubernetes/installation/hosted/kubeadm/1.7/calico.yaml}
 : ${FLANNEL_URL:=https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml}
 : ${USE_TRAEFIK_DAEMON_SET:='true'}
@@ -3184,14 +3184,15 @@ prep_init_etcd () {
   if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
     squawk 175 'Kube Major Version 1 for prep init etcd'
     if [[ $KUBE_MINOR_VER -lt 12 ]]; then
-      echo 'less than 12 broken atm'
-      exit 1
-      #squawk 175 'Kube Minor Version less than 12 for prep init etcd'
-      #prep_init_etcd_classic $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
+      #echo "$KUBE_MAJOR_VER.$KUBE_MINOR_VER less than 12 broken atm prep_init_etcd_kubelet_download $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port"
+      #exit 1
+      squawk 175 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER Kube Minor Version less than 12 for prep init etcd"
+      prep_init_etcd_classic $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
     else
-      squawk 175 'Kube Major Version less than 12 for prep init etcd'
+      squawk 175 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER for prep init etcd"
       squawk 55 "prep_init_etcd_kubelet_download $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port"
       prep_init_etcd_kubelet_download $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
+      squawk 83 'End pre_init_etcd'
     fi
   elif [[ $MAJOR_VER -eq 0 ]]; then
     squawk 1 'Major Version 0 unsupported'
@@ -3212,6 +3213,7 @@ prep_init_etcd_kubelet_download  () {
 
   squawk 55 "prep_20-etcd-service-manager $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_name $prep_init_etcd_kubelet_download_port"
   prep_20-etcd-service-manager $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_name $prep_init_etcd_kubelet_download_port
+  squawk 76 'end etcd prep_20'
 
   sleep 3
 
@@ -3237,7 +3239,7 @@ prep_20-etcd-service-manager () {
     exit 1
   fi
   squawk 5 prep_init_etcd_kubelet_download
-  prep_init_etcd_kubelet_download_tmp=$(mktemp -d)
+  prep_20_etcd_service_manager_tmp=$(mktemp -d)
   prep_20_etcd_service_manager_user=$1
   prep_20_etcd_service_manager_host=$2
   prep_20_etcd_service_manager_name=$3
@@ -3246,14 +3248,15 @@ prep_20-etcd-service-manager () {
   prep_20_etcd_service_manager_host=$2 \
   envsubst < \
     $KUBASH_DIR/templates/20-etcd-service-manager.conf \
-    > $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf
-  squawk 55 "rsync -zave ssh -p $prep_20_etcd_service_manager_port $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf $prep_20_etcd_service_manager_user@$prep_20_etcd_service_manager_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf"
-  rsync -zave "ssh -p $prep_20_etcd_service_manager_port" $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf $prep_20_etcd_service_manager_user@$prep_20_etcd_service_manager_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
-  rm $prep_init_etcd_kubelet_download_tmp/20-etcd-service-manager.conf
-  rmdir $prep_init_etcd_kubelet_download_tmp
+    > $prep_20_etcd_service_manager_tmp/20-etcd-service-manager.conf
+  squawk 55 "rsync -zave ssh -p $prep_20_etcd_service_manager_port $prep_20_etcd_service_manager_tmp/20-etcd-service-manager.conf $prep_20_etcd_service_manager_user@$prep_20_etcd_service_manager_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf"
+  rsync -zave "ssh -p $prep_20_etcd_service_manager_port" $prep_20_etcd_service_manager_tmp/20-etcd-service-manager.conf $prep_20_etcd_service_manager_user@$prep_20_etcd_service_manager_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
+  rm $prep_20_etcd_service_manager_tmp/20-etcd-service-manager.conf
+  rmdir $prep_20_etcd_service_manager_tmp
   command2run='systemctl daemon-reload && systemctl restart kubelet'
   squawk 55 "sudo_command $prep_20_etcd_service_manager_port $prep_20_etcd_service_manager_user $prep_20_etcd_service_manager_host $command2run"
   sudo_command $prep_20_etcd_service_manager_port $prep_20_etcd_service_manager_user $prep_20_etcd_service_manager_host "$command2run"
+  squawk 99 'End prep_20-etcd-service-manager'
 }
 
 prep_etcd_gen_certs () {
@@ -3337,25 +3340,28 @@ prep_init_etcd_classic () {
 
   # crictl
   if [[ "$DO_CRICTL" == 'true' ]]; then
-    squawk 5 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' '${KUBASH_BIN}/crictl' $this_user@$this_host:/tmp/crictl"
-    rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" "${KUBASH_BIN}/crictl" $this_user@$this_host:/tmp/crictl
-    do_command_in_parallel_on_role "master"        "$command2run"
+    copy_in_parallel_to_all "${KUBASH_BIN}/crictl" "/tmp/crictl"
+    command2run='mv /tmp/crictl /usr/bin/crictl'
+    do_command_in_parallel "$command2run"
   fi
 
-  squawk 5 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' ${KUBASH_BIN}/cfssljson $this_user@$this_host:/tmp/cfssljson"
-  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" "${KUBASH_BIN}/cfssljson" $this_user@$this_host:/tmp/cfssljson
   copy_in_parallel_to_all "${KUBASH_BIN}/cfssljson" "/tmp/cfssljson"
-  command2run='cp /tmp/cfssljson /usr/local/bin/cfssljson'
+  command2run='mv /tmp/cfssljson /usr/local/bin/cfssljson'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  do_command_in_parallel "$command2run"
+
+  copy_in_parallel_to_all "${KUBASH_BIN}/cfssl" "/tmp/cfssl"
+  command2run='mv /tmp/cfssl /usr/local/bin/cfssl'
   sudo_command $this_port $this_user $this_host "$command2run"
   do_command_in_parallel "$command2run"
 
   # Hack, delete after rebuild
   #command2run="echo 'PATH=/usr/local/bin:$PATH' >> /root/.bash_profile"
   #sudo_command $this_port $this_user $this_host "$command2run"
-  do_command_in_parallel_on_role "etcd"          "$command2run"
-  if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
-    do_command_in_parallel_on_role "master"        "$command2run"
-  fi
+  #do_command_in_parallel_on_role "etcd"          "$command2run"
+  #if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+  #  do_command_in_parallel_on_role "master"        "$command2run"
+  #fi
 
   # add etcd user if it doesn't exist
   command2run='id -u etcd &>/dev/null || useradd etcd'
@@ -3427,19 +3433,7 @@ prep_etcd () {
   fi
 }
 
-do_etcd () {
-  squawk 3 " do_etcd"
-  do_etcd_tmp_para=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
-  touch $do_etcd_tmp_para/hopper
-  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    hosts_csv_slurp
-  fi
-
-  countprimarymaster=0
-  countprimaryetcd=0
-  countmaster=1
-  countetcd=1
-  set_csv_columns
+set_ip_files () {
   # First find the primary etcd master
   while IFS="," read -r $csv_columns
   do
@@ -3477,6 +3471,22 @@ do_etcd () {
       ((++countetcd))
     fi
   done <<< "$kubash_hosts_csv_slurped"
+}
+
+do_etcd () {
+  squawk 3 " do_etcd"
+  do_etcd_tmp_para=$(mktemp -d --suffix='.para.tmp' 2>/dev/null || mktemp -d -t '.para.tmp')
+  touch $do_etcd_tmp_para/hopper
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    hosts_csv_slurp
+  fi
+
+  countprimarymaster=0
+  countprimaryetcd=0
+  countmaster=1
+  countetcd=1
+  set_csv_columns
+  set_ip_files
   my_master_ip=$( cat $KUBASH_CLUSTER_DIR/kube_primary)
   my_master_user=$( cat $KUBASH_CLUSTER_DIR/kube_primary_user)
   my_master_port=$( cat $KUBASH_CLUSTER_DIR/kube_primary_port)
@@ -3675,6 +3685,7 @@ do_etcd () {
   # create  config files
   while IFS="," read -r $csv_columns
   do
+    get_major_minor_kube_version $K8S_user $K8S_ip1  $K8S_node $K8S_sshPort
     if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
         cat $do_etcd_tmp_para/endpoints.line \
@@ -3685,7 +3696,7 @@ do_etcd () {
         $do_etcd_tmp_para/initial-cluster.head \
         $do_etcd_tmp_para/initial-cluster.line \
         $do_etcd_tmp_para/${K8S_node}extraargs.line \
-        > $do_etcd_tmp_para/${K8S_node}endpoints.line
+        > $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line
 
         if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
           squawk 20 'Major Version 1'
@@ -3698,7 +3709,7 @@ do_etcd () {
             KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
             load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
             my_KUBE_CIDR=$my_KUBE_CIDR \
-            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
             envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.11.yaml \
               > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
           elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
@@ -3707,12 +3718,19 @@ do_etcd () {
             KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
             load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
             my_KUBE_CIDR=$my_KUBE_CIDR \
-            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
             envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
               > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
           else
-            echo "$KUBE_MINOR_VER not supported yet"
-            exit 1
+            squawk 10 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$my_master_ip \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-${KUBE_MAJOR_VER}.${KUBE_MINOR_VER}.yaml \
+              > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
           fi
         elif [[ $MAJOR_VER -eq 0 ]]; then
           squawk 1 'Major Version 0 unsupported'
@@ -3751,8 +3769,15 @@ do_etcd () {
             envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.12.yaml \
               > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
           else
-            echo "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported yet"
-            exit 1
+            squawk 10 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$my_master_ip \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-${KUBE_MAJOR_VER}.${KUBE_MINOR_VER}.yaml \
+              > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
           fi
         elif [[ $MAJOR_VER -eq 0 ]]; then
           squawk 1 'Major Version 0 unsupported'
@@ -3773,7 +3798,9 @@ do_etcd () {
         squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml"
         scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml
         scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg-external.yaml
+        squawk 73 'etcd prep_20'
         prep_20-etcd-service-manager $K8S_user ${K8S_ip1} ${K8S_node} $K8S_sshPort
+        squawk 78 'end etcd prep_20'
       fi
     else
       if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'primary_etcd' ]]; then
@@ -3785,7 +3812,7 @@ do_etcd () {
         $do_etcd_tmp_para/initial-cluster.head \
         $do_etcd_tmp_para/initial-cluster.line \
         $do_etcd_tmp_para/${K8S_node}extraargs.line \
-        > $do_etcd_tmp_para/${K8S_node}endpoints.line
+        > $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line
 
         if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
           squawk 20 'Major Version 1'
@@ -3798,7 +3825,7 @@ do_etcd () {
             KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
             load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
             my_KUBE_CIDR=$my_KUBE_CIDR \
-            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
             envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.11.yaml \
               > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
           elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
@@ -3807,12 +3834,19 @@ do_etcd () {
             KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
             load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
             my_KUBE_CIDR=$my_KUBE_CIDR \
-            ENDPOINTS_LINES=$( cat $do_etcd_tmp_para/${K8S_node}endpoints.line) \
+            ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
             envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
               > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
           else
-            echo "$KUBE_MINOR_VER not supported yet"
-            exit 1
+            squawk 10 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$my_master_ip \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-${KUBE_MAJOR_VER}.${KUBE_MINOR_VER}.yaml \
+              > $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml
           fi
         elif [[ $MAJOR_VER -eq 0 ]]; then
           squawk 1 'Major Version 0 unsupported'
@@ -3828,7 +3862,9 @@ do_etcd () {
         scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml
         squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml"
         scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml
+        squawk 74 'etcd prep_20'
         prep_20-etcd-service-manager $K8S_user ${K8S_ip1} ${K8S_node} $K8S_sshPort
+        squawk 74 'end etcd prep_20'
 
       elif [[ "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
         # now for the external
@@ -3861,8 +3897,15 @@ do_etcd () {
             envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-1.12.yaml \
               > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
           else
-            echo "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported yet"
-            exit 1
+            squawk 10 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
+            kubeadmin_config_tmp=$(mktemp)
+            my_master_ip=$my_master_ip \
+            KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+            load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+            my_KUBE_CIDR=$my_KUBE_CIDR \
+            ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
+            envsubst  < $KUBASH_DIR/templates/kubeadm-config-external-${KUBE_MAJOR_VER}.${KUBE_MINOR_VER}.yaml \
+              > $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml
           fi
         elif [[ $MAJOR_VER -eq 0 ]]; then
           squawk 1 'Major Version 0 unsupported'
@@ -3877,7 +3920,9 @@ do_etcd () {
         scp -P $my_master_port $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $my_master_user@$my_master_ip:/tmp/${K8S_ip1}/kubeadmcfg.yaml
         squawk 25 "scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml"
         scp -P $K8S_sshPort $do_etcd_tmp_para/${K8S_node}-external-kubeadmcfg.yaml $K8S_user@${K8S_ip1}:/etc/kubernetes/kubeadmcfg.yaml
+        squawk 75 'External master prep_20'
         prep_20-etcd-service-manager $K8S_user ${K8S_ip1} ${K8S_node} $K8S_sshPort
+        squawk 75 'End create config loop'
       fi
     fi
   done <<< "$kubash_hosts_csv_slurped"
@@ -4047,35 +4092,63 @@ do_masters_in_parallel () {
   squawk 3 " do_masters_in_parallel"
   do_master_count=0
 
+
+  do_master_tmp=$(mktemp -d)
+  touch $do_master_tmp/hopper
+  touch $do_master_tmp/hopper2
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    hosts_csv_slurp
+  fi
+  set_csv_columns
+  while IFS="," read -r $csv_columns
+  do
+    # get major minor vers
+    if [[ "$K8S_role" == "primary_master" ]]; then
+      get_major_minor_kube_version $K8S_user $K8S_ip1  $K8S_node $K8S_sshPort
+      break
+    fi
+  done
   #command2run='sudo  rm /etc/kubernetes/pki/apiserver.crt'
   #do_command_in_parallel_on_role "master" "$command2run"
   if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
     if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
       squawk 20 'Major Version 1'
       if [[ $KUBE_MINOR_VER -lt 9 ]]; then
-        echo "$KUBE_MINOR_VER is too old may not ever be supported"
+        squawk 9 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER is too old may not ever be supported"
+        exit 1
+      elif [[ $KUBE_MINOR_VER -gt 13 ]]; then
+        squawk 13 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER is  may not yet supported"
         exit 1
       elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
+        squawk 11 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
         kubeadmin_config_tmp=$(mktemp)
         my_master_ip=$my_master_ip \
         KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
-        load_balancer_ip=$K8S_load_balancer_ip \
+        load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
         my_KUBE_CIDR=$my_KUBE_CIDR \
-        ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
+        ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
         envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.11.yaml \
           > $kubeadmin_config_tmp
       elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+        squawk 12 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
         kubeadmin_config_tmp=$(mktemp)
         my_master_ip=$my_master_ip \
         KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
-        load_balancer_ip=$K8S_load_balancer_ip \
+        load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
         my_KUBE_CIDR=$my_KUBE_CIDR \
-        ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
+        ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
         envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
           > $kubeadmin_config_tmp
       else
-        echo "$KUBE_MINOR_VER not supported yet"
-        exit 1
+        squawk 10 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
+        kubeadmin_config_tmp=$(mktemp)
+        my_master_ip=$my_master_ip \
+        KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+        load_balancer_ip=$( cat $KUBASH_CLUSTER_DIR/kube_master1) \
+        my_KUBE_CIDR=$my_KUBE_CIDR \
+        ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/${K8S_node}endpoints.line ) \
+        envsubst  < $KUBASH_DIR/templates/kubeadm-config-${KUBE_MAJOR_VER}.${KUBE_MINOR_VER}.yaml \
+          > $kubeadmin_config_tmp
       fi
     elif [[ $MAJOR_VER -eq 0 ]]; then
       squawk 1 'Major Version 0 unsupported'
@@ -4088,14 +4161,6 @@ do_masters_in_parallel () {
     copy_in_parallel_to_role master "$kubeadmin_config_tmp" "/tmp/config.yaml"
     rm $kubeadmin_config_tmp
   fi
-
-  do_master_tmp=$(mktemp -d)
-  touch $do_master_tmp/hopper
-  touch $do_master_tmp/hopper2
-  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
-    hosts_csv_slurp
-  fi
-  set_csv_columns
   command2run='systemctl stop kubectl'
   do_command_in_parallel_on_role "master" "$command2run"
   while IFS="," read -r $csv_columns

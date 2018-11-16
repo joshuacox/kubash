@@ -124,7 +124,7 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
   ansible-playbook -i $TMP/inventory cluster-images.yaml
 elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   install_spec_docker
-  kubeadm config images pull
+  #kubeadm config images pull
   kubeadm init
   yes y|kubeadm reset
   rm -Rf /etc/kubernetes/*
