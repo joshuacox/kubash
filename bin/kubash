@@ -322,7 +322,7 @@ etcd_kubernetes_ext_etcd_method () {
         if [[ $countetcdnodes -gt 0 ]]; then
           printf ',' >> $etcd_test_tmp/initial-cluster.line
         fi
-        if [[ $ETCD_TLS = 'true' ]]; then
+        if [[ "$ETCD_TLS" == 'true' ]]; then
           printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
           echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         else
@@ -336,7 +336,7 @@ etcd_kubernetes_ext_etcd_method () {
         if [[ $countetcdnodes -gt 0 ]]; then
           printf ',' >> $etcd_test_tmp/initial-cluster.line
         fi
-        if [[ $ETCD_TLS = 'true' ]]; then
+        if [[ "$ETCD_TLS" == 'true' ]]; then
           printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
           echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         else
@@ -348,7 +348,7 @@ etcd_kubernetes_ext_etcd_method () {
     fi
     ((++count_etcd))
   done <<< "$kubash_hosts_csv_slurped"
-  if [[ $ETCD_TLS = 'true' ]]; then
+  if [[ "$ETCD_TLS" == 'true' ]]; then
     echo '      caFile: /etc/kubernetes/pki/etcd/ca.crt
       certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
       keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key' \
@@ -424,7 +424,7 @@ $initial_cluster_line
             initial-cluster-state: new
             name: ${NAME}
 EOF
-  if [[ $ETCD_TLS = 'true' ]]; then
+  if [[ "$ETCD_TLS" == 'true' ]]; then
     echo "            listen-peer-urls: https://${HOST}:2380
             listen-client-urls: https://${HOST}:2379
             advertise-client-urls: https://${HOST}:2379
@@ -674,7 +674,7 @@ etcd_kubernetes_docs_stacked_method () {
   determine_api_version
 
   echo -n '            initial-cluster: "' > $etcd_stacked_tmp/initial-cluster.head
-  if [[ $ETCD_TLS = 'true' ]]; then
+  if [[ "$ETCD_TLS" == 'true' ]]; then
     echo -n '            listen-client-urls: "https://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
   else
     echo -n '            listen-client-urls: "http://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
@@ -689,7 +689,7 @@ etcd_kubernetes_docs_stacked_method () {
         printf ',' >> $etcd_stacked_tmp/initial-cluster.line
         printf ',' >> $etcd_stacked_tmp/listen-client_urls.line
       fi
-      if [[ $ETCD_TLS = 'true' ]]; then
+      if [[ "$ETCD_TLS" == 'true' ]]; then
         echo "      - https://${K8S_ip1}:2379" >> $etcd_stacked_tmp/endpoints.line
         printf "${K8S_node}=https://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
         printf "https://${K8S_ip1}:2379" > $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
