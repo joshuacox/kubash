@@ -198,7 +198,7 @@ push_kube_pki_stacked_method () {
   #sudo_command ${push_PORT} ${push_USER} ${push_HOST} "$command2run"
 }
 
-grab_pki_docs_method () {
+grab_pki_ext_etcd_method () {
   local USER=$1
   local HOST=$2
   local PORT=$3
@@ -222,7 +222,7 @@ EOF'
   sudo_command ${PORT} ${USER} ${HOST} "$command2run"
 }
 
-push_pki_docs_method () {
+push_pki_ext_etcd_method () {
   local USER=$1
   local HOST=$2
   push_PORT=$3
@@ -322,10 +322,11 @@ etcd_kubernetes_ext_etcd_method () {
         if [[ $countetcdnodes -gt 0 ]]; then
           printf ',' >> $etcd_test_tmp/initial-cluster.line
         fi
-        printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
         if [[ $ETCD_TLS = 'true' ]]; then
+          printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
           echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         else
+          printf "${K8S_node}=http://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
           echo "      - http://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         fi
         ((++countetcdnodes))
@@ -335,10 +336,11 @@ etcd_kubernetes_ext_etcd_method () {
         if [[ $countetcdnodes -gt 0 ]]; then
           printf ',' >> $etcd_test_tmp/initial-cluster.line
         fi
-        printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
         if [[ $ETCD_TLS = 'true' ]]; then
+          printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
           echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         else
+          printf "${K8S_node}=http://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
           echo "      - http://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         fi
         ((++countetcdnodes))
@@ -423,16 +425,16 @@ $initial_cluster_line
             name: ${NAME}
 EOF
   if [[ $ETCD_TLS = 'true' ]]; then
-    echo '            listen-peer-urls: https://${HOST}:2380
+    echo "            listen-peer-urls: https://${HOST}:2380
             listen-client-urls: https://${HOST}:2379
             advertise-client-urls: https://${HOST}:2379
-            initial-advertise-peer-urls: https://${HOST}:2380' \
+            initial-advertise-peer-urls: https://${HOST}:2380" \
      >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
   else
-    echo '            listen-peer-urls: http://${HOST}:2380
+    echo "            listen-peer-urls: http://${HOST}:2380
             listen-client-urls: http://${HOST}:2379
             advertise-client-urls: http://${HOST}:2379
-            initial-advertise-peer-urls: http://${HOST}:2380' \
+            initial-advertise-peer-urls: http://${HOST}:2380" \
      >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
   fi
     command2run='systemctl daemon-reload'
@@ -593,11 +595,11 @@ EOF
   #ssh -p ${ETCDPORTS[0]} ${K8S_User}@${ETCDHOSTS[0]} "$command2run"
   squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
   sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
-  grab_pki_docs_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
+  grab_pki_ext_etcd_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
   #grab_kube_pki_stacked_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
   for i in "${!MASTERHOSTS[@]}"; do
-    squawk 55 "push_pki_docs_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
-    push_pki_docs_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
+    squawk 55 "push_pki_ext_etcd_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
+    push_pki_ext_etcd_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
     #push_kube_pki_stacked_method $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
   done
 
@@ -672,7 +674,11 @@ etcd_kubernetes_docs_stacked_method () {
   determine_api_version
 
   echo -n '            initial-cluster: "' > $etcd_stacked_tmp/initial-cluster.head
-  echo -n '            listen-client-urls: "https://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
+  if [[ $ETCD_TLS = 'true' ]]; then
+    echo -n '            listen-client-urls: "https://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
+  else
+    echo -n '            listen-client-urls: "http://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
+  fi
   count_etcd=0
   countetcdnodes=0
   while IFS="," read -r $csv_columns
@@ -683,14 +689,20 @@ etcd_kubernetes_docs_stacked_method () {
         printf ',' >> $etcd_stacked_tmp/initial-cluster.line
         printf ',' >> $etcd_stacked_tmp/listen-client_urls.line
       fi
-      echo "      - https://${K8S_ip1}:2379" >> $etcd_stacked_tmp/endpoints.line
-      printf "${K8S_node}=https://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
+      if [[ $ETCD_TLS = 'true' ]]; then
+        echo "      - https://${K8S_ip1}:2379" >> $etcd_stacked_tmp/endpoints.line
+        printf "${K8S_node}=https://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
+        printf "https://${K8S_ip1}:2379" > $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
+      else
+        echo "      - http://${K8S_ip1}:2379" >> $etcd_stacked_tmp/endpoints.line
+        printf "${K8S_node}=http://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
+        printf "http://${K8S_ip1}:2379" > $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
+      fi
       cp $etcd_stacked_tmp/initial-cluster.line $etcd_stacked_tmp/${countetcdnodes}-initial-cluster.line
       printf '"' >> $etcd_stacked_tmp/${countetcdnodes}-initial-cluster.line
       printf " \n" >> $etcd_stacked_tmp/${countetcdnodes}-initial-cluster.line
       #printf "https://${K8S_ip1}:2379" >> $etcd_stacked_tmp/listen-client_urls.line
       #cp $etcd_stacked_tmp/listen-client_urls.line $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
-      printf "https://${K8S_ip1}:2379" > $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
       printf '"' >> $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
       printf " \n" >> $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
       ((++countetcdnodes))
@@ -746,7 +758,7 @@ $initial_cluster_line
 networking:
   podSubnet: $my_KUBE_CIDR
 EOF
-    squawk 55 "push_pki_docs_method  $K8S_SU_STACKED_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
+    squawk 55 "push_pki_ext_etcd_method  $K8S_SU_STACKED_USER ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}"
     rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" $etcd_stacked_tmp/${HOST}/kubeadmcfg.yaml $STACKED_USER@$HOST:/tmp/
     command2run='mv /tmp/kubeadmcfg.yaml /etc/kubernetes/'
     sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
