@@ -3,6 +3,7 @@
 # if set in the environment these variables will fall-through and retain their value
 # otherwise use the defaults here
 KUBASH_VERSION='v1.12.2'
+: ${KUBE_VERSION:='v1.12.2'}
 : ${KUBE_MAJOR_VER:=1}
 : ${KUBE_MINOR_VER:=12}
 : ${KUBASH_CLUSTER_NAME=default}
@@ -649,6 +650,8 @@ EOF
   ssh ${INIT_USER}@${MASTERHOSTS[0]} "$command2run"
   sleep 11
   #command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
+  master_grab_kube_config ${MASTERNAMES[0]} ${MASTERHOSTS[0]} $K8S_user ${MASTERPORTS[0]}
+  sudo_command ${MASTERPORTS[0]} $K8S_user ${MASTERHOSTS[0]} "$command2run"
   command2run="kubeadm init --config /etc/kubernetes/kubeadmcfg.yaml"
   echo "$command2run"
   sudo_command ${MASTERPORTS[0]} $K8S_user ${MASTERHOSTS[0]} "$command2run"
@@ -2982,6 +2985,7 @@ kubespray_initialize () {
   fi
   ansible-playbook \
     -i $KUBASH_ANSIBLE_HOSTS \
+    -e kube_version=$KUBE_VERSION \
     $KUBASH_DIR/submodules/kubespray/cluster.yml
 }
 
