@@ -168,10 +168,10 @@ grab_kube_pki_stacked_method () {
 /etc/kubernetes/pki/etcd/ca.crt
 /etc/kubernetes/pki/etcd/ca.key
 /etc/kubernetes/admin.conf
-/etc/kubernetes/controller-manager.conf
-/etc/kubernetes/scheduler.conf
 EOF'
   # unbreak indentation
+#/etc/kubernetes/controller-manager.conf
+#/etc/kubernetes/scheduler.conf
 
   squawk 55 "ssh ${grab_USER}@${grab_HOST} $command2run"
   sudo_command ${grab_PORT} ${grab_USER} ${grab_HOST} "$command2run"
@@ -326,8 +326,10 @@ etcd_kubernetes_ext_etcd_method () {
           printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
           echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         else
-          printf "${K8S_node}=http://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
-          echo "      - http://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+          printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
+          echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+          #printf "${K8S_node}=http://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
+          #echo "      - http://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         fi
         ((++countetcdnodes))
       fi
@@ -340,8 +342,10 @@ etcd_kubernetes_ext_etcd_method () {
           printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
           echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         else
-          printf "${K8S_node}=http://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
-          echo "      - http://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+          printf "${K8S_node}=https://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
+          echo "      - https://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
+          #printf "${K8S_node}=http://${K8S_ip1}:2380" >> $etcd_test_tmp/initial-cluster.line
+          #echo "      - http://${K8S_ip1}:2379" >> $etcd_test_tmp/endpoints.line
         fi
         ((++countetcdnodes))
       fi
@@ -349,6 +353,11 @@ etcd_kubernetes_ext_etcd_method () {
     ((++count_etcd))
   done <<< "$kubash_hosts_csv_slurped"
   if [[ "$ETCD_TLS" == 'true' ]]; then
+    echo '      caFile: /etc/kubernetes/pki/etcd/ca.crt
+      certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
+      keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key' \
+    >> $etcd_test_tmp/endpoints.line
+  else
     echo '      caFile: /etc/kubernetes/pki/etcd/ca.crt
       certFile: /etc/kubernetes/pki/apiserver-etcd-client.crt
       keyFile: /etc/kubernetes/pki/apiserver-etcd-client.key' \
@@ -430,11 +439,18 @@ EOF
             advertise-client-urls: https://${HOST}:2379
             initial-advertise-peer-urls: https://${HOST}:2380" \
      >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
-  else
+  elif [[ "$ETCD_TLS" == 'calamazoo' ]]; then
+    # neutered
     echo "            listen-peer-urls: http://${HOST}:2380
             listen-client-urls: http://${HOST}:2379
             advertise-client-urls: http://${HOST}:2379
             initial-advertise-peer-urls: http://${HOST}:2380" \
+     >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
+  else
+    echo "            listen-peer-urls: https://${HOST}:2380
+            listen-client-urls: https://${HOST}:2379
+            advertise-client-urls: https://${HOST}:2379
+            initial-advertise-peer-urls: https://${HOST}:2380" \
      >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
   fi
     command2run='systemctl daemon-reload'
@@ -677,7 +693,8 @@ etcd_kubernetes_docs_stacked_method () {
   if [[ "$ETCD_TLS" == 'true' ]]; then
     echo -n '            listen-client-urls: "https://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
   else
-    echo -n '            listen-client-urls: "http://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
+    #echo -n '            listen-client-urls: "http://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
+    echo -n '            listen-client-urls: "https://127.0.0.1:2379,' > $etcd_stacked_tmp/listen-client_urls.head
   fi
   count_etcd=0
   countetcdnodes=0
@@ -694,9 +711,12 @@ etcd_kubernetes_docs_stacked_method () {
         printf "${K8S_node}=https://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
         printf "https://${K8S_ip1}:2379" > $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
       else
-        echo "      - http://${K8S_ip1}:2379" >> $etcd_stacked_tmp/endpoints.line
-        printf "${K8S_node}=http://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
-        printf "http://${K8S_ip1}:2379" > $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
+        #echo "      - http://${K8S_ip1}:2379" >> $etcd_stacked_tmp/endpoints.line
+        #printf "${K8S_node}=http://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
+        #printf "http://${K8S_ip1}:2379" > $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
+        echo "      - https://${K8S_ip1}:2379" >> $etcd_stacked_tmp/endpoints.line
+        printf "${K8S_node}=https://${K8S_ip1}:2380" >>  $etcd_stacked_tmp/initial-cluster.line
+        printf "https://${K8S_ip1}:2379" > $etcd_stacked_tmp/${countetcdnodes}-listen-client_urls.line
       fi
       cp $etcd_stacked_tmp/initial-cluster.line $etcd_stacked_tmp/${countetcdnodes}-initial-cluster.line
       printf '"' >> $etcd_stacked_tmp/${countetcdnodes}-initial-cluster.line
@@ -791,12 +811,12 @@ EOF
       sedder="s/$escaped_master/$HOST/g"
       #command2run="rm -v /etc/kubernetes/admin.conf"
       #sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
-      command2run="sed -i "$sedder" /etc/kubernetes/admin.conf"
-      sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
-      command2run="sed -i "$sedder" /etc/kubernetes/scheduler.conf"
-      sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
-      command2run="sed -i "$sedder" /etc/kubernetes/controller-manager.conf"
-      sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
+      #command2run="sed -i "$sedder" /etc/kubernetes/admin.conf"
+      #sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
+      #command2run="sed -i "$sedder" /etc/kubernetes/scheduler.conf"
+      #sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
+      #command2run="sed -i "$sedder" /etc/kubernetes/controller-manager.conf"
+      #sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
       command2run='mv /tmp/kube_stacked_init.sh /etc/kubernetes/'
       sudo_command ${MASTERPORTS[$i]} ${STACKED_USER} ${MASTERHOSTS[$i]} "$command2run"
       #my_KUBE_INIT=$(cat $KUBASH_CLUSTER_DIR/join.sh)
@@ -5645,7 +5665,7 @@ main () {
       fi
     elif [[ "$target_os" == "kubespray" ]]; then
       if [[ -z "$target_build" ]]; then
-        target_build=kubespray-7.4-x86_64
+        target_build=kubespray-7.5-x86_64
       fi
     elif [[ "$target_os" == "kubeadm2ha" ]]; then
       if [[ -z "$target_build" ]]; then
