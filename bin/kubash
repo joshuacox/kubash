@@ -423,6 +423,9 @@ EOF'
     cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
 apiVersion: "$kubeadm_apiVersion"
 kind: $kubeadm_cfg_kind
+apiServerCertSANs:
+- "127.0.0.1"
+$api_server_cert_sans_line
 etcd:
     local:
         serverCertSANs:
@@ -650,7 +653,7 @@ EOF
   ssh ${INIT_USER}@${MASTERHOSTS[0]} "$command2run"
   sleep 11
   #command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
-  master_grab_kube_config ${MASTERNAMES[0]} ${MASTERHOSTS[0]} $K8S_user ${MASTERPORTS[0]}
+  #master_grab_kube_config ${MASTERNAMES[0]} ${MASTERHOSTS[0]} $K8S_user ${MASTERPORTS[0]}
   sudo_command ${MASTERPORTS[0]} $K8S_user ${MASTERHOSTS[0]} "$command2run"
   command2run="kubeadm init --config /etc/kubernetes/kubeadmcfg.yaml"
   echo "$command2run"
@@ -668,7 +671,7 @@ etcd_kubernetes_docs_stacked_method () {
   etc_count_zero=0
   master_count_zero=0
   node_count_zero=0
-  rm -f $KUBASH_DIR/join.sh
+  #rm -f $KUBASH_CLUSTER_DIR/join.sh
   while IFS="," read -r $csv_columns
   do
     if [[ "$K8S_role" == 'etcd' || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' || "$K8S_role" == 'primary_etcd' ]]; then
@@ -2709,7 +2712,7 @@ master_join () {
   if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
     #finish_pki_for_masters $my_node_user $my_node_ip $my_node_name $my_node_port
     ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSUEDO hostname;$PSUEDO  uname -a"
-    run_join=$(cat $KUBASH_DIR/join.sh)
+    run_join=$(cat $KUBASH_CLUSTER_DIR/join.sh)
     squawk 1 " run join $run_join"
     ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join"
     w8_node $my_node_name
@@ -2844,7 +2847,7 @@ master_init_join () {
       fi
     fi
     squawk 9 "$(cat $TMP/rawresults.k8s)"
-    echo $run_join > $KUBASH_DIR/join.sh
+    echo $run_join > $KUBASH_CLUSTER_DIR/join.sh
     if [[ "$KUBASH_OIDC_AUTH" == 'true' ]]; then
       command2run='sudo sed -i "/- kube-apiserver/a\    - --oidc-issuer-url=https://accounts.google.com\n    - --oidc-username-claim=email\n    - --oidc-client-id=" /etc/kubernetes/manifests/kube-apiserver.yaml'
       ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
@@ -2901,7 +2904,7 @@ node_join () {
     result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a")
     squawk 3 "hostname and uname is $result"
     squawk 3 "Kubeadmin join"
-    run_join=$(cat $KUBASH_DIR/join.sh)
+    run_join=$(cat $KUBASH_CLUSTER_DIR/join.sh)
     #result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join --ignore-preflight-errors=IsPrivilegedUser")
     result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join --ignore-preflight-errors=IsPrivilegedUser")
     squawk 3 "run_join result is $result"
@@ -2983,6 +2986,10 @@ kubespray_initialize () {
   else
     write_ansible_kubespray_hosts
   fi
+  #yes yes|ansible-playbook \
+    #-i $KUBASH_ANSIBLE_HOSTS \
+    #-e kube_version=$KUBE_VERSION \
+    #$KUBASH_DIR/submodules/kubespray/reset.yml
   ansible-playbook \
     -i $KUBASH_ANSIBLE_HOSTS \
     -e kube_version=$KUBE_VERSION \
@@ -4600,16 +4607,16 @@ do_command_in_parallel_on_os () {
 process_hosts_csv () {
   squawk 3 " process_hosts_csv"
   #do_etcd
-  write_kubeadmcfg_yaml
+  #write_kubeadmcfg_yaml
   #etcd_kubernetes_ext_etcd_method
-  #etcd_kubernetes_docs_stacked_method
+  etcd_kubernetes_docs_stacked_method
   #start_etcd
-  do_primary_master
+  #do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
-    do_masters_in_parallel
+    #do_masters_in_parallel
     do_nodes_in_parallel
   else
-    do_masters
+    #do_masters
     do_nodes
   fi
 }

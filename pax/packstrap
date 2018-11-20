@@ -115,7 +115,7 @@ if [ "$KUBEADM_INSTALL" = "openshift" ]; then
 elif [ "$KUBEADM_INSTALL" = "kubespray" ]; then
   # leaving clean for now, let ansible initialize
   echo 'Sticking to defaults for kubespray'
-  install_default_docker
+  #install_default_docker
 elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
   install_spec_docker
   cd $TMP
