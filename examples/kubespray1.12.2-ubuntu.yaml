@@ -22,7 +22,7 @@
       hostname: kubespraymaster2
       role: master
       cpuCount: 1
-      Memory: 1500
+      Memory: 2500
       provisioner:
         Host: '10.0.23.12'
         User: root
@@ -39,7 +39,7 @@
       hostname: kubespraymaster3
       role: master
       cpuCount: 1
-      Memory: 1500
+      Memory: 2500
       provisioner:
         Host: '10.0.23.12'
         User: root
@@ -56,7 +56,7 @@
       hostname: kubesprayetcd1
       role: primary_etcd
       cpuCount: 1
-      Memory: 1496
+      Memory: 2496
       provisioner:
         Host: '10.0.23.12'
         User: root
@@ -73,7 +73,7 @@
       hostname: kubesprayetcd2
       role: etcd
       cpuCount: 1
-      Memory: 1222
+      Memory: 2222
       provisioner:
         Host: '10.0.23.12'
         User: root
@@ -90,7 +90,7 @@
       hostname: kubesprayetcd3
       role: etcd
       cpuCount: 1
-      Memory: 1122
+      Memory: 2122
       provisioner:
         Host: '10.0.23.12'
         User: root

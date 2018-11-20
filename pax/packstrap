@@ -43,6 +43,8 @@ echo 'export GOPATH=$HOME/.go
 export PATH=${GOPATH//://bin:}/bin:$PATH' \
 >> .bashrc
 
+echo ip_vs >> /etc/modules
+
 install_pips () {
   sudo -H pip install --upgrade pip
   sudo -H pip install --upgrade docker-py jinja2-cli jinja2

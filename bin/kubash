@@ -55,8 +55,10 @@ KUBASH_VERSION='v1.12.2'
 : ${ETCD_VERSION:=v3.2.7}
 : ${ETCD_TLS:='true'}
 : ${KUBASH_RSYNC_OPTS:='-L -H -aze'}
-: ${CALICO_URL:=https://docs.projectcalico.org/v3.0/getting-started/kubernetes/installation/hosted/kubeadm/1.7/calico.yaml}
-: ${FLANNEL_URL:=https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml}
+: ${CALICO_VER:=v3.3}
+: ${CALICO_URL:=https://docs.projectcalico.org/$CALICO_VER/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml}
+: ${CALICO_RBAC_URL:=https://docs.projectcalico.org/$CALICO_VER/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml}
+: ${FLANNEL_URL:=https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml}
 : ${USE_TRAEFIK_DAEMON_SET:='true'}
 : ${USE_TRAEFIK_RBAC:='true'}
 : ${VOYAGER_PROVIDER:='baremetal'}
@@ -2039,6 +2041,7 @@ do_net () {
   squawk 1 " do_net"
   slurpy="$(grep -v '^#' $KUBASH_PROVISION_CSV)"
   if [[ $K8S_NET == "calico" ]]; then
+    kubectl --kubeconfig=$KUBECONFIG apply -f $CALICO_RBAC_URL
     kubectl --kubeconfig=$KUBECONFIG apply -f $CALICO_URL
   elif [[ $K8S_NET == "flannel" ]]; then
     kubectl --kubeconfig=$KUBECONFIG apply -f $FLANNEL_URL

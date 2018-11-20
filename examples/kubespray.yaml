@@ -5,13 +5,13 @@
       hostname: kubespraymaster1
       role: primary_master
       cpuCount: 22
-      Memory: 2800
+      Memory: 2200
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -22,13 +22,13 @@
       hostname: kubespraymaster2
       role: master
       cpuCount: 1
-      Memory: 1500
+      Memory: 2200
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -39,13 +39,13 @@
       hostname: kubespraymaster3
       role: master
       cpuCount: 1
-      Memory: 1500
+      Memory: 2200
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -56,13 +56,13 @@
       hostname: kubesprayetcd1
       role: primary_etcd
       cpuCount: 1
-      Memory: 1496
+      Memory: 2200
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -73,13 +73,13 @@
       hostname: kubesprayetcd2
       role: etcd
       cpuCount: 1
-      Memory: 1222
+      Memory: 2200
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -90,13 +90,13 @@
       hostname: kubesprayetcd3
       role: etcd
       cpuCount: 1
-      Memory: 1122
+      Memory: 2200
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -107,13 +107,13 @@
       hostname: kubespraynode1
       role: node
       cpuCount: 4
-      Memory: 4096
+      Memory: 2200
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -124,13 +124,13 @@
       hostname: kubespraynode2
       role: node
       cpuCount: 3
-      Memory: 2222
+      Memory: 2200
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -147,7 +147,7 @@
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
@@ -164,7 +164,7 @@
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: ubuntu1.12.2
+      os: kubespray
       virt: qemu
       sshPort: 22
       network1:
