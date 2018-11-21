@@ -90,7 +90,7 @@ apiServerCertSANs:
 - "${ETCDHOSTS[0]}"
 - "${ETCDHOSTS[1]}"
 - "${ETCDHOSTS[2]}"
-- "REPALCE_ME"
+- "REPLACE_ME"
 controlPlaneEndpoint: "REPLACE_ME"
 etcd:
   external:
