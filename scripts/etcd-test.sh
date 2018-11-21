@@ -91,7 +91,7 @@ apiServerCertSANs:
 - "${ETCDHOSTS[1]}"
 - "${ETCDHOSTS[2]}"
 - "REPLACE_ME"
-controlPlaneEndpoint: "REPLACE_ME"
+controlPlaneEndpoint: "REPLACE_ME:6443"
 etcd:
   external:
       endpoints:

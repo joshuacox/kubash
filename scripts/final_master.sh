@@ -31,6 +31,9 @@ ssh ${USER}@${ETCD_HOST} "$command2run" | ssh ${USER}@${MASTER_HOST} "cd /; tar 
 
 command2run="sed -i 's/REPLACE_ME/$MASTER_HOST/g' /etc/kubernetes/kubeadmcfg-external.yaml"
 ssh ${USER}@${MASTER_HOST} "$command2run"
-command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg-external.yaml"
+command2run="mv /etc/kubernetes/kubeadmcfg-external.yaml /etc/kubernetes/kubeadmcfg.yaml"
+ssh ${USER}@${MASTER_HOST} "$command2run"
+#command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg-external.yaml"
+command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
 echo "$command2run"
 ssh ${USER}@${MASTER_HOST} "$command2run"
