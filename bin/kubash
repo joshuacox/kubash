@@ -711,7 +711,7 @@ EOF
       my_KUBE_INIT="bash /tmp/join.sh"
       squawk 5 "kube init --> $my_KUBE_INIT"
       ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_test_tmp/${HOST}-rawresults.k8s
-      w8_node $my_node_name
+  #    w8_node $my_node_name
     else
       #command2run="kubeadm init --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
       #echo "$command2run"

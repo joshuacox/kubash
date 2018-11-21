@@ -44,6 +44,9 @@ export PATH=${GOPATH//://bin:}/bin:$PATH' \
 >> .bashrc
 
 echo ip_vs >> /etc/modules
+echo ip_vs_wrr >> /etc/modules
+echo ip_vs_sh >> /etc/modules
+echo ip_vs_rr >> /etc/modules
 
 install_pips () {
   sudo -H pip install --upgrade pip
