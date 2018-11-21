@@ -4612,7 +4612,11 @@ process_hosts_csv () {
   #do_etcd
   #write_kubeadmcfg_yaml
   #etcd_kubernetes_ext_etcd_method
-  etcd_kubernetes_docs_stacked_method
+  if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+    etcd_kubernetes_docs_stacked_method
+  else
+    etcd_kubernetes_ext_etcd_method
+  fi
   #start_etcd
   #do_primary_master
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
@@ -4622,6 +4626,7 @@ process_hosts_csv () {
     #do_masters
     do_nodes
   fi
+  do_net
 }
 
 prep () {
