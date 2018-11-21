@@ -89,7 +89,9 @@ apiServerCertSANs:
 - "127.0.0.1"
 - "${ETCDHOSTS[0]}"
 - "${ETCDHOSTS[1]}"
-controlPlaneEndpoint: "${ETCDHOSTS[1]}"
+- "${ETCDHOSTS[2]}"
+- "REPALCE_ME"
+controlPlaneEndpoint: "REPLACE_ME"
 etcd:
   external:
       endpoints:
@@ -151,11 +153,11 @@ for i in "${!ETCDHOSTS[@]}"; do
 done
 
 command2run="kubeadm config images pull"
-echo "$command2run"
+#echo "$command2run"
 #ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
 #ssh ${USER}@${ETCDHOSTS[1]} "$command2run"
 #ssh ${USER}@${ETCDHOSTS[2]} "$command2run"
-sleep 33
+sleep 11
 
 command2run="docker run --rm  \
   --net host \
@@ -168,20 +170,4 @@ command2run="docker run --rm  \
 echo 'To test etcd run this commmand'
 echo "$command2run"
 echo "ssh ${USER}@${ETCDHOSTS[0]} $command2run"
-ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
-
-for i in "${!ETCDHOSTS[@]}"; do
-  HOST=${ETCDHOSTS[$i]}
-  command2run='systemctl daemon-reload'
-  echo "ssh ${USER}@${HOST} $command2run"
-  ssh ${USER}@${HOST} "$command2run"
-  command2run='systemctl stop kubelet'
-  echo "ssh ${USER}@${HOST} $command2run"
-  ssh ${USER}@${HOST} "$command2run"
-done
-
-sleep 11
-
-command2run="kubeadm init  --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg-external.yaml"
-echo "$command2run"
 ssh ${USER}@${ETCDHOSTS[0]} "$command2run"

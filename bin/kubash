@@ -68,6 +68,7 @@ KUBASH_VERSION='v1.12.2'
 : ${TAB_1:='  '}
 : ${TAB_2:='    '}
 : ${TAB_3:='      '}
+: ${TAB_4:='        '}
 
 set -e
 
@@ -202,9 +203,9 @@ push_kube_pki_stacked_method () {
 }
 
 grab_pki_ext_etcd_method () {
-  local USER=$1
-  local HOST=$2
-  local PORT=$3
+  grab_pki_ext_etcdUSER=$1
+  grab_pki_ext_etcdHOST=$2
+  grab_pki_ext_etcdPORT=$3
   # Make a list of required etcd certificate files
   # break indentation
     command2run='cat << EOF > etcd-pki-files.txt
@@ -213,28 +214,29 @@ grab_pki_ext_etcd_method () {
 /etc/kubernetes/pki/apiserver-etcd-client.key
 EOF'
   # unbreak indentation
-  squawk 55 "ssh ${USER}@${HOST} $command2run"
-  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
+  squawk 55 "ssh ${grab_pki_ext_etcdUSER}@${grab_pki_ext_etcdHOST} $command2run"
+  sudo_command ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER} ${grab_pki_ext_etcdHOST} "$command2run"
 
   # create the archive
   command2run="tar -czf /tmp/etcd-pki.tar.gz -T etcd-pki-files.txt"
-  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
-  squawk 55 "scp -P ${PORT} ${USER}@${HOST}/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz"
-  scp -P ${PORT} ${USER}@${HOST}:/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz
+  sudo_command ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER} ${grab_pki_ext_etcdHOST} "$command2run"
+  squawk 55 "scp -P ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER}@${grab_pki_ext_etcdHOST}/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz"
+  scp -P ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER}@${grab_pki_ext_etcdHOST}:/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz
   command2run="rm /tmp/etcd-pki.tar.gz"
-  sudo_command ${PORT} ${USER} ${HOST} "$command2run"
+  sudo_command ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER} ${grab_pki_ext_etcdHOST} "$command2run"
 }
 
 push_pki_ext_etcd_method () {
-  local USER=$1
-  local HOST=$2
-  push_PORT=$3
-  squawk 9 "rsync $KUBASH_RSYNC_OPTS ssh -p $push_PORT ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz $USER@$HOST:/tmp/"
-  rsync $KUBASH_RSYNC_OPTS "ssh -p $push_PORT" ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz $USER@$HOST:/tmp/
-  command2run='mkdir -p /etc/kubernetes/pki && tar -xzvf /tmp/etcd-pki.tar.gz -C /etc/kubernetes/pki --strip-components=3'
-  sudo_command ${push_PORT} ${USER} ${HOST} "$command2run"
+  push_pki_ext_etcd_USER=$1
+  push_pki_ext_etcd_HOST=$2
+  push_pki_ext_etcd_PORT=$3
+  squawk 9 "rsync $KUBASH_RSYNC_OPTS ssh -p $push_pki_ext_etcd_PORT ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz $push_pki_ext_etcd_USER@$push_pki_ext_etcd_HOST:/tmp/"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $push_pki_ext_etcd_PORT" ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz $push_pki_ext_etcd_USER@$push_pki_ext_etcd_HOST:/tmp/
+  #command2run='mkdir -p /etc/kubernetes/pki && tar -xzvf /tmp/etcd-pki.tar.gz -C /etc/kubernetes/pki --strip-components=3'
+  command2run='mkdir -p /etc/kubernetes/pki && cd / && tar -xzvf /tmp/etcd-pki.tar.gz'
+  sudo_command ${push_pki_ext_etcd_PORT} ${push_pki_ext_etcd_USER} ${push_pki_ext_etcd_HOST} "$command2run"
   command2run='rm /tmp/etcd-pki.tar.gz'
-  sudo_command ${push_PORT} ${USER} ${HOST} "$command2run"
+  sudo_command ${push_pki_ext_etcd_PORT} ${push_pki_ext_etcd_USER} ${push_pki_ext_etcd_HOST} "$command2run"
 }
 
 determine_api_version () {
@@ -471,6 +473,7 @@ EOF
     NAME=${MASTERNAMES[$i]}
     if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
       if [[ $KUBE_MINOR_VER -gt 11 ]]; then
+       if [[ $SEMAPHORE_FLAG_KILL = 'not_gonna_be_it' ]]; then
         cat << EOF > $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
 apiVersion: "$kubeadm_apiVersion"
 kind: InitConfiguration
@@ -485,6 +488,7 @@ nodeRegistration:
     key: node-role.kubernetes.io/master
 ---
 EOF
+      fi
      fi
    fi
     cat << EOF >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
@@ -626,16 +630,16 @@ EOF
   done
 
   # distribute the pki and configs
-  for i in "${!MASTERHOSTS[@]}"; do
-    squawk 55 "cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/"
-    cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/
-  done
+  #for i in "${!MASTERHOSTS[@]}"; do
+    #squawk 55 "cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/"
+    #cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/
+  #done
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/${HOST}
-    squawk 55 "tar zcf - pki | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
-    tar zcf - pki | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    #squawk 55 "tar zcf - pki | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    #tar zcf - pki | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
     squawk 55 "tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
     tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
     cd $PREV_PWD
@@ -4619,6 +4623,7 @@ process_hosts_csv () {
   fi
   #start_etcd
   #do_primary_master
+  do_net
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
     #do_masters_in_parallel
     do_nodes_in_parallel
@@ -4626,7 +4631,6 @@ process_hosts_csv () {
     #do_masters
     do_nodes
   fi
-  do_net
 }
 
 prep () {
