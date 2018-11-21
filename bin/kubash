@@ -156,6 +156,33 @@ squawk () {
   fi
 }
 
+grab_kube_pki_ext_etcd_sub () {
+  grab_sub_USER=$1
+  grab_sub_HOST=$2
+  grab_sub_PORT=$3
+  # Make a list of required etcd certificate files for subsequent masters
+  # break indentation
+    command2run='cat << EOF > sub-pki-files.txt
+/etc/kubernetes/pki/ca.crt
+/etc/kubernetes/pki/ca.key
+/etc/kubernetes/pki/sa.key
+/etc/kubernetes/pki/sa.pub
+/etc/kubernetes/pki/front-proxy-ca.crt
+/etc/kubernetes/pki/front-proxy-ca.key
+EOF'
+  # unbreak indentation
+
+  squawk 55 "ssh ${grab_sub_USER}@${grab_sub_HOST} $command2run"
+  sudo_command ${grab_sub_PORT} ${grab_sub_USER} ${grab_sub_HOST} "$command2run"
+
+  # create the archive
+  command2run="tar -czf /tmp/sub-pki.tar.gz -T sub-pki-files.txt"
+  sudo_command ${grab_sub_PORT} ${grab_sub_USER} ${grab_sub_HOST} "$command2run"
+  squawk 55 "scp -P ${grab_sub_PORT} ${grab_sub_USER}@${grab_sub_HOST}/tmp/sub-pki.tar.gz ${KUBASH_CLUSTER_DIR}/sub-pki.tar.gz"
+  scp -P ${grab_sub_PORT} ${grab_sub_USER}@${grab_sub_HOST}:/tmp/sub-pki.tar.gz ${KUBASH_CLUSTER_DIR}/sub-pki.tar.gz
+  command2run="rm /tmp/sub-pki.tar.gz"
+}
+
 grab_kube_pki_stacked_method () {
   grab_USER=$1
   grab_HOST=$2
@@ -200,6 +227,18 @@ push_kube_pki_stacked_method () {
   sudo_command ${push_PORT} ${push_USER} ${push_HOST} "$command2run"
   command2run='rm /tmp/kube-pki.tar.gz'
   #sudo_command ${push_PORT} ${push_USER} ${push_HOST} "$command2run"
+}
+
+push_kube_pki_ext_etcd_sub () {
+  push_sub_USER=$1
+  push_sub_HOST=$2
+  push_sub_PORT=$3
+  squawk 9 "rsync $KUBASH_RSYNC_OPTS ssh -p $push_sub_PORT ${KUBASH_CLUSTER_DIR}/sub-pki.tar.gz $push_sub_USER@$push_sub_HOST:/tmp/"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $push_sub_PORT" ${KUBASH_CLUSTER_DIR}/sub-pki.tar.gz $push_sub_USER@$push_sub_HOST:/tmp/
+  command2run='mkdir -p /etc/kubernetes/pki && cd / && tar -xzvf /tmp/sub-pki.tar.gz'
+  sudo_command ${push_sub_PORT} ${push_sub_USER} ${push_sub_HOST} "$command2run"
+  command2run='rm /tmp/sub-pki.tar.gz'
+  #sudo_command ${push_sub_PORT} ${push_sub_USER} ${push_sub_HOST} "$command2run"
 }
 
 grab_pki_ext_etcd_method () {
@@ -659,10 +698,51 @@ EOF
   #master_grab_kube_config ${MASTERNAMES[0]} ${MASTERHOSTS[0]} $K8S_user ${MASTERPORTS[0]}
   #sudo_command ${MASTERPORTS[0]} $K8S_user ${MASTERHOSTS[0]} "$command2run"
   #command2run="kubeadm init --config /etc/kubernetes/kubeadmcfg.yaml"
-  command2run="kubeadm init --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
-  echo "$command2run"
-  ssh ${INIT_USER}@${MASTERHOSTS[0]} "$command2run"
-  #sudo_command ${MASTERPORTS[0]} $K8S_user ${MASTERHOSTS[0]} "$command2run"
+  for i in "${!MASTERHOSTS[@]}"; do
+    HOST=${MASTERHOSTS[$i]}
+    NAME=${MASTERNAMES[$i]}
+    if [[ -e "$KUBASH_CLUSTER_DIR/join.sh" ]]; then
+      rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" $KUBASH_CLUSTER_DIR/join.sh $INIT_USER@$HOST:/tmp/
+      push_kube_pki_ext_etcd_sub ${INIT_USER} ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
+      #command2run="ls -Rl /etc/kubernetes"
+      #sudo_command ${MASTERPORTS[$i]} ${INIT_USER} ${MASTERHOSTS[$i]} "$command2run"
+      #command2run="rm -fv /etc/kubernetes/kubelet.conf"
+      #sudo_command ${MASTERPORTS[$i]} ${INIT_USER} ${MASTERHOSTS[$i]} "$command2run"
+      my_KUBE_INIT="bash /tmp/join.sh"
+      squawk 5 "kube init --> $my_KUBE_INIT"
+      ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_test_tmp/${HOST}-rawresults.k8s
+      w8_node $my_node_name
+    else
+      #command2run="kubeadm init --ignore-preflight-errors=FileAvailable--etc-kubernetes-manifests-etcd.yaml,ExternalEtcdVersion --config /etc/kubernetes/kubeadmcfg.yaml"
+      #echo "$command2run"
+      #ssh ${INIT_USER}@${MASTERHOSTS[0]} "$command2run"
+      #sudo_command ${MASTERPORTS[0]} $K8S_user ${MASTERHOSTS[0]} "$command2run"
+
+
+      #my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg.yaml"
+      my_KUBE_INIT="kubeadm init --config=/etc/kubernetes/kubeadmcfg.yaml"
+      squawk 5 "master kube init --> $my_KUBE_INIT"
+      my_grep='kubeadm join .* --token'
+      #run_join=$(ssh -n ${INIT_USER}@${HOST} "$my_KUBE_INIT" | tee $etcd_test_tmp/rawresults.k8s | grep -- "$my_grep")
+      ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_test_tmp/${HOST}-rawresults.k8s
+      #cat $etcd_test_tmp/${HOST}-rawresults.k8s | grep -- "$my_grep"
+      run_join=$(cat $etcd_test_tmp/${HOST}-rawresults.k8s | grep -P -- "$my_grep")
+      join_token=$(cat $etcd_test_tmp/${HOST}-rawresults.k8s \
+        | grep -P -- "$my_grep" \
+        | sed 's/\(.*\)--token\ \(\S*\)\ --discovery-token-ca-cert-hash\ .*/\2/')
+      if [[ -z "$run_join" ]]; then
+        horizontal_rule
+        echo 'kubeadm init failed!'
+        exit 1
+      else
+        echo $run_join > $KUBASH_CLUSTER_DIR/join.sh
+        sed -i 's/$/ --experimental-control-plane/' $KUBASH_CLUSTER_DIR/join.sh
+        echo $join_token > $KUBASH_CLUSTER_DIR/join_token
+        master_grab_kube_config ${NAME} ${HOST} ${INIT_USER} ${MASTERPORTS[$i]}
+        grab_kube_pki_ext_etcd_sub ${INIT_USER} ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
+      fi
+    fi
+  done
   rm -Rf $etcd_test_tmp
 }
 
