@@ -185,6 +185,8 @@ EOF
     ssh ${USER}@${HOST} "$command2run"
   done
 
+  sleep 11
+
   command2run="docker run --rm  \
     --net host \
     -v /etc/kubernetes:/etc/kubernetes quay.io/coreos/etcd:v3.2.18 etcdctl \
