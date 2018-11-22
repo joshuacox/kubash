@@ -5739,6 +5739,13 @@ main () {
     else
       etcd_kubernetes_ext_etcd_method
     fi
+  elif [[ $RAISON == "do_net" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+    do_net
   elif [[ $RAISON == "build" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
