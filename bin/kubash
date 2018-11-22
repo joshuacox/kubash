@@ -416,7 +416,7 @@ etcd_kubernetes_ext_etcd_method () {
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
     # Create temp directories to store files that will end up on other hosts.
-    squawk 55 mkdir -p $etcd_test_tmp/${HOST}/
+    squawk 55 "mkdir -p $etcd_test_tmp/${HOST}/"
     mkdir -p $etcd_test_tmp/${HOST}/
 
     # break indentation
@@ -445,7 +445,7 @@ EOF'
 
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
-    squawk 55 mkdir -p $etcd_test_tmp/${HOST}/
+    squawk 55 "mkdir -p $etcd_test_tmp/${HOST}/"
     mkdir -p $etcd_test_tmp/${HOST}/
     # break indentation
     #command2run='cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
