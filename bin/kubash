@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+KUBASH_VERSION='v1.12.2'
 # set default fall-through variables
 # if set in the environment these variables will fall-through and retain their value
 # otherwise use the defaults here
-KUBASH_VERSION='v1.12.2'
 : ${KUBE_VERSION:='v1.12.2'}
 : ${KUBE_MAJOR_VER:=1}
 : ${KUBE_MINOR_VER:=12}
@@ -2163,13 +2163,19 @@ do_searchlight () {
 
 taint_ingress () {
   squawk 1 " taint_ingress $@"
+  count_ingress=0
   for ingress_node in "$@"
   do
     squawk 5 "kubectl --kubeconfig=$KUBECONFIG taint --overwrite node $ingress_node IngressOnly=true:NoSchedule"
     kubectl --kubeconfig=$KUBECONFIG taint --overwrite node $ingress_node IngressOnly=true:NoSchedule
     squawk 5 "kubectl --kubeconfig=$KUBECONFIG label --overwrite node $ingress_node ingress=true"
     kubectl --kubeconfig=$KUBECONFIG label --overwrite node $ingress_node ingress=true
+    ((count_ingress++))
   done
+  if [[ $count_ingress -eq 0 ]]; then
+    echo 'No ingress nodes found!'
+    exit 1
+  fi
 }
 
 do_dashboard () {
@@ -2181,6 +2187,7 @@ do_dashboard () {
 
 do_voyager () {
   squawk 1 " do_voyager"
+  taint_ingress
   if [ "$VOYAGER_BY_HELM" = "true" ]; then
   KUBECONFIG=$KUBECONFIG \
   helm install stable/voyager --name voyager \
