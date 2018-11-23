@@ -78,7 +78,7 @@ script:
   - pip install jinja2
   - pip install --user jinja2
   - pip show jinja2
-  - ls -Ralh /usr/lib/python2.7/dist-packages/jinja
+  - ls -Ralh /usr/lib/python2.7/dist-packages/jinja2
   - which jinja2; ls -lh ~/.local/bin/
   - /bin/bash -l -c "kubash tiller"
     #- /bin/bash -l -c "kubash openebs"
