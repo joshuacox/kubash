@@ -68,7 +68,7 @@ $(KUBASH_BIN)/helm: SHELL:=/bin/bash
 $(KUBASH_BIN)/helm:
 	@echo 'Installing helm'
 	$(eval TMP := $(shell mktemp -d --suffix=HELMTMP))
-	curl -sLo $(TMP)/helmget --silent https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get
+	curl -sLo $(TMP)/helmget --silent https://raw.githubusercontent.com/helm/helm/master/scripts/get
 	HELM_INSTALL_DIR=$(HELM_INSTALL_DIR) \
 	sudo -E bash -l $(TMP)/helmget
 	rm $(TMP)/helmget
