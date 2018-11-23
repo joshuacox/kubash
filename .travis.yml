@@ -5,13 +5,6 @@ matrix:
       sudo: required
       services:
       - docker
-      cache:
-        directories:
-        - $HOME/.minikube
-        - $HOME/.kube
-        - $HOME/.local/bin
-        - .git
-        - /usr/local
       env:
         - MINIKUBE_MEMORY=7777
         - MINIKUBE_CPU=4
