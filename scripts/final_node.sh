@@ -1,17 +1,18 @@
 #!/bin/bash
 # check and ensure that args were given
-if [ ! $# -eq 5 ]; then
+if [ ! $# -eq 6 ]; then
   # Print usage
   echo 'Error! wrong number of arguments, this script expects five hosts'
   echo 'usage:'
-  echo "$0 masterHost nodeHost etcdHost1 etcdHost2 etcdHost3"
+  echo "$0 masterHost1 masterHost2 etcdHost1 etcdHost2 etcdHost3 nodeHost"
   exit 1
 fi
 MASTER_HOST=$1
-NODE_HOST=$2
+MASTER_HOST2=$2
 ETCD_HOST1=$3
 ETCD_HOST2=$4
 ETCD_HOST3=$5
+NODE_HOST=$6
 USER=root
 my_KUBE_CIDR="10.244.0.0/16"
 finalize_master_tmp=$(mktemp -d)
@@ -50,7 +51,9 @@ EOF"
     exit 1
   else
     echo $run_join > $finalize_master_tmp/join.sh
+    echo $run_join > $finalize_master_tmp/node_join.sh
     sed -i 's/$/ --experimental-control-plane/' $finalize_master_tmp/join.sh
+    sed -i 's/$/ --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt/' $finalize_master_tmp/node_join.sh
     echo $join_token > $finalize_master_tmp/join_token
   fi
 }
@@ -201,6 +204,29 @@ EOF
   ssh ${USER}@${ETCDHOSTS[0]} "$command2run"
 }
 
+join_master () {
+  # push certs to node
+# break indentation
+  command2run="cat << EOF > etcd-pki-files.txt
+/etc/kubernetes/pki/ca.crt
+/etc/kubernetes/pki/ca.key
+/etc/kubernetes/pki/sa.key
+/etc/kubernetes/pki/sa.pub
+/etc/kubernetes/pki/front-proxy-ca.crt
+/etc/kubernetes/pki/front-proxy-ca.key
+EOF"
+  ssh ${USER}@${MASTER_HOST} "$command2run"
+# unbreak indentation
+  command2run="tar -czf etcd-pki.tar.gz -T etcd-pki-files.txt"
+  ssh ${USER}@${MASTER_HOST} "$command2run"
+  command2run="tar -czf - -T etcd-pki-files.txt"
+  ssh ${USER}@${MASTER_HOST} "$command2run" | ssh ${USER}@${MASTER_HOST2} "cd /; tar zxvf -"
+
+  #join the master
+  join_cmd=$(cat $finalize_master_tmp/join.sh)
+  ssh ${USER}@${MASTER_HOST2} "$join_cmd"
+}
+
 join_node () {
   # push certs to node
 # break indentation
@@ -220,7 +246,7 @@ EOF"
   ssh ${USER}@${MASTER_HOST} "$command2run" | ssh ${USER}@${NODE_HOST} "cd /; tar zxvf -"
 
   #join the node
-  join_cmd=$(cat $finalize_master_tmp/join.sh)
+  join_cmd=$(cat $finalize_master_tmp/node_join.sh)
   ssh ${USER}@${NODE_HOST} "$join_cmd"
 }
 
