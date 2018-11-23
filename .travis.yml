@@ -43,6 +43,7 @@ addons:
 
 before_install:
 # install nsenter which is required for port forwarding
+- pip install --user jinja2
 
 before_script:
 # Download kubectl, which is a requirement for using minikube.
@@ -76,7 +77,6 @@ script:
   - cp $HOME/.kube/config clusters/default/
     #- make -e jinja2
   - pip install jinja2
-  - pip install --user jinja2
   - pip show jinja2
   - ls -Ralh /usr/lib/python2.7/dist-packages/jinja2
   - which jinja2; ls -lh ~/.local/bin/
