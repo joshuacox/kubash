@@ -21,7 +21,6 @@ matrix:
         - CHANGE_MINIKUBE_NONE_USER=true
         - MINIKUBE_VERSION=v0.25.2
         - KUBE_VERSION=v1.9.4
-        - PATH="$HOME/.kube/bin:$PATH"
 
 language: node_js
 node_js:
@@ -66,7 +65,6 @@ script:
   - ls -alh /home/travis/.kubash/bin
   - if [[ ! -e "$HOME/.local/bin/nsenter" ]]; then .ci/ubuntu-compile-nsenter.sh && sudo cp .tmp/util-linux-2.30.2/nsenter $HOME/.local/bin; fi
     #- curl -sL --silent https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get|bash
-  - echo PATH = $PATH
   - make -e helm
   - make -e jinja2
   - bash scripts/dotfiles
@@ -77,6 +75,7 @@ script:
   - pwd
   - mkdir -p clusters/default
   - cp $HOME/.kube/config clusters/default/
+  - which jinja2; ls -lh ~/.local/bin/
   - /bin/bash -l -c "kubash tiller"
     #- /bin/bash -l -c "kubash openebs"
     #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
