@@ -5,6 +5,13 @@ matrix:
       sudo: required
       services:
       - docker
+      cache:
+        directories:
+        - $HOME/.minikube
+        - $HOME/.kube
+        - $HOME/.local/bin
+        - .git
+        - /usr/local
       env:
         - MINIKUBE_MEMORY=7777
         - MINIKUBE_CPU=4
@@ -14,6 +21,7 @@ matrix:
         - CHANGE_MINIKUBE_NONE_USER=true
         - MINIKUBE_VERSION=v0.25.2
         - KUBE_VERSION=v1.9.4
+        - PATH="$HOME/.kube/bin:$PATH"
 
 language: node_js
 node_js:
