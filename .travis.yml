@@ -68,6 +68,7 @@ script:
     #- curl -sL --silent https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get|bash
   - echo PATH = $PATH
   - make -e helm
+  - make -e jinja2
   - bash scripts/dotfiles
   - bash scripts/chkdirs
   - sudo chown $USER /var/lib
