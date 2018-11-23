@@ -44,7 +44,7 @@ addons:
 
 before_install:
 # install nsenter which is required for port forwarding
-- pip install --upgrade --ignore-installed --user jinja2
+- sudo pip install --upgrade --ignore-installed --user jinja2
 
 before_script:
 # Download kubectl, which is a requirement for using minikube.
@@ -62,9 +62,9 @@ script:
   - ln -s $(pwd) /home/travis/.kubash
   - make bats
   - make ct
-  - ls -alh /home/travis
-  - ls -alh /home/travis/.kubash
-  - ls -alh /home/travis/.kubash/bin
+    #- ls -alh /home/travis
+    #- ls -alh /home/travis/.kubash
+    #- ls -alh /home/travis/.kubash/bin
   - if [[ ! -e "$HOME/.local/bin/nsenter" ]]; then .ci/ubuntu-compile-nsenter.sh && sudo cp .tmp/util-linux-2.30.2/nsenter $HOME/.local/bin; fi
     #- curl -sL --silent https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get|bash
   - make -e helm
@@ -77,10 +77,7 @@ script:
   - mkdir -p clusters/default
   - cp $HOME/.kube/config clusters/default/
     #- make -e jinja2
-  - pip install jinja2
-  - pip show jinja2
-  - ls -Ralh /usr/lib/python2.7/dist-packages/jinja2
-  - which jinja2; ls -lh ~/.local/bin/
+  - which jinja2
   - /bin/bash -l -c "kubash tiller"
     #- /bin/bash -l -c "kubash openebs"
     #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
