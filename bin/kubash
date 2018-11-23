@@ -2214,7 +2214,7 @@ do_dashboard () {
 
 do_voyager () {
   squawk 1 " do_voyager"
-  taint_all_ingress
+  #taint_all_ingress
   if [ "$VOYAGER_BY_HELM" = "true" ]; then
   KUBECONFIG=$KUBECONFIG \
   helm install stable/voyager --name voyager \
@@ -4457,15 +4457,14 @@ do_nodes_in_parallel () {
   set_csv_columns
   while IFS="," read -r $csv_columns
   do
-    if [[ "$K8S_role" == "node" ]]; then
+    if [[ "$K8S_role" == "node" || "$K8S_role" == "ingress" ]]; then
+      squawk 81 " K8S_role NODE"
+      squawk 81 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_sshPort"
       echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_SU_USER --node-join-port $K8S_sshPort --node-join-role node" \
         >> $do_nodes_tmp_para/hopper
-    elif [[ "$K8S_role" == "ingress"  ]]; then
-      echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_SU_USER --node-join-port $K8S_sshPort --node-join-role ingress" \
-        >> $do_nodes_tmp_para/hopper
     else
-      squawk 1 " K8S_role NOT NODE"
-      squawk 1 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_sshPort"
+      squawk 91 " K8S_role NOT NODE"
+      squawk 91 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_sshPort"
     fi
     ((++countzero_do_nodes))
     squawk 3 " count $countzero_do_nodes"
@@ -4480,6 +4479,7 @@ do_nodes_in_parallel () {
     bash $do_nodes_tmp_para/hopper
   fi
   rm -Rf $do_nodes_tmp_para
+  taint_all_ingress
 }
 
 do_command_in_parallel () {
