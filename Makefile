@@ -337,7 +337,7 @@ ct: $(KUBASH_BIN)/ct
 
 $(KUBASH_BIN)/ct:
 	$(eval TMP := $(shell mktemp -d --suffix=CTTMP))
-	$(eval CT_VERSION := v0.7.0)
+	$(eval CT_VERSION := v0.9.0)
 	cd $(TMP) \
 	&& curl -sL -o ct \
 	https://github.com/coreos/container-linux-config-transpiler/releases/download/$(CT_VERSION)/ct-$(CT_VERSION)-x86_64-unknown-linux-gnu \
@@ -348,8 +348,9 @@ $(KUBASH_BIN)/ct:
 onessl: $(KUBASH_BIN)/onessl
 
 $(KUBASH_BIN)/onessl:
+	$(eval ONESSL_VERSION := 0.9.0)
 	$(eval TMP := $(shell mktemp -d --suffix=ONESSLTMP))
-	curl -fsSL -o $(TMP)/onessl https://github.com/kubepack/onessl/releases/download/0.1.0/onessl-linux-amd64
+	curl -fsSL -o $(TMP)/onessl https://github.com/kubepack/onessl/releases/download/${ONESSL_VERSION}/onessl-linux-amd64
 	chmod +x $(TMP)/onessl
 	mv $(TMP)/onessl $(KUBASH_BIN)/
 	rm -Rf $(TMP)
