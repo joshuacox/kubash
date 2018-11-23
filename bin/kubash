@@ -2170,11 +2170,38 @@ taint_ingress () {
     kubectl --kubeconfig=$KUBECONFIG taint --overwrite node $ingress_node IngressOnly=true:NoSchedule
     squawk 5 "kubectl --kubeconfig=$KUBECONFIG label --overwrite node $ingress_node ingress=true"
     kubectl --kubeconfig=$KUBECONFIG label --overwrite node $ingress_node ingress=true
-    ((count_ingress++))
+    ((++count_ingress))
   done
   if [[ $count_ingress -eq 0 ]]; then
     echo 'No ingress nodes found!'
     exit 1
+  fi
+}
+
+taint_all_ingress () {
+  squawk 1 " taint_all_ingress $@"
+  count_all_ingress=0
+  nodes_to_taint=' '
+  while IFS="," read -r $csv_columns
+  do
+    squawk 185 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
+    if [[ "$K8S_role" = "ingress" ]]; then
+      squawk 5 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
+      squawk 121 "nodes_to_taint $K8S_node $nodes_to_taint"
+      new_nodes_to_taint="$K8S_node $nodes_to_taint"
+      nodes_to_taint="$new_nodes_to_taint"
+      ((++count_all_ingress))
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
+  echo "count_all_ingress $count_all_ingress"
+  if [[ $count_all_ingress -eq 0 ]]; then
+    squawk 150 "slurpy -----> $(echo $kubash_hosts_csv_slurped)"
+    echo 'No ingress nodes found!!!'
+    exit 1
+  else
+    squawk 185 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
+    squawk 101 "taint these nodes_to_taint=$K8S_node $nodes_to_taint"
+    taint_ingress $nodes_to_taint
   fi
 }
 
@@ -2187,7 +2214,7 @@ do_dashboard () {
 
 do_voyager () {
   squawk 1 " do_voyager"
-  taint_ingress
+  taint_all_ingress
   if [ "$VOYAGER_BY_HELM" = "true" ]; then
   KUBECONFIG=$KUBECONFIG \
   helm install stable/voyager --name voyager \
@@ -4432,6 +4459,9 @@ do_nodes_in_parallel () {
   do
     if [[ "$K8S_role" == "node" ]]; then
       echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_SU_USER --node-join-port $K8S_sshPort --node-join-role node" \
+        >> $do_nodes_tmp_para/hopper
+    elif [[ "$K8S_role" == "ingress"  ]]; then
+      echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_SU_USER --node-join-port $K8S_sshPort --node-join-role ingress" \
         >> $do_nodes_tmp_para/hopper
     else
       squawk 1 " K8S_role NOT NODE"

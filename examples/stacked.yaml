@@ -105,7 +105,7 @@
         ip: dhcp
     stacked-ingress1:
       hostname: stackedingress1
-      role: node
+      role: ingress
       cpuCount: 2
       Memory: 2222
       provisioner:
