@@ -367,7 +367,8 @@ cfssl:
 	sudo chmod +x $(KUBASH_BIN)/cfssl*
 
 jinja2:
-	pip install --user jinja2 jinja2-cli
+	#pip install --user jinja2 jinja2-cli
+	pip install --user jinja2 jinja2
 
 anaconda: $(KUBASH_BIN)/Anaconda.sh
 	bash $(KUBASH_BIN)/Anaconda.sh
