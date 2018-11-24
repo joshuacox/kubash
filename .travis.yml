@@ -81,9 +81,12 @@ before_script:
 - mkdir -p clusters/default
 - cp $HOME/.kube/config clusters/default/
 #- make -e jinja2
-- which jinja2
 
 script:
+- which ct
+- which nsenter
+- which jinja2
+- which helm
 - /bin/bash -l -c "kubash tiller"
     #- /bin/bash -l -c "kubash openebs"
     #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
@@ -106,5 +109,3 @@ script:
     #- sudo mkdir /etc/system.d
     #- sudo chown -R $USER /etc/system.d
     #- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
-- which ct
-- which nsenter
