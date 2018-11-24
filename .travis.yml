@@ -14,17 +14,21 @@ matrix:
         - CHANGE_MINIKUBE_NONE_USER=true
         - MINIKUBE_VERSION=v0.25.2
         - KUBE_VERSION=v1.9.4
-       cache:
-         directories:
-           - $HOME/.minikube
-           - $HOME/.kube
-           - $HOME/.local/bin
-           - .git
-           - /usr/local
+
+      # cache:
+        # directories:
+        #- $HOME/.minikube
+        #- $HOME/.kube
+        #- $HOME/.local/bin
+        #- .git
+        #- /usr/local
 
 language: node_js
 node_js:
-- "8"
+  - "8"
+#language: python
+#python:
+    #- "3.6"
 
 addons:
   apt:
@@ -73,31 +77,31 @@ before_script:
 - /bin/bash -l -c "/usr/bin/time -v make -e ci"
 - env
 - pwd
-
-script:
 - mkdir -p clusters/default
 - cp $HOME/.kube/config clusters/default/
 #- make -e jinja2
 - which jinja2
+
+script:
 - /bin/bash -l -c "kubash tiller"
-#- /bin/bash -l -c "kubash openebs"
-#- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
-#- sleep 5
+    #- /bin/bash -l -c "kubash openebs"
+    #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
+    #- sleep 5
 - bats .ci/.tests.bats
-#- /bin/bash -l -c "kubash demo"
-# too much memory usage so we will end it there and destroy the VM
-# as the next though successful take too long
-#- /bin/bash -l -c "kubash demo"
-#- /bin/bash -l -c "w8s/generic.w8 percona default"
-#- /bin/bash -l -c "w8s/generic.w8 pgset-0 default"
-#- /bin/bash -l -c "w8s/generic.w8 rabbitmq-0 default"
-#- sudo chown -R $USER /usr/local
-#- sudo ls -lh /usr/bin
-#- sudo chown -R $USER /lib/systemd/system
-#- sudo chown $USER /usr/bin
-#- sudo mkdir -p /etc/kubernetes
-#- sudo chown $USER /etc
-#- sudo chown -R $USER /etc/kubernetes
-#- sudo mkdir /etc/system.d
-#- sudo chown -R $USER /etc/system.d
-#- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
+    #- /bin/bash -l -c "kubash demo"
+    # too much memory usage so we will end it there and destroy the VM
+    # as the next though successful take too long
+    #- /bin/bash -l -c "kubash demo"
+    #- /bin/bash -l -c "w8s/generic.w8 percona default"
+    #- /bin/bash -l -c "w8s/generic.w8 pgset-0 default"
+    #- /bin/bash -l -c "w8s/generic.w8 rabbitmq-0 default"
+    #- sudo chown -R $USER /usr/local
+    #- sudo ls -lh /usr/bin
+    #- sudo chown -R $USER /lib/systemd/system
+    #- sudo chown $USER /usr/bin
+    #- sudo mkdir -p /etc/kubernetes
+    #- sudo chown $USER /etc
+    #- sudo chown -R $USER /etc/kubernetes
+    #- sudo mkdir /etc/system.d
+    #- sudo chown -R $USER /etc/system.d
+    #- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
