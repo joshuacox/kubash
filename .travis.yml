@@ -106,3 +106,4 @@ script:
     #- sudo mkdir /etc/system.d
     #- sudo chown -R $USER /etc/system.d
     #- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
+- du -sh /usr/local
