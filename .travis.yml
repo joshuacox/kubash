@@ -19,8 +19,7 @@ matrix:
       cache:
         directories:
         - $HOME/.local/bin
-        - $HOME/.kubash
-        - /usr/local
+        - $HOME/.kubash/bin/ct
           #- .git
           #- $HOME/.kube
           #- $HOME/.minikube
@@ -107,4 +106,5 @@ script:
     #- sudo mkdir /etc/system.d
     #- sudo chown -R $USER /etc/system.d
     #- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
-- du -sh /usr/local
+- which nsenter
+- which ct
