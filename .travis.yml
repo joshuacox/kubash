@@ -23,7 +23,6 @@ matrix:
         #- $HOME/.kube
         #- $HOME/.local/bin
         #- .git
-        #- /usr/local
 
 language: node_js
 node_js:
