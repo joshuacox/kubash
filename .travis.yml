@@ -68,6 +68,7 @@ script:
     #- ls -alh /home/travis/.kubash/bin
   - if [[ ! -e "$HOME/.local/bin/nsenter" ]]; then .ci/ubuntu-compile-nsenter.sh && sudo cp .tmp/util-linux-2.30.2/nsenter $HOME/.local/bin; fi
     #- curl -sL --silent https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get|bash
+  - PATH=/home/travis/.local/bin:$PATH
   - make -e helm
   - bash scripts/dotfiles
   - bash scripts/chkdirs
