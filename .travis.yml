@@ -80,8 +80,6 @@ before_script:
 - pwd
 - mkdir -p clusters/default
 - cp $HOME/.kube/config clusters/default/
-#- make -e jinja2
-- which jinja2
 
 script:
 - /bin/bash -l -c "kubash tiller"
