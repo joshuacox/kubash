@@ -15,16 +15,16 @@ matrix:
         - MINIKUBE_VERSION=v0.25.2
         - KUBE_VERSION=v1.9.4
        cache:
-         directories:
-        - $HOME/.minikube
-        - $HOME/.kube
-        - $HOME/.local/bin
-        - .git
-        - /usr/local
+        directories:
+            - $HOME/.minikube
+            - $HOME/.kube
+            - $HOME/.local/bin
+            - .git
+            - /usr/local
 
 language: node_js
 node_js:
-  - "8"
+- "8"
 
 addons:
   apt:
