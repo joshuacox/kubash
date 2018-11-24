@@ -16,10 +16,10 @@ matrix:
         - KUBE_VERSION=v1.9.4
       cache: npm
       cache: pip
-      cache:
-        directories:
-        - $HOME/.local/bin
-        - $HOME/.kubash/bin/ct
+      #cache:
+          #directories:
+            #- $HOME/.local/bin
+          #- $HOME/.kubash/bin/ct
           #- .git
           #- $HOME/.kube
           #- $HOME/.minikube
