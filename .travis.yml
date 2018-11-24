@@ -51,7 +51,7 @@ before_install:
 #- sudo -H pip3 install --upgrade --ignore-installed --user jinja2
 #- pip install jinja2
 #- pip install --upgrade --ignore-installed --install-option="--prefix=$HELM_INSTALL_DIR" jinja2
-- pip install jinja2-cli
+- pip install --user jinja2-cli
 
 before_script:
 # Download kubectl, which is a requirement for using minikube.
