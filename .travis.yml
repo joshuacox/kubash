@@ -73,12 +73,12 @@ before_script:
 - /bin/bash -l -c "/usr/bin/time -v make -e ci"
 - env
 - pwd
+
+script:
 - mkdir -p clusters/default
 - cp $HOME/.kube/config clusters/default/
 #- make -e jinja2
 - which jinja2
-
-script:
 - /bin/bash -l -c "kubash tiller"
     #- /bin/bash -l -c "kubash openebs"
     #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
