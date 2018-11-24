@@ -18,11 +18,11 @@ matrix:
       cache: pip
       cache:
         directories:
-        - $HOME/.minikube
-        - $HOME/.kube
         - $HOME/.local/bin
-        - .git
         - /usr/local
+          #- .git
+          #- $HOME/.kube
+          #- $HOME/.minikube
 
 language: node_js
 node_js:
