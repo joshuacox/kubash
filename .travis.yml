@@ -44,7 +44,8 @@ addons:
 
 before_install:
 # install nsenter which is required for port forwarding
-- sudo -H pip3 install --upgrade --ignore-installed --user --install-option="--prefix=$HELM_INSTALL_DIR" jinja2
+#- sudo -H pip3 install --upgrade --ignore-installed --user --install-option="--prefix=$HELM_INSTALL_DIR" jinja2
+- sudo -H pip3 install --upgrade --ignore-installed --user jinja2
 
 before_script:
 # Download kubectl, which is a requirement for using minikube.
