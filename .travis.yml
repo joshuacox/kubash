@@ -61,13 +61,10 @@ before_script:
 - minikube update-context
 # Wait for Kubernetes to be up and ready.
 - JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
-#- ls -alh /home/travis
-#- ls -alh /home/travis/.kubash
 #- ls -alh /home/travis/.kubash/bin
 #- export PATH=/home/travis/.local/bin:$PATH
 #- echo "export PATH=/home/travis/.local/bin:$PATH" >> /home/travis/.bashrc
 #- echo $PATH
-#- make -e helm
 - bash scripts/dotfiles
 - bash scripts/chkdirs
 - sudo chown $USER /var/lib
@@ -76,7 +73,6 @@ before_script:
 - pwd
 - mkdir -p clusters/default
 - cp $HOME/.kube/config clusters/default/
-#- make -e jinja2
 
 script:
 - which ct
@@ -84,10 +80,10 @@ script:
 - which jinja2
 - which helm
 - /bin/bash -l -c "kubash tiller"
+- bats .ci/.tests.bats
     #- /bin/bash -l -c "kubash openebs"
     #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
     #- sleep 5
-- bats .ci/.tests.bats
     #- /bin/bash -l -c "kubash demo"
     # too much memory usage so we will end it there and destroy the VM
     # as the next though successful take too long
