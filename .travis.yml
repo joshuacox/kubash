@@ -3,25 +3,13 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      services:
-      - docker
 
-#language: node_js
-#node_js:
-#  - "8"
-language: python
-python:
-    - "3.6"
+language: node_js
+node_js:
+  - "8"
 
 before_install:
-# install nsenter which is required for port forwarding
-#- sudo -H pip3 install --upgrade --ignore-installed --user --install-option="--prefix=$HELM_INSTALL_DIR" jinja2
-#- sudo -H pip3 install --upgrade --ignore-installed --user jinja2
-#- pip install jinja2
 - pip install --user jinja2-cli
 
 script:
-    #- export PATH=/home/travis/.local/bin:$PATH
-    #- echo "export PATH=/home/travis/.local/bin:$PATH" >> /home/travis/.bashrc
-  - env
   - which jinja2
