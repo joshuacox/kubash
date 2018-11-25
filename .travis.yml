@@ -91,7 +91,6 @@ script:
 - which helm
 - which yaml2json
 - bin/kubash --verbosity=50 tiller
-- /bin/bash -l -c "kubash --verbosity=50 tiller"
 - bats .ci/.tests.bats
     #- /bin/bash -l -c "kubash openebs"
     #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
