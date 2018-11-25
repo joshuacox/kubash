@@ -90,7 +90,7 @@ script:
 - which jinja2
 - which helm
 - which yaml2json
-- sleep 10
+- kubash --verbosity=50 tiller
 - /bin/bash -l -c "kubash --verbosity=50 tiller"
 - bats .ci/.tests.bats
     #- /bin/bash -l -c "kubash openebs"
