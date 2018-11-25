@@ -2284,7 +2284,7 @@ do_traefik () {
 }
 
 do_tiller () {
-  w8_kubedns
+  #w8_kubedns
   squawk 1 " do_tiller"
   #kubectl --kubeconfig=$KUBECONFIG create serviceaccount tiller --namespace kube-system
   kubectl --kubeconfig=$KUBECONFIG create -f $KUBASH_DIR/tiller/rbac-tiller-config.yaml
