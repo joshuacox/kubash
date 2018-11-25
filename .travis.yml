@@ -69,8 +69,6 @@ before_script:
 - bash scripts/chkdirs
 - sudo chown $USER /var/lib
 - /bin/bash -l -c "/usr/bin/time -v make -e ci"
-- env
-- pwd
 - mkdir -p clusters/default
 - cp $HOME/.kube/config clusters/default/
 
@@ -101,3 +99,5 @@ script:
     #- sudo mkdir /etc/system.d
     #- sudo chown -R $USER /etc/system.d
     #- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
+    #- env
+    #- pwd
