@@ -19,8 +19,7 @@ matrix:
       cache:
           directories:
             - $HOME/.local/bin
-          #- $HOME/.kubash/bin/ct
-          #- .git
+            - .git
           #- $HOME/.kube
           #- $HOME/.minikube
 
