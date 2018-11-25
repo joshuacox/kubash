@@ -26,9 +26,6 @@ matrix:
 language: node_js
 node_js:
   - "8"
-#language: python
-#python:
-    #- "3.6"
 
 addons:
   apt:
