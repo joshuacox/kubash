@@ -77,7 +77,7 @@ script:
 - which nsenter
 - which jinja2
 - which helm
-- /bin/bash -l -c "kubash tiller"
+- /bin/bash -l -c "kubash --verbosity=50 tiller"
 - bats .ci/.tests.bats
     #- /bin/bash -l -c "kubash openebs"
     #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
