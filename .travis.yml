@@ -19,9 +19,9 @@ matrix:
       cache:
           directories:
             - $HOME/.local/bin
+            - $HOME/.minikube
+            #- $HOME/.kube
             #- .git
-          #- $HOME/.kube
-          #- $HOME/.minikube
 
 language: node_js
 node_js:
