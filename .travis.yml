@@ -12,8 +12,8 @@ matrix:
         - HELM_INSTALL_DIR=$HOME/.local/bin
         - NVM_DIR="$HOME/.nvm"
         - CHANGE_MINIKUBE_NONE_USER=true
-        - MINIKUBE_VERSION=v0.25.2
-        - KUBE_VERSION=v1.9.4
+        - MINIKUBE_VERSION=v0.30.0
+        - KUBE_VERSION=v1.12.2
       cache: npm
       cache: pip
       cache:
