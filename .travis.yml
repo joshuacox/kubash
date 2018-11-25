@@ -88,6 +88,7 @@ script:
 - which nsenter
 - which jinja2
 - which helm
+- sleep 10
 - /bin/bash -l -c "kubash --verbosity=50 tiller"
 - bats .ci/.tests.bats
     #- /bin/bash -l -c "kubash openebs"
