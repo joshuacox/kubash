@@ -76,6 +76,7 @@ before_script:
 - minikube update-context
 - cp $HOME/.kube/config clusters/default/
 - echo '2.0.0' > clusters/default/csv_version
+- echo 'extetcdmaster1,primary_master,22,2800,22,bridge=br1,52:54:00:e2:9f:11,127.0.0.1,null,null,null,null,127.0.0.1,root,22,/var/lib/libvirt/images,ubuntu1.12.2,qemu,null,null,null,null,null,null,null,null,null,null,null,null,null,null' > clusters/default/hosts.csv
 - which bats
 
 script:
