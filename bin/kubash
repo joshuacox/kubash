@@ -749,7 +749,7 @@ EOF
       else
         echo $run_join > $KUBASH_CLUSTER_DIR/join.sh
         echo $run_join > $KUBASH_CLUSTER_DIR/master_join.sh
-        sed -i 's/$/ --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt/' $KUBASH_CLUSTER_DIR/join.sh
+        #sed -i 's/$/ --ignore-preflight-errors=FileAvailable--etc-kubernetes-pki-ca.crt/' $KUBASH_CLUSTER_DIR/join.sh
         sed -i 's/$/ --experimental-control-plane/' $KUBASH_CLUSTER_DIR/master_join.sh
         echo $join_token > $KUBASH_CLUSTER_DIR/join_token
         master_grab_kube_config ${NAME} ${HOST} ${INIT_USER} ${MASTERPORTS[$i]}
@@ -761,9 +761,10 @@ EOF
   do
     squawk 85 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
     if [[ "$K8S_role" == 'node' ]]; then
-      squawk 65 "push kube pki ext etcd sub $K8S_user $K8S_ip1 $K8S_sshPort"
+      squawk 101 'neutered'
+      #squawk 65 "push kube pki ext etcd sub $K8S_user $K8S_ip1 $K8S_sshPort"
       #push_pki_ext_etcd_method   $K8S_user $K8S_ip1 $K8S_sshPort
-      push_kube_pki_ext_etcd_sub $K8S_user $K8S_ip1 $K8S_sshPort
+      #push_kube_pki_ext_etcd_sub $K8S_user $K8S_ip1 $K8S_sshPort
     fi
   done <<< "$kubash_hosts_csv_slurped"
   rm -Rf $etcd_test_tmp
