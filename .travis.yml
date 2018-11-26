@@ -75,6 +75,7 @@ before_script:
 # Fix the kubectl context, as it's often stale.
 - minikube update-context
 - cp $HOME/.kube/config clusters/default/
+- echo '2.0.0' > clusters/default/csv_version
 
 script:
 - kubectl cluster-info
