@@ -84,33 +84,34 @@ script:
 # kube-addon-manager is responsible for managing other kubernetes components, such as kube-dns, dashboard, storage-provisioner..
 #- JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl -n kube-system get pods -lcomponent=kube-addon-manager -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1;echo "waiting for kube-addon-manager to be available"; kubectl get pods --all-namespaces; done
 # Wait for kube-dns to be ready.
-- JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl -n kube-system get pods -lk8s-app=kube-dns -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1;echo "waiting for kube-dns to be available"; kubectl get pods --all-namespaces; done
-- which ct
-- which nsenter
-- which jinja2
-- which helm
-- which yaml2json
-- bin/kubash --verbosity=50 tiller
+#- JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl -n kube-system get pods -lk8s-app=kube-dns -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1;echo "waiting for kube-dns to be available"; kubectl get pods --all-namespaces; done
+#- which ct
+#- which nsenter
+#- which jinja2
+#- which helm
+#- which yaml2json
+#- bin/kubash --verbosity=50 tiller
+- bin/kubash --verbosity=50 ping
 - bats .ci/.tests.bats
-    #- /bin/bash -l -c "kubash openebs"
-    #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
-    #- sleep 5
-    #- /bin/bash -l -c "kubash demo"
-    # too much memory usage so we will end it there and destroy the VM
-    # as the next though successful take too long
-    #- /bin/bash -l -c "kubash demo"
-    #- /bin/bash -l -c "w8s/generic.w8 percona default"
-    #- /bin/bash -l -c "w8s/generic.w8 pgset-0 default"
-    #- /bin/bash -l -c "w8s/generic.w8 rabbitmq-0 default"
-    #- sudo chown -R $USER /usr/local
-    #- sudo ls -lh /usr/bin
-    #- sudo chown -R $USER /lib/systemd/system
-    #- sudo chown $USER /usr/bin
-    #- sudo mkdir -p /etc/kubernetes
-    #- sudo chown $USER /etc
-    #- sudo chown -R $USER /etc/kubernetes
-    #- sudo mkdir /etc/system.d
-    #- sudo chown -R $USER /etc/system.d
-    #- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
-    #- env
-    #- pwd
+#- /bin/bash -l -c "kubash openebs"
+#- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
+#- sleep 5
+#- /bin/bash -l -c "kubash demo"
+# too much memory usage so we will end it there and destroy the VM
+# as the next though successful take too long
+#- /bin/bash -l -c "kubash demo"
+#- /bin/bash -l -c "w8s/generic.w8 percona default"
+#- /bin/bash -l -c "w8s/generic.w8 pgset-0 default"
+#- /bin/bash -l -c "w8s/generic.w8 rabbitmq-0 default"
+#- sudo chown -R $USER /usr/local
+#- sudo ls -lh /usr/bin
+#- sudo chown -R $USER /lib/systemd/system
+#- sudo chown $USER /usr/bin
+#- sudo mkdir -p /etc/kubernetes
+#- sudo chown $USER /etc
+#- sudo chown -R $USER /etc/kubernetes
+#- sudo mkdir /etc/system.d
+#- sudo chown -R $USER /etc/system.d
+#- /bin/bash -l -c "w8s/generic.w8 mongo-0 default"
+#- env
+#- pwd
