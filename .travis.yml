@@ -95,7 +95,7 @@ script:
 #- which yaml2json
 #- bin/kubash --verbosity=50 tiller
 - bin/kubash --verbosity=50 known_hosts
-- bin/kubash --verbosity=50 ping
+#- bin/kubash --verbosity=50 ping
 - bats .ci/.tests.bats
 #- /bin/bash -l -c "kubash openebs"
 #- /bin/bash -l -c "w8s/generic.w8 openebs-provisioner default"
