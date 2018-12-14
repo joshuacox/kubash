@@ -5385,7 +5385,7 @@ process_hosts_csv () {
 prep () {
   squawk 5 " prep"
   set_csv_columns
-  hosts_csv_slurp7
+  hosts_csv_slurp
   while IFS="," read -r $csv_columns
   do
     preppy $K8S_node $K8S_ip1 $K8S_sshPort
