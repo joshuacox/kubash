@@ -2703,7 +2703,7 @@ do_jenkins () {
 do_minio () {
   cd $KUBASH_DIR/submodules/openebs/k8s/demo/minio
   kubectl --kubeconfig=$KUBECONFIG apply -f \
-   minio.yml
+   minio.yaml
 }
 
 do_kafka () {
@@ -5385,7 +5385,7 @@ process_hosts_csv () {
 prep () {
   squawk 5 " prep"
   set_csv_columns
-  hosts_csv_slurp
+  hosts_csv_slurp7
   while IFS="," read -r $csv_columns
   do
     preppy $K8S_node $K8S_ip1 $K8S_sshPort
