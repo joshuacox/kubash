@@ -5385,6 +5385,7 @@ process_hosts_csv () {
 prep () {
   squawk 5 " prep"
   set_csv_columns
+  hosts_csv_slurp
   while IFS="," read -r $csv_columns
   do
     preppy $K8S_node $K8S_ip1 $K8S_sshPort
@@ -6168,7 +6169,7 @@ main () {
     else
       copy_image_to_all_provisioning_hosts
       provisioner
-      squawk 1 "wating on hosts to come up"
+      squawk 1 "waiting on hosts to come up"
       sleep 33
       refresh_network_addresses
       prep
