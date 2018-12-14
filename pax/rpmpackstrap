@@ -4,7 +4,7 @@
 TMP=$(mktemp -d)
 : ${PRE_INSTALL_PKGS:='epel-release'}
 : ${INSTALL_PKGS:='sysstat fail2ban unzip device-mapper-persistent-data lvm2 golang ebtables ethtool keepalived ntp rsync ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct iscsi-initiator-utils yum-utils'}
-: ${DOCKER_PKG:='17.12.1'}
+: ${DOCKER_PKG:='17.12.1.ce'}
 : ${DOCKER_COMPOSE_PKG:='1.18.0'}
 : ${DOCKER_PKG_NAME:="docker-ce-${DOCKER_PKG}"}
 : ${DOCKER_COMPOSE_PKG_NAME:="docker-compose-${DOCKER_PKG}"}
