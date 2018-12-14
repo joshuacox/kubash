@@ -5388,7 +5388,7 @@ prep () {
   while IFS="," read -r $csv_columns
   do
     preppy $K8S_node $K8S_ip1 $K8S_sshPort
-  done < $KUBASH_HOSTS_CSV
+  done <<< "$kubash_hosts_csv_slurped"
 }
 
 preppy () {
@@ -5408,12 +5408,12 @@ scanner () {
 }
 
 scanlooper () {
-  squawk 5 " prep"
+  squawk 5 "scanlooper"
   set_csv_columns
   while IFS="," read -r $csv_columns
   do
     scanner $K8S_ip1 $K8S_sshPort
-  done < $KUBASH_HOSTS_CSV
+  done <<< "$kubash_hosts_csv_slurped"
 }
 
 do_decom () {
