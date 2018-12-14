@@ -179,7 +179,7 @@
         "../_common/virtualbox.sh",
         "../_common/vmware.sh",
         "../_common/parallels.sh",
-        "../packstrap",
+        "../rpmpackstrap",
         "scripts/cleanup.sh",
         "../_common/minimize.sh"
       ],
