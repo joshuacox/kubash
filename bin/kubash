@@ -3,9 +3,9 @@ KUBASH_VERSION='v1.13.1'
 # set default fall-through variables
 # if set in the environment these variables will fall-through and retain their value
 # otherwise use the defaults here
-: ${KUBE_VERSION:='v1.12.3'}
+: ${KUBE_VERSION:='v1.13.1'}
 : ${KUBE_MAJOR_VER:=1}
-: ${KUBE_MINOR_VER:=12}
+: ${KUBE_MINOR_VER:=13}
 : ${KUBASH_CLUSTER_NAME=default}
 : ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_HISTORY:=$KUBASH_DIR/.kubash_history}
@@ -5519,7 +5519,7 @@ coreos_build  () {
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 }
 
-packer_build  () {
+packer_build () {
   build_virt=$1
   target_os=$2
   target_build=$3
@@ -6448,10 +6448,6 @@ main () {
       if [[ -z "$target_build" ]]; then
         target_build=kubeadm-7.4-x86_64
       fi
-    elif [[ "$target_os" == "debian" ]]; then
-      if [[ -z "$target_build" ]]; then
-        target_build=debian-9.3-amd64
-      fi
     elif [[ "$target_os" == "centos" ]]; then
       if [[ -z "$target_build" ]]; then
         target_build=centos-7.4-x86_64
@@ -6476,9 +6472,11 @@ main () {
       if [[ -z "$target_build" ]]; then
         target_build=fedora-27-x86_64
       fi
-    elif [[ "$target_os" == "kubeadm197" ]]; then
+    elif [[ "$target_os" =~ 'stretch' ]]; then
       if [[ -z "$target_build" ]]; then
-        target_build=kubeadm197-7.4-x86_64
+        echo "matching $target_os"
+        build_num=$(echo $target_os | sed 's/stretch//')
+        target_build=stretch$build_num
       fi
     elif [[ "$target_os" =~ 'beaver' ]]; then
       if [[ -z "$target_build" ]]; then
@@ -6499,7 +6497,7 @@ main () {
         croak 3  'packer not supported for coreos at this time'
       elif [[ $builder == "coreos" ]]; then
         if [[ -z "$target_build" ]]; then
-    squawk 5 "Setting coreos channel to stable"
+          squawk 5 "Setting coreos channel to stable"
           target_build=stable
         fi
       fi
