@@ -5392,16 +5392,17 @@ prep () {
 }
 
 preppy () {
-  squawk 7 " preppy"
+  squawk 7 "preppy $@"
   node_name=$1
   node_ip=$2
   node_port=$3
-  removestalekeys $node_ip
-  ssh-keyscan -p $node_port $node_ip >> ~/.ssh/known_hosts
+  #removestalekeys $node_ip
+  #ssh-keyscan -p $node_port $node_ip >> ~/.ssh/known_hosts
   scanner $node_ip $node_port
 }
 
 scanner () {
+  squawk 17 "scanner $@"
   node_ip=$1
   node_port=$2
   removestalekeys $node_ip
