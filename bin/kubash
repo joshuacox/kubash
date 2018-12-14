@@ -2657,6 +2657,7 @@ demo () {
   do_jenkins
   do_kafka
   do_redis
+  do_minio
 }
 
 do_redis () {
@@ -2697,6 +2698,12 @@ do_jenkins () {
   cd $KUBASH_DIR/submodules/openebs/k8s/demo/jenkins
   kubectl --kubeconfig=$KUBECONFIG apply -f \
    jenkins.yml
+}
+
+do_minio () {
+  cd $KUBASH_DIR/submodules/openebs/k8s/demo/minio
+  kubectl --kubeconfig=$KUBECONFIG apply -f \
+   minio.yml
 }
 
 do_kafka () {
@@ -6044,6 +6051,13 @@ main () {
       exit 1
     fi
         do_metallb
+  elif [[ $RAISON == "minio" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+        do_minio
   elif [[ $RAISON == "openebs" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
