@@ -5399,6 +5399,7 @@ preppy () {
   removestalekeys $node_ip
   ssh-keyscan -p $node_port $node_ip >> ~/.ssh/known_hosts
   scanner $node_ip $node_port
+}
 
 scanner () {
   node_ip=$1
@@ -6076,12 +6077,7 @@ main () {
     fi
         do_minio
   elif [[ $RAISON == "scan" ]]; then
-    if [[ $print_help == "true" ]]; then
-      horizontal_rule
-      usage
-      exit 1
-    fi
-      scanlooper
+        scanlooper
   elif [[ $RAISON == "openebs" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
