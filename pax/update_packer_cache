@@ -1,5 +1,5 @@
 #!/bin/bash
-if [[ -e  $HOME/.kubash/.packer_cache_path ]]
+if [[ -e  $HOME/.kubash/.packer_cache_path ]]; then
   packer_cache_path=$(cat $HOME/.kubash/.packer_cache_path)
 elif [ $# -ne 1 ]; then
   # Print usage
