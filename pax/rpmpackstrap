@@ -3,7 +3,7 @@
 # https://github.com/cookeem/kubeadm-ha
 TMP=$(mktemp -d)
 : ${PRE_INSTALL_PKGS:='epel-release'}
-: ${INSTALL_PKGS:='sysstat fail2ban unzip device-mapper-persistent-data lvm2 golang ebtables ethtool keepalived ntp rsync ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct iscsi-initiator-utils yum-utils'}
+: ${INSTALL_PKGS:='zsh sysstat fail2ban unzip device-mapper-persistent-data lvm2 golang ebtables ethtool keepalived ntp rsync ansible socat python python-pip wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct iscsi-initiator-utils yum-utils'}
 : ${DOCKER_PKG:='17.12.1.ce'}
 : ${DOCKER_COMPOSE_PKG:='1.18.0'}
 : ${DOCKER_PKG_NAME:="docker-ce-${DOCKER_PKG}"}
@@ -152,6 +152,7 @@ export GOPATH=$HOME/.go
 #mv $HOME/go/bin/crictl /usr/local/bin/
 
 echo 'PATH=/usr/local/bin:$PATH' >> /root/.bash_profile
+echo 'PATH=/usr/local/bin:$PATH' >> /root/.zshrc
 
 # remove temp
 cd
