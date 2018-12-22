@@ -3767,7 +3767,7 @@ kubespray_initialize () {
     #$KUBASH_DIR/submodules/kubespray/reset.yml
   ansible-playbook \
     -i $KUBASH_KUBESPRAY_HOSTS \
-    -e kubeadm_enabled=True \
+    -e '{ kubeadm_enabled: True }' \
     $KUBASH_DIR/submodules/kubespray/cluster.yml
 }
 
