@@ -85,7 +85,7 @@ flight_checks () {
       PLATFORM="os.linux.x86_64"
     else
       echo "Unusable architecture: ${LINUX_ARCH}"
-      echo "ReactioNstall only supports x86_64 for now on Linux."
+      echo "Kubash only supports x86_64 for now on Linux."
       exit 1
     fi
   fi
