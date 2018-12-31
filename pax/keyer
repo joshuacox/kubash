@@ -59,9 +59,9 @@ else
 chsh -s /usr/bin/zsh $K8S_SU_USER
 fi
 
-curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -o $TMP/ohmyzsh.sh
-bash $TMP/ohmyzsh.sh
-sudo -u $K8S_SU_USER bash $TMP/ohmyzsh.sh
-rm $TMP/ohmyzsh.sh
+#curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -o $TMP/ohmyzsh.sh
+#bash $TMP/ohmyzsh.sh
+#sudo -i -u $K8S_SU_USER bash $TMP/ohmyzsh.sh
+#rm $TMP/ohmyzsh.sh
 
 rm -Rf $TMP
