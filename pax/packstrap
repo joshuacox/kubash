@@ -50,7 +50,8 @@ echo ip_vs_rr >> /etc/modules
 
 install_pips () {
   sudo -H pip install --upgrade pip
-  sudo -H pip install --upgrade docker-py jinja2-cli jinja2
+  sudo -H pip install --upgrade jinja2-cli jinja2
+  sudo -H pip install --upgrade 'docker<3.0'
 }
 
 install_default_docker () {

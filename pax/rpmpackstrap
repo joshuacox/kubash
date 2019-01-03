@@ -88,7 +88,8 @@ install_default_docker () {
   systemctl enable kubelet && systemctl start kubelet
   
   pip install --upgrade pip
-  pip install docker-py
+  pip install --upgrade jinja2-cli jinja2
+  pip install --upgrade 'docker<3.0'
 
   #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
   sed -i '/OPTIONS=.*/c\OPTIONS="--selinux-enabled --insecure-registry 172.30.0.0/16"' \
@@ -109,12 +110,13 @@ install_spec_docker () {
   echo 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"' \
     >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
   #######
-  
+
   systemctl enable docker && systemctl start docker
   systemctl enable kubelet && systemctl start kubelet
-  
+
   pip install --upgrade pip
-  pip install docker-py
+  pip install --upgrade jinja2-cli jinja2
+  pip install --upgrade 'docker<3.0'
 }
 
 echo "kubeadm install is $KUBEADM_INSTALL"
