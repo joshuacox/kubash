@@ -63,7 +63,7 @@ KUBASH_VERSION='v1.13.1'
 : ${FLANNEL_URL:=https://raw.githubusercontent.com/coreos/flannel/bc79dd1505b0c8681ece4de4c0d86c5cd2643275/Documentation/kube-flannel.yml}
 : ${USE_TRAEFIK_DAEMON_SET:='true'}
 : ${USE_TRAEFIK_RBAC:='true'}
-: ${VOYAGER_PROVIDER:='baremetal'}
+: ${VOYAGER_PROVIDER:='metallb'}
 : ${VOYAGER_BY_HELM:= "false"}
 : ${VOYAGER_VERSION:='8.0.1'}
 : ${VOYAGER_ADMISSIONWEBHOOK:='--set apiserver.enableAdmissionWebhook=true'}
