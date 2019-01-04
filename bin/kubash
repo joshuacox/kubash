@@ -5507,6 +5507,14 @@ do_metallb () {
     fi
 }
 
+do_istio () {
+    cd $KUBASH_DIR/submodules/istio/install
+    bash updateVersion.sh
+    cd kubernetes/helm
+    kubectl --kubeconfig=$KUBECONFIG apply -f \
+      istio
+}
+
 do_efk () {
     cd $KUBASH_DIR/submodules/openebs/k8s/demo/efk
     kubectl --kubeconfig=$KUBECONFIG apply -f \
@@ -6085,6 +6093,13 @@ main () {
       exit 1
     fi
     exit 0
+  elif [[ $RAISON == "istio" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+        do_istio
   elif [[ $RAISON == "metallb" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
