@@ -5509,7 +5509,6 @@ do_metallb () {
 
 do_istio () {
     cd $KUBASH_DIR/submodules/istio/install
-    bash updateVersion.sh
     cd kubernetes/helm
     kubectl --kubeconfig=$KUBECONFIG apply -f \
       istio
