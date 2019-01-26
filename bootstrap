@@ -85,7 +85,7 @@ flight_checks () {
       PLATFORM="os.linux.x86_64"
     else
       echo "Unusable architecture: ${LINUX_ARCH}"
-      echo "ReactioNstall only supports x86_64 for now on Linux."
+      echo "Kubash only supports x86_64 for now on Linux."
       exit 1
     fi
   fi
@@ -98,9 +98,9 @@ flight_checks () {
 
 main () {
 
-  if type "apt-get" > /dev/null; then
+  if type "apt-get" &> /dev/null; then
     sudo apt-get install -y jq git build-essential golang unzip curl wget parallel ansible rlwrap
-  elif type "yum" > /dev/null; then
+  elif type "yum" &> /dev/null; then
     sudo yum install -y jq git build-essential golang unzip curl wget parallel ansible rlwrap
   fi
   check_cmd git
@@ -111,6 +111,7 @@ main () {
   check_cmd uname
   check_cmd go
   check_cmd pip
+  check_cmd npm
   check_cmd make
   check_cmd parallel
   check_cmd 'grep'
@@ -128,6 +129,7 @@ main () {
   cd $KUBASH_DIR
   git submodule update --init --recursive
   make submodules/openebs
+  make nvm
   make jinja2
   make yaml2json
   check_install ct
@@ -141,7 +143,7 @@ main () {
   make kubectl
   check_install crictl
   check_install onessl
-  pip --user --update install netaddr
+  pip install --user --upgrade install netaddr
   $KUBASH_BIN/kubash dotfiles
   echo 'logout and log back in, or source your RC files'
 }
