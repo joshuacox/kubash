@@ -5500,7 +5500,8 @@ do_coreos_initialization () {
 
 do_metallb () {
     if [[ METALLB_INSTALLATION_METHOD = 'helm' ]]; then
-      helm install --name metallb stable/metallb
+      KUBECONFIG=$KUBECONFIG \
+        helm install --name metallb stable/metallb
     else
       kubectl --kubeconfig=$KUBECONFIG apply -f \
         https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
@@ -6445,6 +6446,13 @@ main () {
       exit 1
     fi
     do_linkerd
+  elif [[ $RAISON == "kubedb" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+    $KUBASH_DIR/scripts/inst_kubedb
   elif [[ $RAISON == "tiller" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
