@@ -3428,6 +3428,14 @@ chkdir () {
   fi
 }
 
+inst_kubedb_helm () {
+  helm repo add appscode https://charts.appscode.com/stable/
+  helm repo update
+  helm install appscode/kubedb --name kubedb-operator --version 0.10.0 --namespace kube-system
+  $KUBASH_DIR/scripts/w8s/generic.w8 kubedb-operator kube-system
+  helm install appscode/kubedb-catalog --name kubedb-catalog --version 0.10.0 --namespace kube-system
+}
+
 dotfiles_install () {
   squawk 1 ' Adjusting dotfiles'
   touch $HOME/.zshrc
@@ -6452,7 +6460,7 @@ main () {
       usage
       exit 1
     fi
-    $KUBASH_DIR/scripts/inst_kubedb
+    inst_kubedb_helm
   elif [[ $RAISON == "tiller" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
