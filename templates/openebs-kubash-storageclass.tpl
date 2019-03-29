@@ -6,3 +6,4 @@ metadata:
       - name: ReplicaCount
         value: "3"
     openebs.io/cas-type: cstor
+provisioner: openebs.io/provisioner-iscsi
