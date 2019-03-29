@@ -1,6 +1,7 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
+  name: openebs-cstor-kubash
   annotations:
     cas.openebs.io/config: |
       - name: ReplicaCount
