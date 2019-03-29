@@ -3561,6 +3561,15 @@ write_ansible_kubespray_hosts () {
   echo 'kube-master' >> $KUBASH_KUBESPRAY_HOSTS
 }
 
+kubash_context (){
+  KUBECONFIG=$KUBECONFIG \
+  kubectl config set-context kubash \
+  --user=kubernetes-admin \
+  --cluster=$KUBASH_CLUSTER_NAME
+  KUBECONFIG=$KUBECONFIG \
+  kubectl config use-context kubash
+}
+
 removestalekeys () {
   squawk 1 " removestalekeys $@"
   node_ip=$1
@@ -5943,6 +5952,7 @@ do_rook () {
 
 do_openebs () {
     if [[ OPENEBS_INSTALLATION_METHOD = 'helm' ]]; then
+    kubash_context
     KUBECONFIG=$KUBECONFIG \
     helm install \
       --namespace openebs \
