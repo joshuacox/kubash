@@ -54,6 +54,12 @@ install_pips () {
   sudo -H pip install --upgrade 'docker<3.0'
 }
 
+install_docker_compose () {
+  sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
+  sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+}
+
 install_default_docker () {
   apt-get install -yqq --allow-downgrades \
    docker-ce=$(apt-cache madison docker-ce | grep $DOCKER_PKG | head -1 | awk '{print $3}') \
@@ -73,11 +79,12 @@ install_default_docker () {
 
 install_spec_docker () {
   apt-get install -yqq --allow-downgrades \
-   docker-ce=$(apt-cache madison docker-ce | grep $DOCKER_PKG | head -1 | awk '{print $3}') \
-   docker-compose=$(apt-cache madison docker-compose | grep $DOCKER_COMPOSE_PKG | head -1 | awk '{print $3}') \
-   kubelet=$(apt-cache madison kubelet | grep $KUBEPKG_VERSION | head -1 | awk '{print $3}') \
-   kubeadm=$(apt-cache madison kubeadm | grep $KUBEPKG_VERSION | head -1 | awk '{print $3}') \
-   kubectl=$(apt-cache madison kubectl | grep $KUBEPKG_VERSION | head -1 | awk '{print $3}')
+  docker-ce=$(apt-cache madison docker-ce | grep $DOCKER_PKG | head -1 | awk '{print $3}') \
+  kubelet=$(apt-cache madison kubelet | grep $KUBEPKG_VERSION | head -1 | awk '{print $3}') \
+  kubeadm=$(apt-cache madison kubeadm | grep $KUBEPKG_VERSION | head -1 | awk '{print $3}') \
+  kubectl=$(apt-cache madison kubectl | grep $KUBEPKG_VERSION | head -1 | awk '{print $3}')
+
+  install_docker_compose
 
   systemctl enable docker && systemctl start docker
   systemctl enable kubelet && systemctl start kubelet
