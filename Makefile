@@ -87,6 +87,19 @@ $(KUBASH_BIN)/kubectl:
 	&& sudo mv -v kubectl $(KUBASH_BIN)/
 	rmdir $(TMP)
 
+kubedb: $(KUBASH_BIN)
+	@scripts/kubashnstaller kubedb
+
+$(KUBASH_BIN)/kubedb:
+	@echo 'Installing kubedb'
+	$(eval TMP := $(shell mktemp -d --suffix=kubedbTMP))
+	cd $(TMP) \
+	&& wget -O kubedb https://github.com/kubedb/cli/releases/download/0.11.0/kubedb-linux-amd64 \
+	&& chmod +x kubedb \
+	&& sudo mv -v kubedb $(KUBASH_BIN)/
+	rmdir $(TMP)
+
+
 $(KUBASH_BIN):
 	mkdir -p $(KUBASH_BIN)
 
