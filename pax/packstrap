@@ -1,6 +1,6 @@
 #!/bin/sh -eux
 TMP=$(mktemp -d)
-: ${DEB_PRE_PACKAGES_TO_INSTALL:='apt-transport-https ca-certificates curl ebtables ethtool keepalived open-iscsi ntp software-properties-common'}
+: ${DEB_PRE_PACKAGES_TO_INSTALL:='apt-transport-https ca-certificates curl ebtables ethtool keepalived open-iscsi tgt ntp software-properties-common'}
 : ${DEB_PACKAGES_TO_INSTALL:='sysstat rsync fail2ban net-tools dnsutils python-pip vim htop iotop iftop zsh'}
 
 : ${DOCKER_PKG:='17.03'}
