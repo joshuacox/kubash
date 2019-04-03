@@ -10,3 +10,6 @@
 [submodule "submodules/istio"]
 	path = submodules/istio
 	url = https://github.com/istio/istio.git
+[submodule "submodules/rook"]
+	path = submodules/rook
+	url = https://github.com/rook/rook.git
