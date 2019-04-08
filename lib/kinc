@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+
+horizontal_rule () {
+  printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' -
+}
+
+squawk () {
+  # This function simplifies error reporting and verbosity
+  # and it always prints its message along with anything in $error_report_log
+  # call it by preceding your message with a verbosity level
+  # e.g. `squawk 3 "This is a squawk"`
+  # if the current verbosity level is greater than or equal to
+  # the number given then this function will echo out your message
+  # and pad it with # to let you now how verbose that message was
+  squawk_lvl=$1
+  shift
+  squawk=$1
+  shift
+  squawk_opt=$@
+
+  if [[ "$VERBOSITY" -ge "$squawk_lvl" ]] ; then
+    if [[ "$squawk_lvl" -le 20 ]] ; then
+      count_squawk=0
+      while [[ "$count_squawk" -lt "$squawk_lvl" ]]; do
+        echo -n "#"
+        count_squawk=`expr $count_squawk + 1`
+      done
+      echo " $squawk"
+    else
+      echo -n '#{ '
+      echo -n "$squawk_lvl"
+      echo -n " }#############"
+      count_squawk=0
+      while [[ "$count_squawk" -lt "$squawk_lvl" ]]; do
+        echo -n "#"
+        count_squawk=`expr $count_squawk + 5`
+      done
+      echo -n '#{ '
+      echo -n "$squawk_lvl"
+      echo -n ' }### '
+      echo " $squawk"
+    fi
+  fi
+}
+
+croak () {
+    # The difference between squawk and croak is that croak calls exit 1 at the end
+  # This function simplifies error reporting on death and verbosity
+  # call it by preceding your error message with a verbosity level
+  # e.g. `croak 3 "This is a croak"`
+  # if the current verbosity level is greater than or equal to
+  # the number given then this function will echo out your message
+  # and pad it with # to let you now how verbose that message was
+  croak_lvl=$1
+  shift
+  croak=$1
+  shift
+  croak_opt=$@
+
+  if [[ -z $error_report_log ]]; then
+    horizontal_rule
+    echo "Error report log $error_report_log"
+  fi
+
+  horizontal_rule
+  if [[ "$VERBOSITY" -ge "$croak_lvl" ]] ; then
+    if [[ "$croak_lvl" -le 20 ]] ; then
+      count_croak=0
+      while [[ "$count_croak" -lt "$croak_lvl" ]]; do
+        echo -n "#"
+        count_croak=`expr $count_croak + 1`
+      done
+      echo " $croak"
+    else
+      echo -n '#{ '
+      echo -n "$croak_lvl"
+      echo -n " }#############"
+      count_croak=0
+      while [[ "$count_croak" -lt "$croak_lvl" ]]; do
+        echo -n "#"
+        count_croak=`expr $count_croak + 5`
+      done
+      echo -n '#{ '
+      echo -n "$croak_lvl"
+      echo -n ' }### '
+      echo " $croak"
+    fi
+  else
+    echo " $croak"
+  fi
+  horizontal_rule
+  exit 1
+}
+
+taint_storage () {
+  squawk 1 " taint_storage $@"
+  count_storage=0
+  for storage_node in "$@"
+  do
+    squawk 5 "kubectl --kubeconfig=$KUBECONFIG taint --overwrite node $storage_node storageOnly=true:NoSchedule"
+    kubectl --kubeconfig=$KUBECONFIG taint --overwrite node $storage_node storageOnly=true:NoSchedule
+    squawk 5 "kubectl --kubeconfig=$KUBECONFIG label --overwrite node $storage_node storage=true"
+    kubectl --kubeconfig=$KUBECONFIG label --overwrite node $storage_node storage=true
+    ((++count_storage))
+  done
+  if [[ $count_storage -eq 0 ]]; then
+    croak 3  'No storage nodes found!'
+  fi
+}
+
+taint_all_storage () {
+  squawk 1 " taint_all_storage $@"
+  count_all_storage=0
+  nodes_to_taint=' '
+  while IFS="," read -r $csv_columns
+  do
+    squawk 185 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
+    if [[ "$K8S_role" = "storage" ]]; then
+      squawk 5 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
+      squawk 121 "nodes_to_taint $K8S_node $nodes_to_taint"
+      new_nodes_to_taint="$K8S_node $nodes_to_taint"
+      nodes_to_taint="$new_nodes_to_taint"
+      ((++count_all_storage))
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
+  echo "count_all_storage $count_all_storage"
+  if [[ $count_all_storage -eq 0 ]]; then
+    squawk 150 "slurpy -----> $(echo $kubash_hosts_csv_slurped)"
+    croak 3  'No storage nodes found!!!'
+  else
+    squawk 185 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
+    squawk 101 "taint these nodes_to_taint=$K8S_node $nodes_to_taint"
+    taint_storage $nodes_to_taint
+  fi
+}
