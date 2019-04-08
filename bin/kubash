@@ -6317,7 +6317,7 @@ main () {
   # Let's display everything on stderr.
   exec 1>&2
 
-  # If cmd empty print usage
+  # If cmd empty enter interactive session
   if [[ -z "$1" ]]; then
     kubash_interactive
     exit 0
