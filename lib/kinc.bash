@@ -102,6 +102,7 @@ print_help=no
 . $KUBASH_LIB/utils.bash
 . $KUBASH_LIB/squawk.bash
 . $KUBASH_LIB/croak.bash
+. $KUBASH_LIB/kcsv.bash
 . $KUBASH_LIB/storage.bash
 . $KUBASH_LIB/kvm.bash
 . $KUBASH_LIB/packer.bash
