@@ -9,6 +9,7 @@
 : ${KUBASH_HISTORY:=$KUBASH_DIR/.kubash_history}
 : ${KUBASH_HISTORY_LIMIT:=5000}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
+: ${KUBASH_LIB:=$KUBASH_DIR/lib}
 : ${KUBASH_CLUSTERS_DIR:=$KUBASH_DIR/clusters}
 : ${KUBASH_CLUSTER_DIR:=$KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME}
 : ${KUBASH_CSV_VER_FILE:=$KUBASH_CLUSTER_DIR/csv_version}
@@ -98,10 +99,10 @@ print_help=no
 
 
 # includes
-. ./utils.bash
-. ./squawk.bash
-. ./croak.bash
-. ./storage.bash
-. ./kvm.bash
-. ./packer.bash
-. ./kattic.bash
+. $KUBASH_LIB/utils.bash
+. $KUBASH_LIB/squawk.bash
+. $KUBASH_LIB/croak.bash
+. $KUBASH_LIB/storage.bash
+. $KUBASH_LIB/kvm.bash
+. $KUBASH_LIB/packer.bash
+. $KUBASH_LIB/kattic.bash
