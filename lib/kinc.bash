@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-KUBASH_VERSION='v1.14.0'
-
 # set default fall-through variables
 # if set in the environment these variables will fall-through and retain their value
 # otherwise use the defaults here
@@ -8,7 +6,6 @@ KUBASH_VERSION='v1.14.0'
 : ${KUBE_MAJOR_VER:=1}
 : ${KUBE_MINOR_VER:=14}
 : ${KUBASH_CLUSTER_NAME=default}
-: ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_HISTORY:=$KUBASH_DIR/.kubash_history}
 : ${KUBASH_HISTORY_LIMIT:=5000}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
