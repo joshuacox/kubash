@@ -1,5 +1,640 @@
 #!/usr/bin/env bash
 
+master_join () {
+  squawk 1 " master_join $@"
+  my_node_name=$1
+  my_node_ip=$2
+  my_node_user=$3
+  my_node_port=$4
+
+
+  if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
+    #finish_pki_for_masters $my_node_user $my_node_ip $my_node_name $my_node_port
+    ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSUEDO hostname;$PSUEDO  uname -a"
+    run_join=$(cat $KUBASH_CLUSTER_DIR/join.sh)
+    squawk 1 " run join $run_join"
+    ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join"
+    w8_node $my_node_name
+    rolero $my_node_name master
+  fi
+}
+
+master_init_join () {
+  squawk 1 " master_init_join $@"
+  my_master_name=$1
+  my_master_ip=$2
+  my_master_user=$3
+  my_master_port=$4
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    hosts_csv_slurp
+  fi
+
+  #finish_pki_for_masters $my_master_user $my_master_ip $my_master_name $my_master_port
+
+  rm -f $KUBASH_CLUSTER_DIR/ingress.ip1
+  rm -f $KUBASH_CLUSTER_DIR/ingress.ip2
+  rm -f $KUBASH_CLUSTER_DIR/ingress.ip3
+  rm -f $KUBASH_CLUSTER_DIR/primary_master.ip1
+  set_csv_columns
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "ingress" ]]; then
+      echo "$K8S_ip1" >> $KUBASH_CLUSTER_DIR/ingress.ip1
+      echo "$K8S_ip2" >> $KUBASH_CLUSTER_DIR/ingress.ip2
+      echo "$K8S_ip3" >> $KUBASH_CLUSTER_DIR/ingress.ip3
+    elif [[ "$K8S_role" == "primary_master" ]]; then
+      echo "$K8S_ip1" >> $KUBASH_CLUSTER_DIR/primary_master.ip1
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
+  if [[ -e  "$KUBASH_CLUSTER_DIR/ingress.ip2" ]]; then
+    K8S_load_balancer_ip=$(head -n1 $KUBASH_CLUSTER_DIR/ingress.ip2)
+  elif [[ -e  "$KUBASH_CLUSTER_DIR/ingress.ip3" ]]; then
+    K8S_load_balancer_ip=$(head -n1 $KUBASH_CLUSTER_DIR/ingress.ip3)
+  elif [[ -e  "$KUBASH_CLUSTER_DIR/ingress.ip1" ]]; then
+    K8S_load_balancer_ip=$(head -n1 $KUBASH_CLUSTER_DIR/ingress.ip1)
+  elif [[ -e  "$KUBASH_CLUSTER_DIR/primary_master.ip1" ]]; then
+    K8S_load_balancer_ip=$(head -n1 $KUBASH_CLUSTER_DIR/primary_master.ip1)
+  else
+    croak 3  'no load balancer ip'
+  fi
+
+  if [[ "DO_KEEPALIVED" == 'true' ]]; then
+    #keepalived
+    setup_keepalived_tmp=$(mktemp -d)
+
+    MASTER_VIP=$my_master_ip \
+    envsubst < $KUBASH_DIR/templates/check_apiserver.sh \
+    > $setup_keepalived_tmp/check_apiserver.sh
+    copy_in_parallel_to_role master $setup_keepalived_tmp/check_apiserver.sh "/tmp/"
+    command2run='sudo  mv /tmp/check_apiserver.sh /etc/keepalived/'
+    do_command_in_parallel_on_role "master" "$command2run"
+
+    MASTER_OR_BACKUP=BACKUP \
+    PRIORITY=100 \
+    INTERFACE_NET=$INTERFACE_NET \ 
+    MASTER_VIP=$my_master_ip \
+    envsubst < $KUBASH_DIR/templates/keepalived.conf
+    > $setup_keepalived_tmp/keepalived.conf
+    copy_in_parallel_to_role master $setup_keepalived_tmp/keepalived.conf "/tmp/"
+    command2run='sudo  mv /tmp/keepalived.conf /etc/keepalived/'
+    do_command_in_parallel_on_role "master" "$command2run"
+    # Then let's overwrite that on our primary master
+    MASTER_OR_BACKUP=MASTER \
+    PRIORITY=101 \
+    INTERFACE_NET=$INTERFACE_NET \ 
+    MASTER_VIP=$my_master_ip \
+    envsubst < $KUBASH_DIR/templates/keepalived.conf
+    > $setup_keepalived_tmp/keepalived.conf
+    rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $setup_keepalived_tmp/keepalived.conf $my_master_user@$my_master_ip:/tmp/keepalived.conf
+    command2run='sudo  mv /tmp/keepalived.conf /etc/keepalived/'
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+
+    rm -f $setup_keepalived_tmp/keepalived.conf $setup_keepalived_tmp/check_apiserver.sh
+    rmdir $setup_keepalived_tmp
+  fi
+
+  squawk 3 " master_init_join $my_master_name $my_master_ip $my_master_user $my_master_port"
+  if [[ "$DO_MASTER_JOIN" == "true" ]] ; then
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$PSEUDO hostname;$PSEUDO  uname -a"
+    my_grep='kubeadm join --token'
+    squawk 3 'master_init_join kubeadm init'
+    command2run='sudo systemctl restart kubelet'
+    do_command_in_parallel_on_role "primary_master" "$command2run"
+    do_command_in_parallel_on_role "master" "$command2run"
+    #ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    command2run='sudo systemctl stop kubelet'
+    #ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    do_command_in_parallel_on_role "primary_master" "$command2run"
+    do_command_in_parallel_on_role "master" "$command2run"
+    command2run='sudo netstat -ntpl'
+    do_command_in_parallel_on_role "master" "$command2run"
+    ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
+      #kubeadmin_config_tmp=$(mktemp)
+      #KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
+      #my_master_ip=$my_master_ip \
+      #load_balancer_ip=$K8S_load_balancer_ip \
+      #my_KUBE_CIDR=$my_KUBE_CIDR \
+      #ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
+      #envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
+        #> $kubeadmin_config_tmp
+      #squawk 19 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $my_master_port' $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml"
+      #rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml
+      #squawk 6 "kubedmin_config_tmp =\n $(cat $kubeadmin_config_tmp)" -e
+      #rm $kubeadmin_config_tmp
+      my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg.yaml"
+      squawk 5 "$my_KUBE_INIT"
+      run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
+      if [[ -z "$run_join" ]]; then
+        horizontal_rule
+        croak 3  'kubeadm init failed!'
+      fi
+      #command2run='sudo  rm -f /tmp/config.yaml'
+      #ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    else
+      #my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --pod-network-cidr=$my_KUBE_CIDR"
+      #my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg-external.yaml"
+      my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg.yaml"
+      squawk 5 "$my_KUBE_INIT"
+      run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
+      if [[ -z "$run_join" ]]; then
+        horizontal_rule
+        croak 3  'kubeadm init failed!'
+      fi
+    fi
+    squawk 9 "$(cat $TMP/rawresults.k8s)"
+    echo $run_join > $KUBASH_CLUSTER_DIR/join.sh
+    if [[ "$KUBASH_OIDC_AUTH" == 'true' ]]; then
+      command2run='sudo sed -i "/- kube-apiserver/a\    - --oidc-issuer-url=https://accounts.google.com\n    - --oidc-username-claim=email\n    - --oidc-client-id=" /etc/kubernetes/manifests/kube-apiserver.yaml'
+      ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
+    fi
+    master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port
+    sudo_command $my_master_port $my_master_user $my_master_ip "$command2run"
+    w8_kubectl
+    rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $KUBASH_DIR/scripts/grabkubepki $my_master_user@$my_master_ip:/tmp/grabkubepki
+    command2run="bash /tmp/grabkubepki"
+    sudo_command $this_port $this_user $this_host "$command2run"
+    rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $my_master_user@$my_master_ip:/tmp/kube-pki.tgz $KUBASH_CLUSTER_DIR/
+    squawk 5 'and copy it to master and etcd hosts'
+    copy_in_parallel_to_role "master" "$KUBASH_CLUSTER_DIR/kube-pki.tgz" "/tmp/"
+    if [ "$VERBOSITY" -gt 5 ]; then
+      command2run='cd /; tar ztvf /tmp/kube-pki.tgz'
+      do_command_in_parallel_on_role "master"        "$command2run"
+    fi
+    command2run='cd /; tar zxf /tmp/kube-pki.tgz'
+    do_command_in_parallel_on_role "master"        "$command2run"
+    command2run='rm /tmp/kube-pki.tgz'
+    do_command_in_parallel_on_role "master"        "$command2run"
+    do_net
+  fi
+}
+
+master_grab_kube_config () {
+  my_master_name=$1
+  my_master_ip=$2
+  my_master_user=$3
+  my_master_port=$4
+  squawk 1 ' refresh-kube-config'
+  squawk 3 " master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port"
+  squawk 5 "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
+  ssh -n -p $my_master_port $my_master_user@$my_master_ip "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
+
+  chkdir $HOME/.kube
+  squawk 3 ' grab config'
+  rm -f $KUBASH_CLUSTER_CONFIG
+  ssh -n -p $my_master_port $my_master_user@$my_master_ip 'cat .kube/config' > $KUBASH_CLUSTER_CONFIG
+  sed -i "s/^  name: kubernetes$/  name: $KUBASH_CLUSTER_NAME/" $KUBASH_CLUSTER_CONFIG
+  sed -i "s/^    cluster: kubernetes$/    cluster: $KUBASH_CLUSTER_NAME/" $KUBASH_CLUSTER_CONFIG
+
+  sudo chmod 600 $KUBASH_CLUSTER_CONFIG
+  sudo chown -R $USER. $KUBASH_CLUSTER_CONFIG
+}
+
+node_join () {
+  my_node_name=$1
+  my_node_ip=$2
+  my_node_user=$3
+  my_node_port=$4
+  squawk 1 " node_join $my_node_name $my_node_ip $my_node_user $my_node_port"
+  if [[ "$DO_NODE_JOIN" == "true" ]] ; then
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a")
+    squawk 3 "hostname and uname is $result"
+    squawk 3 "Kubeadmin join"
+    run_join=$(cat $KUBASH_CLUSTER_DIR/join.sh)
+    #result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join --ignore-preflight-errors=IsPrivilegedUser")
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO $run_join --ignore-preflight-errors=IsPrivilegedUser")
+    squawk 3 "run_join result is $result"
+    w8_node $my_node_name
+    rolero $my_node_name node
+  fi
+}
+
+finish_pki_for_masters () {
+  squawk 5 "finish_pki_for_masters $@"
+  if [[ $# -ne 4 ]]; then
+    kubash_interactive
+    echo 'Arguments does not equal 4!'
+    croak 3  "Arguments: $@"
+  fi
+  this_user=$1
+  this_host=$2
+  this_name=$3
+  this_port=$4
+  command2run='mkdir -p /etc/kubernetes/pki/etcd'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  squawk 5 'cp the etcd pki files'
+  command2run="cp -v /etc/etcd/pki/ca.pem /etc/etcd/pki/client.pem /etc/etcd/pki/client-key.pem /etc/kubernetes/pki/etcd/"
+  sudo_command $this_port $this_user $this_host "$command2run"
+}
+
+finish_etcd () {
+  this_user=$1
+  this_host=$2
+  this_name=$3
+  this_port=$4
+  get_major_minor_kube_version $this_user $this_host $this_name $this_port
+  if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+    squawk 20 'Major Version 1'
+    if [[ $KUBE_MINOR_VER -lt 12 ]]; then
+      finish_etcd_direct_download $this_user $this_host $this_name $this_port
+    else
+      croak 3  'stubbed not working yet'
+      #finish_etcd_kubelet_download $this_user $this_host $this_name $this_port
+    fi
+  elif [[ $MAJOR_VER -eq 0 ]]; then
+    croak 3 'Major Version 0 unsupported'
+  else
+    croak 3 'Major Version Unknown'
+  fi
+}
+
+finish_etcd_kubelet_download () {
+  squawk 5 'finish_etcd_kubelet_download'
+  this_user=$1
+  this_host=$2
+  this_name=$3
+  this_port=$4
+}
+
+finish_etcd_direct_download () {
+  squawk 5 'finish_etcd_direct_download'
+  this_user=$1
+  this_host=$2
+  this_name=$3
+  this_port=$4
+
+  command2run="cd /etc/etcd/pki; cfssl print-defaults csr > config.json"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run="sed -i '0,/CN/{s/example\.net/'$this_name'/}' /etc/etcd/pki/config.json"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run="sed -i 's/www\.example\.net/'$this_host'/' /etc/etcd/pki/config.json"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run="sed -i 's/example\.net/'$this_name'/' /etc/etcd/pki/config.json"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=server config.json | cfssljson -bare server"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run="cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=peer config.json | cfssljson -bare peer"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run='chown -R etcd:etcd /etc/etcd/pki'
+  sudo_command $this_port $this_user $this_host "$command2run"
+
+  if [[ -e $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz ]]; then
+    squawk 9 'Etcd binary already downloaded'
+  else
+    cd $KUBASH_DIR/tmp
+    wget -c https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
+  fi
+  command2run='id -u etcd &>/dev/null || useradd etcd'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  etcd_extract_tmp=$(mktemp -d)
+  sudo tar --strip-components=1 -C $etcd_extract_tmp -xzf $KUBASH_DIR/tmp/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $etcd_extract_tmp/etcd $this_user@$this_host:/tmp/
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $etcd_extract_tmp/etcdctl $this_user@$this_host:/tmp/
+  $PSEUDO rm -Rf $etcd_extract_tmp
+  command2run='sudo mv /tmp/etcd /usr/local/bin/'
+  do_command $this_port $this_user $this_host "$command2run"
+  command2run='sudo mv /tmp/etcdctl /usr/local/bin/'
+  do_command $this_port $this_user $this_host "$command2run"
+  etctmp=$(mktemp)
+  KUBASH_CLUSTER_NAME=$KUBASH_CLUSTER_NAME \
+  PEER_NAME=$this_name \
+  PRIVATE_IP=$this_host \
+  ETCD_INITCLUSER_LINE="$(cat $KUBASH_CLUSTER_DIR/etcd.line)" \
+  envsubst < $KUBASH_DIR/templates/etcd.conf.yml \
+  > $etctmp
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $etctmp  $this_user@$this_host:/tmp/etcd.conf.yml
+  command2run="mv /tmp/etcd.conf.yml /etc/etcd/etcd.conf.yml"
+  sudo_command $this_port $this_user $this_host "$command2run"
+
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $KUBASH_DIR/templates/etcd.service  $this_user@$this_host:/tmp/etcd.service
+  command2run='mv /tmp/etcd.service /lib/systemd/system/etcd.service'
+  sudo_command $this_port $this_user $this_host "$command2run"
+
+  rm $etctmp
+  command2run='mkdir -p /etc/etcd; chown -R etcd.etcd /etc/etcd'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run='mkdir -p /var/lib/etcd; chown -R etcd.etcd /var/lib/etcd'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run='systemctl daemon-reload'
+  sudo_command $this_port $this_user $this_host "$command2run"
+}
+
+start_etcd () {
+
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    hosts_csv_slurp
+  fi
+  # Run kubeadm init on master0
+  start_etcd_tmp_para=$(mktemp -d --suffix='.para.tmp' 2>/dev/null)
+  touch $start_etcd_tmp_para/hopper
+  squawk 3 " start_etcd"
+
+  countzero=0
+  touch $start_etcd_tmp_para/endpoints.line
+  #echo 'etcd:' >> $start_etcd_tmp_para/endpoints.line
+  echo ' external:' >> $start_etcd_tmp_para/endpoints.line
+  echo '  endpoints:' >> $start_etcd_tmp_para/endpoints.line
+  set_csv_columns
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "etcd" || "$K8S_role" == 'master' || "$K8S_role" == 'primary_master' ]]; then
+      if [[ "$countzero" -lt "3" ]]; then
+  command2run='systemctl start etcd'
+  squawk 5 "ssh -n -p $K8S_sshPort $K8S_provisionerUser@$K8S_ip1 'sudo bash -c \"$command2run\"'"
+  echo "ssh -n -p $K8S_sshPort $K8S_provisionerUser@$K8S_ip1 'sudo bash -c \"$command2run\"'" >> $start_etcd_tmp_para/hopper
+      fi
+    fi
+  done <<< "$kubash_hosts_csv_slurped"
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $start_etcd_tmp_para/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $start_etcd_tmp_para/hopper
+  else
+    bash $start_etcd_tmp_para/hopper
+  fi
+  rm -Rf $start_etcd_tmp_para
+}
+
+kubeadm_reset () {
+  squawk 3 "Kubeadmin reset"
+  command2run="PATH=$K8S_SU_PATH yes y|kubeadm reset"
+  # hack if debugging to skip this step
+  set +e
+  do_command_in_parallel "$command2run"
+  #set -e
+}
+
+prep_init_etcd () {
+  prep_init_etcd_user=$1
+  prep_init_etcd_host=$2
+  prep_init_etcd_name=$3
+  prep_init_etcd_port=$4
+
+  get_major_minor_kube_version $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
+  if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+    squawk 175 'Kube Major Version 1 for prep init etcd'
+    if [[ $KUBE_MINOR_VER -lt 12 ]]; then
+      #croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER less than 12 broken atm prep_init_etcd_kubelet_download $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port"
+      squawk 175 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER Kube Minor Version less than 12 for prep init etcd"
+      prep_init_etcd_classic $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
+    else
+      squawk 175 "$KUBE_MAJOR_VER.$KUBE_MINOR_VER for prep init etcd"
+      squawk 55 "prep_init_etcd_kubelet_download $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port"
+      prep_init_etcd_kubelet_download $prep_init_etcd_user $prep_init_etcd_host $prep_init_etcd_name $prep_init_etcd_port
+      squawk 83 'End pre_init_etcd'
+    fi
+  elif [[ $MAJOR_VER -eq 0 ]]; then
+    croak 3 'Major Version 0 unsupported'
+  else
+    croak 3 'Major Version Unknown'
+  fi
+}
+
+prep_init_etcd_kubelet_download  () {
+  squawk 5 prep_init_etcd_kubelet_download
+  prep_init_etcd_kubelet_download_tmp=$(mktemp -d)
+  prep_init_etcd_kubelet_download_user=$1
+  prep_init_etcd_kubelet_download_host=$2
+  prep_init_etcd_kubelet_download_name=$3
+  prep_init_etcd_kubelet_download_port=$4
+
+  squawk 55 "prep_20-etcd-service-manager $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_name $prep_init_etcd_kubelet_download_port"
+  prep_20-etcd-service-manager $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_name $prep_init_etcd_kubelet_download_port
+  squawk 76 'end etcd prep_20'
+
+  sleep 3
+
+  command2run='netstat -ntpl'
+  sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
+  command2run='kubeadm  alpha phase certs etcd-ca'
+  sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
+  command2run='ls -lh /etc/kubernetes/pki/etcd/ca.crt'
+  #sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
+  command2run='ls -lh /etc/kubernetes/pki/etcd/ca.key'
+  #sudo_command $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host "$command2run"
+
+  squawk 55 "prep_etcd_gen_certs $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host"
+  prep_etcd_gen_certs $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host $prep_init_etcd_kubelet_download_port $prep_init_etcd_kubelet_download_user $prep_init_etcd_kubelet_download_host
+}
+
+prep_20-etcd-service-manager () {
+  if [ $# -ne 4 ]; then
+    # Print usage
+    echo 'Error! wrong number of arguments'
+    echo 'usage:'
+    croak 3  "$0 user host name port"
+  fi
+  squawk 5 prep_init_etcd_kubelet_download
+  prep_20_etcd_service_manager_tmp=$(mktemp -d)
+  prep_20_etcd_service_manager_user=$1
+  prep_20_etcd_service_manager_host=$2
+  prep_20_etcd_service_manager_name=$3
+  prep_20_etcd_service_manager_port=$4
+
+  prep_20_etcd_service_manager_host=$2 \
+  envsubst < \
+    $KUBASH_DIR/templates/20-etcd-service-manager.conf \
+    > $prep_20_etcd_service_manager_tmp/20-etcd-service-manager.conf
+  squawk 55 "rsync -zave ssh -p $prep_20_etcd_service_manager_port $prep_20_etcd_service_manager_tmp/20-etcd-service-manager.conf $prep_20_etcd_service_manager_user@$prep_20_etcd_service_manager_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf"
+  rsync -zave "ssh -p $prep_20_etcd_service_manager_port" $prep_20_etcd_service_manager_tmp/20-etcd-service-manager.conf $prep_20_etcd_service_manager_user@$prep_20_etcd_service_manager_host:/etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
+  rm $prep_20_etcd_service_manager_tmp/20-etcd-service-manager.conf
+  rmdir $prep_20_etcd_service_manager_tmp
+  command2run='systemctl daemon-reload && systemctl restart kubelet'
+  squawk 55 "sudo_command $prep_20_etcd_service_manager_port $prep_20_etcd_service_manager_user $prep_20_etcd_service_manager_host $command2run"
+  sudo_command $prep_20_etcd_service_manager_port $prep_20_etcd_service_manager_user $prep_20_etcd_service_manager_host "$command2run"
+  squawk 99 'End prep_20-etcd-service-manager'
+}
+
+prep_etcd_gen_certs () {
+  prepetcdgencerts_port=$1
+  prepetcdgencerts_user=$2
+  prepetcdgencerts_host=$3
+  prepetcdgencerts_primary_etcd_master_port=$4
+  prepetcdgencerts_primary_etcd_master_user=$5
+  prepetcdgencerts_primary_etcd_master=$6
+  squawk 55 "prep_etcd_gen_certs port $prepetcdgencerts_port user $prepetcdgencerts_user host $prepetcdgencerts_host on master $prepetcdgencerts_primary_etcd_master_user '@' $prepetcdgencerts_primary_etcd_master : $prepetcdgencerts_primary_etcd_master_port"
+  command2run="find /tmp/${prepetcdgencerts_host} -name ca.key -type f -delete -print \
+    && find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete -print \
+    && kubeadm alpha phase certs etcd-server --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
+    && kubeadm alpha phase certs etcd-peer --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
+    && kubeadm alpha phase certs etcd-healthcheck-client --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
+    && kubeadm alpha phase certs apiserver-etcd-client --config=/tmp/${prepetcdgencerts_host}/kubeadmcfg.yaml \
+    && cp -R /etc/kubernetes/pki /tmp/${prepetcdgencerts_host}/"
+  sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
+  squawk 86 'cleanup non-reusable certificates'
+  command2run="find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete -print"
+  sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
+  if [[ "$prepetcdgencerts_host" == "$prepetcdgencerts_primary_etcd_master" ]]; then
+    command2run="rsync -av /tmp/${prepetcdgencerts_host}/* /etc/kubernetes/"
+    squawk 25 "$command2run"
+    sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
+    command2run="chown -R root:root /etc/kubernetes/pki"
+    sudo_command $prepetcdgencerts_port $prepetcdgencerts_user $prepetcdgencerts_host "$command2run"
+  else
+    squawk 25 "$prepetcdgencerts_host !=  $prepetcdgencerts_primary_etcd_master"
+    command2run="rsync -ave \"ssh -p $prepetcdgencerts_port\" /tmp/${prepetcdgencerts_host}/pki ${prepetcdgencerts_user}@${prepetcdgencerts_host}:/etc/kubernetes/"
+    squawk 25 "$command2run"
+    sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
+    command2run="chown -R root:root /etc/kubernetes/pki"
+    sudo_command $prepetcdgencerts_port $prepetcdgencerts_user $prepetcdgencerts_host "$command2run"
+  fi
+  squawk 86 "clean up certs that should not be copied off prepetcdgencerts host"
+  command2run="find /tmp/${prepetcdgencerts_host} -name ca.key -type f -delete -print"
+  sudo_command $prepetcdgencerts_primary_etcd_master_port  $prepetcdgencerts_primary_etcd_master_user  $prepetcdgencerts_primary_etcd_master "$command2run"
+}
+
+finalize_etcd_gen_certs () {
+  finalize_etcdgencerts_port=$1
+  finalize_etcdgencerts_user=$2
+  finalize_etcdgencerts_host=$3
+  squawk 55 "finalize_etcd_gen_certs port $finalize_etcdgencerts_port user $finalize_etcdgencerts_user host $finalize_etcdgencerts_host"
+  command2run="cp -R  /tmp/${finalize_etcdgencerts_host}/kubeadmcfg.yaml /etc/kubernetes/ \
+    && cp -R  /tmp/${finalize_etcdgencerts_host}/pki /etc/kubernetes/ \
+    && chown -R root:root /etc/kubernetes/pki"
+  sudo_command $finalize_etcdgencerts_port $finalize_etcdgencerts_user $finalize_etcdgencerts_host "$command2run"
+}
+
+prep_init_etcd_classic () {
+  this_user=$1
+  this_host=$2
+  this_name=$3
+  this_port=$4
+
+  init_etcd_tmp=$(mktemp -d)
+  mkdir $init_etcd_tmp/pki
+  cp $KUBASH_DIR/templates/ca-config.json $init_etcd_tmp/pki/ca-config.json
+  cp $KUBASH_DIR/templates/client.json $init_etcd_tmp/pki/client.json
+  jinja2 $KUBASH_DIR/templates/ca-csr.json $KUBASH_CLUSTER_DIR/ca-data.yaml --format=yaml > $init_etcd_tmp/pki/ca-csr.json
+  command2run='mkdir -p /etc/etcd'
+  squawk 5 "command2run $command2run"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  squawk 15 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $this_port' $init_etcd_tmp/pki $this_user@$this_host:/tmp/"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $init_etcd_tmp/pki $this_user@$this_host:/tmp/
+  command2run='ls -lh /tmp/pki'
+  #sudo_command $this_port $this_user $this_host "$command2run"
+  command2run='rm -Rf /etc/etcd/pki'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  command2run='mv /tmp/pki /etc/etcd/pki'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  rm -Rf $init_etcd_tmp
+
+  command2run="chown $this_user /etc/etcd/pki"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $KUBASH_DIR/templates/ca-config.json $this_user@$this_host:/tmp/ca-config.json
+  command2run='mv /tmp/ca-config.json /etc/etcd/pki/ca-config.json'
+  sudo_command $this_port $this_user $this_host "$command2run"
+
+  # crictl
+  if [[ $DO_CRICTL = 'true' ]]; then
+    real_path_crictl=$(realpath ${KUBASH_BIN}/crictl)
+    copy_in_parallel_to_all "$real_path_crictl" "/tmp/crictl"
+    command2run='mv /tmp/crictl /usr/local/bin/crictl'
+    do_command_in_parallel "$command2run"
+  fi
+
+  copy_in_parallel_to_all "${KUBASH_BIN}/cfssljson" "/tmp/cfssljson"
+  command2run='mv /tmp/cfssljson /usr/local/bin/cfssljson'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  do_command_in_parallel "$command2run"
+
+  copy_in_parallel_to_all "${KUBASH_BIN}/cfssl" "/tmp/cfssl"
+  command2run='mv /tmp/cfssl /usr/local/bin/cfssl'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  do_command_in_parallel "$command2run"
+
+  # Hack, delete after rebuild
+  #command2run="echo 'PATH=/usr/local/bin:$PATH' >> /root/.bash_profile"
+  #sudo_command $this_port $this_user $this_host "$command2run"
+  #do_command_in_parallel_on_role "etcd"          "$command2run"
+  #if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+  #  do_command_in_parallel_on_role "master"        "$command2run"
+  #fi
+
+  # add etcd user if it doesn't exist
+  command2run='id -u etcd &>/dev/null || useradd etcd'
+  sudo_command $this_port $this_user $this_host "$command2run"
+  do_command_in_parallel_on_role "etcd"          "$command2run"
+  if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+    do_command_in_parallel_on_role "master"        "$command2run"
+  fi
+
+  command2run='cd /etc/etcd/pki; cfssl gencert -initca ca-csr.json | cfssljson -bare ca -'
+  sudo_command $this_port $this_user $this_host "$command2run"
+
+  command2run='cd /etc/etcd/pki; cfssl gencert -ca=ca.pem -ca-key=ca-key.pem -config=ca-config.json -profile=client client.json | cfssljson -bare client'
+  sudo_command $this_port $this_user $this_host "$command2run"
+
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $KUBASH_DIR/scripts/grabpki $this_user@$this_host:/tmp/grabpki
+  command2run="bash /tmp/grabpki"
+  sudo_command $this_port $this_user $this_host "$command2run"
+  squawk 5 'pull etcd-pki.tgz from primary master'
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $this_port" $this_user@$this_host:/tmp/etcd-pki.tgz $KUBASH_CLUSTER_DIR/
+  squawk 5 'and copy it to master and etcd hosts'
+  copy_in_parallel_to_role "etcd" "$KUBASH_CLUSTER_DIR/etcd-pki.tgz" "/tmp/"
+  copy_in_parallel_to_role "master" "$KUBASH_CLUSTER_DIR/etcd-pki.tgz" "/tmp/"
+  command2run='cd /; tar zxf /tmp/etcd-pki.tgz'
+  do_command_in_parallel_on_role "master"        "$command2run"
+  do_command_in_parallel_on_role "etcd"          "$command2run"
+  command2run='rm /tmp/etcd-pki.tgz'
+  do_command_in_parallel_on_role "master"        "$command2run"
+  do_command_in_parallel_on_role "etcd"          "$command2run"
+  finish_etcd $this_user $this_host $this_name $this_port
+}
+
+prep_etcd () {
+  squawk 5 'prep_etcd'
+  this_user=$1
+  this_host=$2
+  this_name=$3
+  this_port=$4
+
+  get_major_minor_kube_version $this_user $this_host $this_name $this_port
+  if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+    squawk 175 'Kube Major Version 1 for prep etcd'
+    if [[ $KUBE_MINOR_VER -lt 12 ]]; then
+      squawk 75 'Kube Minor Version less than 12 for prep etcd'
+      finish_etcd $this_user $this_host $this_name $this_port
+    else
+      squawk 75 'Kube Major Version greater than or equal to 12 for prep etcd'
+      if [[ -e $KUBASH_CLUSTER_DIR/kube_primary_etcd ]]; then
+        kube_primary=$(cat $KUBASH_CLUSTER_DIR/kube_primary_etcd)
+        kube_primary_port=$(cat $KUBASH_CLUSTER_DIR/kube_primary_etcd_port)
+        kube_primary_user=$(cat $KUBASH_CLUSTER_DIR/kube_primary_etcd_user)
+      elif [[ -e $KUBASH_CLUSTER_DIR/kube_primary ]]; then
+        kube_primary=$(cat $KUBASH_CLUSTER_DIR/kube_primary)
+        kube_primary_port=$(cat $KUBASH_CLUSTER_DIR/kube_primary_port)
+        kube_primary_user=$(cat $KUBASH_CLUSTER_DIR/kube_primary_user)
+      else
+        croak 3  'no master found'
+      fi
+      prep_etcd_gen_certs $this_port $this_user $this_host $kube_primary_port $kube_primary_user $kube_primary
+      #prep_etcd_gen_certs $this_port $this_user $this_host $this_port $kube_primary_user $kube_primary
+    fi
+  elif [[ $MAJOR_VER -eq 0 ]]; then
+    croak 3 'Major Version 0 unsupported'
+  else
+    croak 3 'Major Version Unknown'
+  fi
+}
+
+check_coreos () {
+  squawk 1 " check_coreos"
+  do_coreos_init_count=0
+  set_csv_columns
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_os" == "coreos" ]]; then
+      if [[ "$do_coreos_init_count" -lt "1" ]]; then
+        do_coreos_initialization
+  break
+      fi
+      ((++do_coreos_init_count))
+    fi
+  done < $KUBASH_HOSTS_CSV
+}
+
 grab_kube_pki_ext_etcd_sub () {
   grab_sub_USER=$1
   grab_sub_HOST=$2

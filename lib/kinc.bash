@@ -105,6 +105,8 @@ print_help=no
 . $KUBASH_LIB/usage.bash
 . $KUBASH_LIB/kcsv.bash
 . $KUBASH_LIB/storage.bash
+. $KUBASH_LIB/ping.bash
+. $KUBASH_LIB/w8.bash
 . $KUBASH_LIB/kvm.bash
 . $KUBASH_LIB/ingress.bash
 . $KUBASH_LIB/net.bash
@@ -117,3 +119,7 @@ print_help=no
 . $KUBASH_LIB/kattic.bash
 . $KUBASH_LIB/provision.bash
 . $KUBASH_LIB/interactive.bash
+. $KUBASH_LIB/kubeadm2ha.bash
+. $KUBASH_LIB/openshift.bash
+. $KUBASH_LIB/kubespray.bash
+. $KUBASH_LIB/ansible.bash

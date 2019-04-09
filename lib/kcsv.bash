@@ -32,3 +32,38 @@ provision_csv_slurp () {
   # This ensures hosts with more net interfaces are set after hosts with less interfaces
   kubash_provision_csv_slurped="$(grep -v '^#' $KUBASH_PROVISION_CSV|sort -t , -k 19,19n  -k 16,16n)"
 }
+
+read_csv () {
+  squawk 1 " read_csv"
+  read_master_count=0
+
+  set_csv_columns
+  while IFS="," read -r $csv_columns
+  do
+    squawk 5 "$K8S_node $K8S_user $K8S_ip1 $K8S_sshPort $K8S_role $K8S_provisionerUser $K8S_provisionerHost $K8S_provisionerUser $K8S_provisionerPort"
+    if [[ "$K8S_role" == "master" ]]; then
+      if [[ "$read_master_count" -lt "1" ]]; then
+        echo "master_init_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_sshPort"
+      else
+        echo "master_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_sshPort"
+      fi
+      ((++read_master_count))
+    fi
+  done < $KUBASH_HOSTS_CSV
+
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "node" || "$K8S_role" == "ingress" ]]; then
+      echo "node_join $K8S_node $K8S_ip1 $K8S_provisionerUser $K8S_sshPort"
+    fi
+  done < $KUBASH_HOSTS_CSV
+}
+
+check_csv () {
+  squawk 4 " check_csv"
+  if [[ ! -e $KUBASH_HOSTS_CSV ]]; then
+    horizontal_rule
+    echo "$KUBASH_HOSTS_CSV file not found!"
+    croak 3  "You must provision a cluster first, and specify a valid cluster with the --clustername option and place your hosts.csv file in its directory!"
+  fi
+}
