@@ -2435,6 +2435,46 @@ ntpsync_in_parallel () {
   rm -Rf $ntp_sync_tmp_para
 }
 
+do_nodes () {
+  do_nodes_in_parallel
+}
+
+do_nodes_in_parallel () {
+  do_nodes_tmp_para=$(mktemp -d)
+  touch $do_nodes_tmp_para/hopper
+  squawk 3 " do_nodes_in_parallel"
+  if [[ -z "$kubash_hosts_csv_slurped" ]]; then
+    hosts_csv_slurp
+  fi
+  countzero_do_nodes=0
+  set_csv_columns
+  while IFS="," read -r $csv_columns
+  do
+    if [[ "$K8S_role" == "node" || "$K8S_role" == "ingress" || "$K8S_role" == "storage" ]]; then
+      squawk 81 " K8S_role NODE"
+      squawk 81 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_sshPort"
+      echo "kubash -n $KUBASH_CLUSTER_NAME node_join --node-join-name $K8S_node --node-join-ip $K8S_ip1 --node-join-user $K8S_SU_USER --node-join-port $K8S_sshPort --node-join-role node" \
+        >> $do_nodes_tmp_para/hopper
+    else
+      squawk 91 " K8S_role NOT NODE"
+      squawk 91 " K8S_role $K8S_role $K8S_ip1 $K8S_user $K8S_sshPort"
+    fi
+    ((++countzero_do_nodes))
+    squawk 3 " count $countzero_do_nodes"
+  done <<< "$kubash_hosts_csv_slurped"
+
+  if [[ "$VERBOSITY" -gt "9" ]] ; then
+    cat $do_nodes_tmp_para/hopper
+  fi
+  if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
+    $PARALLEL  -j $PARALLEL_JOBS -- < $do_nodes_tmp_para/hopper
+  else
+    bash $do_nodes_tmp_para/hopper
+  fi
+  rm -Rf $do_nodes_tmp_para
+  taint_all_storage
+}
+
 process_hosts_csv () {
   squawk 3 " process_hosts_csv"
   ntpsync_in_parallel
