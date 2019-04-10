@@ -45,7 +45,6 @@ taint_all_storage () {
 mount_all_iscsi_targets () {
   squawk 1 "mount all iscsi targets $@"
   count_iscsi_targets=0
-  nodes_to_taint=' '
   while IFS="," read -r $csv_columns
   do
     squawk 185 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
