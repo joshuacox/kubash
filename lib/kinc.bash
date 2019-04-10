@@ -99,6 +99,7 @@ print_help=no
 
 
 # includes
+. $KUBASH_LIB/parse_opts.bash
 . $KUBASH_LIB/utils.bash
 . $KUBASH_LIB/squawk.bash
 . $KUBASH_LIB/croak.bash
