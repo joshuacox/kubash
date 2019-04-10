@@ -2,18 +2,17 @@
 
 mount_all_iscsi_targets () {
   squawk 1 "mount all iscsi targets $@"
-  count_iscsi_targets=0
   while IFS="," read -r $csv_columns
   do
     squawk 185 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
     if [[ "$K8S_role" = "storage" ]]; then
       if [[ ! -z "$K8S_iscsitarget" ]]; then
-        ((++count_iscsi_targets))
         command2run="iscsiadm -m discovery -t sendtargets -p ${K8S_iscsitarget}"
         sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
         if [[ ! -z "$K8S_iscsichapusername" ]]; then
             croak 3 'chapusername supplied not implemented yet!!!'
           if [[ ! -z "$K8S_iscsichappassword" ]]; then
+            squawk 33 'iscichappassword'
           else
             croak 3 'chapusername supplied without a chappassword!!!'
           fi
