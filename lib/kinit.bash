@@ -2473,6 +2473,7 @@ do_nodes_in_parallel () {
   fi
   rm -Rf $do_nodes_tmp_para
   taint_all_storage
+  mount_all_iscsi_targets
 }
 
 process_hosts_csv () {

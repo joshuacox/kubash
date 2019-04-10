@@ -40,7 +40,12 @@ json2cluster () {
 
   KUBASH_CSV_VER=$(cat $json2cluster_tmp/csv_version)
   squawk 11 "CSV_VER=$KUBASH_CSV_VER"
-  if [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
+  if [ "$KUBASH_CSV_VER" = '3.0.0' ]; then
+    # provision.csv
+    jq -r \
+      '.hosts[] | "\(.hostname),\(.role),\(.cpuCount),\(.Memory),\(.sshPort),\(.network1.network),\(.network1.mac),\(.network1.ip),\(.network1.routingprefix),\(.network1.subnetmask),\(.network1.broadcast),\(.network1.gateway),\(.provisioner.Host),\(.provisioner.User),\(.provisioner.Port),\(.provisioner.BasePath),\(.os),\(.virt),\(.network2.network),\(.network2.mac),\(.network2.ip),\(.network2.routingprefix),\(.network2.subnetmask),\(.network2.broadcast),\(.network2.gateway),\(.network3.network),\(.network3.mac),\(.network3.ip),\(.network3.routingprefix),\(.network3.subnetmask),\(.network3.broadcast),\(.network3.gateway),\(.iscsi.target),\(.iscsi.chap_username),\(.iscsi.chap_password)"' \
+      $this_json >  $json2cluster_tmp/tmp.csv
+  elif [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
     # provision.csv
     jq -r \
       '.hosts[] | "\(.hostname),\(.role),\(.cpuCount),\(.Memory),\(.sshPort),\(.network1.network),\(.network1.mac),\(.network1.ip),\(.network1.routingprefix),\(.network1.subnetmask),\(.network1.broadcast),\(.network1.gateway),\(.provisioner.Host),\(.provisioner.User),\(.provisioner.Port),\(.provisioner.BasePath),\(.os),\(.virt),\(.network2.network),\(.network2.mac),\(.network2.ip),\(.network2.routingprefix),\(.network2.subnetmask),\(.network2.broadcast),\(.network2.gateway),\(.network3.network),\(.network3.mac),\(.network3.ip),\(.network3.routingprefix),\(.network3.subnetmask),\(.network3.broadcast),\(.network3.gateway)"' \
