@@ -3,6 +3,19 @@
 user_csv_columns="user_email user_role"
 uniq_hosts_list_columns="K8S_provisionerHost K8S_provisionerUser K8S_provisionerPort K8S_provisionerBasePath K8S_os K8S_virt"
 
+test_kubash_csv_ver () {
+  if [ "$KUBASH_CSV_VER" = '3.0.0' ]; then
+    uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f13,14,15,16,17,18|sort|uniq)"
+  elif [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
+    uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f13,14,15,16,17,18|sort|uniq)"
+  elif [ "$KUBASH_CSV_VER" = '1.0.0' ]; then
+    uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f9,10,11,12,13,14|sort|uniq)"
+  else
+    croak 3  'CSV columns cannot be set CSV Version not recognized'
+  fi
+  squawk 8 "$uniq_hosts"
+}
+
 set_csv_columns () {
   squawk 125 "prep the columns strings for csv input"
   if [ ! -z "$1" ]; then

@@ -23,14 +23,7 @@ kvm-decommer () {
 remove_all_base_images_kvm () {
   # Now remove the cluster base images
   KUBASH_CSV_VER=$(cat $KUBASH_CSV_VER_FILE)
-  if [ "$KUBASH_CSV_VER" = '2.0.0' ]; then
-    uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f13,14,15,16,17,18|sort|uniq)"
-  elif [ "$KUBASH_CSV_VER" = '1.0.0' ]; then
-    uniq_hosts="$(grep -v '^#' $KUBASH_PROVISION_CSV|cut -d, -f9,10,11,12,13,14|sort|uniq)"
-  else
-    croak 3  'CSV columns cannot be set CSV Version not recognized'
-  fi
-  squawk 8 "$uniq_hosts"
+  test_kubash_csv_ver
   copy_image_tmp_para=$(mktemp -d)
   while IFS="," read -r $uniq_hosts_list_columns
   do
