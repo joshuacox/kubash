@@ -100,7 +100,7 @@ inst_kubedb_helm () {
   helm install appscode/kubedb --name kubedb-operator --version 0.11.0 --namespace kube-system
   $KUBASH_DIR/w8s/generic.w8 kubedb-operator kube-system
   # It seems we still need to wait further
-  sleep 15
+  sleep 45
   helm install appscode/kubedb-catalog --name kubedb-catalog --version 0.11.0 --namespace kube-system
 }
 
