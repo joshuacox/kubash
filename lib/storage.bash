@@ -10,14 +10,18 @@ mount_all_iscsi_targets () {
         command2run="iscsiadm -m discovery -t sendtargets -p ${K8S_iscsitarget}"
         sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
         if [[ ! -z "$K8S_iscsichapusername" ]]; then
-            croak 3 'chapusername supplied not implemented yet!!!'
+            command2run="iscsiadm -m node -p ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.authmethod --value=CHAP"
+            command2run="$command2run && iscsiadm -m node -p ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.username --value=$K8S_iscsichapusername"
+            sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
           if [[ ! -z "$K8S_iscsichappassword" ]]; then
             squawk 33 'iscichappassword'
+            command2run="iscsiadm -m node -p ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.password --value=$K8S_iscsichappassword"
+            sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
           else
             croak 3 'chapusername supplied without a chappassword!!!'
           fi
         fi
-        command2run="iscsiadm -m node -l ${K8S_iscsitarget}"
+        command2run="iscsiadm -m node -p ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --login"
         sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
       fi
     fi
