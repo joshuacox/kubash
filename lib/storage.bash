@@ -7,7 +7,7 @@ mount_all_iscsi_targets () {
     squawk 185 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
     if [[ "$K8S_role" = "storage" ]]; then
       if [[ ! -z "$K8S_iscsitarget" ]]; then
-        command2run="iscsiadm --mode discovery --type sendtargets --portal ${K8S_iscsitarget}"
+        command2run="iscsiadm --mode discovery --type sendtargets --portal ${K8S_iscsihost}"
         sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
         if [[ ! -z "$K8S_iscsichapusername" ]]; then
             command2run="iscsiadm --mode node --portal ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.authmethod --value=CHAP"
