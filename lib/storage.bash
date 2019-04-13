@@ -6,14 +6,18 @@ mount_all_iscsi_targets () {
   do
     squawk 185 "ROLE $K8S_role $K8S_user $K8S_ip1 $K8S_sshPort"
     if [[ "$K8S_role" = "storage" ]]; then
+      squawk 3 "initializing storage node $@"
       if [[ ! -z "$K8S_iscsitarget" ]]; then
+        squawk 3 "K8S_iscsitarget=$K8S_iscsitarget"
         command2run="iscsiadm --mode discovery --type sendtargets --portal ${K8S_iscsihost}"
         sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
         if [[ ! -z "$K8S_iscsichapusername" ]]; then
-            command2run="iscsiadm --mode node --portal ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.authmethod --value=CHAP"
-            command2run="$command2run && iscsiadm --mode node --portal ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.username --value=$K8S_iscsichapusername"
-            sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
+          squawk 3 "K8S_iscsichapusername=$K8S_iscsichapusername"
+          command2run="iscsiadm --mode node --portal ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.authmethod --value=CHAP"
+          command2run="$command2run && iscsiadm --mode node --portal ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.username --value=$K8S_iscsichapusername"
+          sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
           if [[ ! -z "$K8S_iscsichappassword" ]]; then
+            squawk 3 "K8S_iscsichappassword=$K8S_iscsichappassword"
             squawk 33 'iscichappassword'
             command2run="iscsiadm --mode node --portal ${K8S_iscsihost} --targetname ${K8S_iscsitarget} --op=update --name node.session.auth.password --value=$K8S_iscsichappassword"
             sudo_command $K8S_sshPort $K8S_user $K8S_ip1 "$command2run"
