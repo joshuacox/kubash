@@ -1,5 +1,5 @@
 ---
-  csv_version: '2.0.0'
+  csv_version: '3.0.0'
   kubernetes_version: 'v1.9.6'
   hosts:
     my-master1:
@@ -114,6 +114,28 @@
         network: network=default
         mac: '52:54:00:e2:8a:18'
         ip: dhcp
+    example-storage1:
+      hostname: extetcdstorage1
+      role: storage
+      cpuCount: 2
+      Memory: 2222
+      provisioner:
+        Host: '10.0.23.12'
+        User: root
+        Port: 22
+        BasePath: '/var/lib/libvirt/images'
+      os: $REPLACEME_OS_TPL
+      virt: qemu
+      sshPort: 22
+      network1:
+        network: bridge=br1
+        mac: '52:54:00:e2:8a:19'
+        ip: dhcp
+      iscsi:
+        target: 'iqn.2005-10.org.freenas.ctl:exampletarg01'
+        host: '10.0.0.103:3260'
+        chap_username: chap_user
+        chap_password: chap_password
   ca:
     cert:
       CERT_COMMON_NAME: etcd
