@@ -119,18 +119,38 @@
       role: storage
       cpuCount: 2
       Memory: 2222
+      sshPort: 22
       provisioner:
         Host: '10.0.23.12'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: $REPLACEME_OS_TPL
+      os: kubeadm
       virt: qemu
-      sshPort: 22
       network1:
         network: bridge=br1
         mac: '52:54:00:e2:8a:19'
-        ip: dhcp
+        ip: '10.0.0.33'
+        broadcast: '10.0.0.255'
+        gateway: '10.0.0.1'
+        routingprefix: '10.0.0.0'
+        subnetmask: '255.255.255.0'
+      network2:
+        network: network=default
+        mac: '52:54:00:e2:8a:20'
+        ip: '10.0.0.34'
+        broadcast: '10.0.0.255'
+        gateway: '10.0.0.1'
+        routingprefix: '10.0.0.0'
+        subnetmask: '255.255.255.0'
+      network3:
+        network: network=default
+        mac: '52:54:00:e2:8a:21'
+        ip: '10.0.0.34'
+        broadcast: '10.0.0.255'
+        gateway: '10.0.0.1'
+        routingprefix: '10.0.0.0'
+        subnetmask: '255.255.255.0'
       iscsi:
         target: 'iqn.2005-10.org.freenas.ctl:exampletarg01'
         host: '10.0.0.103:3260'
