@@ -247,6 +247,14 @@ parse_opts () {
     fi
         VERBOSITY=`expr $VERBOSITY + 1`
         do_test
+  elif [[ $RAISON == "test_provision" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+        VERBOSITY=`expr $VERBOSITY + 1`
+        do_provision_test
   elif [[ $RAISON == "hosts" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule

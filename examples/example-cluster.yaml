@@ -114,7 +114,7 @@
         network: network=default
         mac: '52:54:00:e2:8a:18'
         ip: dhcp
-    example-storage1:
+    my-storage1:
       hostname: extetcdstorage1
       role: storage
       cpuCount: 2
