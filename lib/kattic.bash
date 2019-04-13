@@ -92,7 +92,7 @@ do_tiller () {
   KUBECONFIG=$KUBECONFIG \
    helm init --service-account tiller
   KUBECONFIG=$KUBECONFIG \
-  $KUBASH_DIR/w8s/generic.w8 tiller-delpoy kube-system
+  $KUBASH_DIR/w8s/tiller.w8
 }
 
 inst_kubedb_helm () {
