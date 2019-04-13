@@ -85,13 +85,13 @@ do_dashboard () {
 }
 
 do_tiller () {
-  #w8_kubedns
   squawk 1 " do_tiller"
   #kubectl --kubeconfig=$KUBECONFIG create serviceaccount tiller --namespace kube-system
   kubectl --kubeconfig=$KUBECONFIG create -f $KUBASH_DIR/tiller/rbac-tiller-config.yaml
   sleep 5
   KUBECONFIG=$KUBECONFIG \
    helm init --service-account tiller
+  $KUBASH_DIR/w8s/generic.w8 tiller-delpoy kube-system
 }
 
 inst_kubedb_helm () {
