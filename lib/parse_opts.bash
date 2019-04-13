@@ -255,6 +255,13 @@ parse_opts () {
     fi
         VERBOSITY=`expr $VERBOSITY + 1`
         do_provision_test
+  elif [[ $RAISON == "mount_iscsi" ]]; then
+    if [[ $print_help == "true" ]]; then
+      horizontal_rule
+      usage
+      exit 1
+    fi
+      mount_all_iscsi_targets
   elif [[ $RAISON == "hosts" ]]; then
     if [[ $print_help == "true" ]]; then
       horizontal_rule
