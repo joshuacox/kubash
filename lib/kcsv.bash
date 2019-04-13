@@ -32,6 +32,7 @@ set_csv_columns () {
   else
     croak 3  'CSV columns cannot be set CSV Version not recognized'
   fi
+  squawk 95 "csv_columns = $csv_columns"
 }
 
 hosts_csv_slurp () {
