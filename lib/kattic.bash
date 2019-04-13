@@ -91,16 +91,22 @@ do_tiller () {
   sleep 5
   KUBECONFIG=$KUBECONFIG \
    helm init --service-account tiller
+  KUBECONFIG=$KUBECONFIG \
   $KUBASH_DIR/w8s/generic.w8 tiller-delpoy kube-system
 }
 
 inst_kubedb_helm () {
+  KUBECONFIG=$KUBECONFIG \
   helm repo add appscode https://charts.appscode.com/stable/
+  KUBECONFIG=$KUBECONFIG \
   helm repo update
+  KUBECONFIG=$KUBECONFIG \
   helm install appscode/kubedb --name kubedb-operator --version 0.11.0 --namespace kube-system
+  KUBECONFIG=$KUBECONFIG \
   $KUBASH_DIR/w8s/generic.w8 kubedb-operator kube-system
   # It seems we still need to wait further
   sleep 45
+  KUBECONFIG=$KUBECONFIG \
   helm install appscode/kubedb-catalog --name kubedb-catalog --version 0.11.0 --namespace kube-system
 }
 
