@@ -763,9 +763,13 @@ determine_api_version () {
       export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
       kubeadm_cfg_kind=MasterConfiguration
       echo "$KUBE_MINOR_VER is too old and is not supported"
-    elif [[ $KUBE_MINOR_VER -ge 12 ]]; then
+    elif [[ $KUBE_MINOR_VER -le 13 ]]; then
       squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1alpha3"
       export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha3"
+      kubeadm_cfg_kind=ClusterConfiguration
+    elif [[ $KUBE_MINOR_VER -ge 14 ]]; then
+      squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1beta1"
+      export kubeadm_apiVersion="kubeadm.k8s.io/v1beta1"
       kubeadm_cfg_kind=ClusterConfiguration
     else
       croak 3  "$KUBE_MINOR_VER not supported yet"
