@@ -1207,9 +1207,12 @@ EOF
       squawk 5 "master kube init --> $my_KUBE_INIT"
       my_grep='kubeadm join .* --token'
       #run_join=$(ssh -n ${INIT_USER}@${HOST} "$my_KUBE_INIT" | tee $etcd_test_tmp/rawresults.k8s | grep -- "$my_grep")
-      ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_test_tmp/${HOST}-rawresults.k8s
+      ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$my_KUBE_INIT" 2>&1 | tee $etcd_test_tmp/${HOST}-joinrawresults.k8s
+      GET_JOIN_CMD="kubeadm token create --print-join-command"
+      ssh -n -p ${MASTERPORTS[$i]} root@${HOST} "$GET_JOIN_CMD" 2>&1 | tee $etcd_test_tmp/${HOST}-rawresults.k8s
       #cat $etcd_test_tmp/${HOST}-rawresults.k8s | grep -- "$my_grep"
-      run_join=$(cat $etcd_test_tmp/${HOST}-rawresults.k8s | grep -P -- "$my_grep")
+      #run_join=$(cat $etcd_test_tmp/${HOST}-rawresults.k8s | grep -P -- "$my_grep")
+      run_join=$(cat $etcd_test_tmp/${HOST}-rawresults.k8s)
       join_token=$(cat $etcd_test_tmp/${HOST}-rawresults.k8s \
         | grep -P -- "$my_grep" \
         | sed 's/\(.*\)--token\ \(\S*\)\ --discovery-token-ca-cert-hash\ .*/\2/')
