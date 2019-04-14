@@ -83,22 +83,22 @@ setup () {
 }
 
 @test "yaml2cluster iscsi target" {
-  result="$(cut -f34 -d, clusters/$MY_TMP/provision.csv|tail -n1)"
+  result="$(cut -f33 -d, clusters/$MY_TMP/provision.csv|tail -n1)"
   [ "$result" = 'iqn.2005-10.org.freenas.ctl:exampletarg01' ]
 }
 
 @test "yaml2cluster iscsi chapusername" {
-  result="$(cut -f35 -d, clusters/$MY_TMP/provision.csv|tail -n1)"
+  result="$(cut -f34 -d, clusters/$MY_TMP/provision.csv|tail -n1)"
   [ "$result" = 'chap_user' ]
 }
 
 @test "yaml2cluster iscsi chappassword" {
-  result="$(cut -f36 -d, clusters/$MY_TMP/provision.csv|tail -n1)"
+  result="$(cut -f35 -d, clusters/$MY_TMP/provision.csv|tail -n1)"
   [ "$result" = 'chap_password' ]
 }
 
 @test "yaml2cluster iscsi host" {
-  result="$(cut -f37 -d, clusters/$MY_TMP/provision.csv|tail -n1)"
+  result="$(cut -f36 -d, clusters/$MY_TMP/provision.csv|tail -n1)"
   [ "$result" = '10.0.0.103:3260' ]
 }
 
