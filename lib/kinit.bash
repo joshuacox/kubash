@@ -110,18 +110,6 @@ master_init_join () {
     do_command_in_parallel_on_role "master" "$command2run"
     ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     if [[ -e "$KUBASH_CLUSTER_DIR/endpoints.line" ]]; then
-      #kubeadmin_config_tmp=$(mktemp)
-      #KUBERNETES_VERSION=$( cat $KUBASH_CLUSTER_DIR/kubernetes_version) \
-      #my_master_ip=$my_master_ip \
-      #load_balancer_ip=$K8S_load_balancer_ip \
-      #my_KUBE_CIDR=$my_KUBE_CIDR \
-      #ENDPOINTS_LINES=$( cat $KUBASH_CLUSTER_DIR/endpoints.line) \
-      #envsubst  < $KUBASH_DIR/templates/kubeadm-config-1.12.yaml \
-        #> $kubeadmin_config_tmp
-      #squawk 19 "rsync $KUBASH_RSYNC_OPTS 'ssh -p $my_master_port' $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml"
-      #rsync $KUBASH_RSYNC_OPTS "ssh -p $my_master_port" $kubeadmin_config_tmp  $my_master_user@$my_master_ip:/tmp/config.yaml
-      #squawk 6 "kubedmin_config_tmp =\n $(cat $kubeadmin_config_tmp)" -e
-      #rm $kubeadmin_config_tmp
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg.yaml"
       squawk 5 "$my_KUBE_INIT"
       run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
@@ -132,8 +120,6 @@ master_init_join () {
       #command2run='sudo  rm -f /tmp/config.yaml'
       #ssh -n -p $my_master_port $my_master_user@$my_master_ip "$command2run"
     else
-      #my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --pod-network-cidr=$my_KUBE_CIDR"
-      #my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg-external.yaml"
       my_KUBE_INIT="PATH=$K8S_SU_PATH $PSEUDO kubeadm init $KUBEADMIN_IGNORE_PREFLIGHT_CHECKS --config=/etc/kubernetes/kubeadmcfg.yaml"
       squawk 5 "$my_KUBE_INIT"
       run_join=$(ssh -n $my_master_user@$my_master_ip "$my_KUBE_INIT" | tee $TMP/rawresults.k8s | grep -- "$my_grep")
