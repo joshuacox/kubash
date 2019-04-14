@@ -752,18 +752,23 @@ determine_api_version () {
       squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1alpha1"
       export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha1"
       kubeadm_cfg_kind=MasterConfiguration
-      echo "$KUBE_MINOR_VER is too old and is not supported"
+      croak 3 "$KUBE_MINOR_VER is too old and is not supported"
     elif [[ $KUBE_MINOR_VER -eq 10 ]]; then
       squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1alpha1"
       export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha1"
       kubeadm_cfg_kind=MasterConfiguration
-      echo "$KUBE_MINOR_VER is too old and is not supported"
+      croak 3 "$KUBE_MINOR_VER is too old and is not supported"
     elif [[ $KUBE_MINOR_VER -eq 11 ]]; then
       squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
       export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
       kubeadm_cfg_kind=MasterConfiguration
-      echo "$KUBE_MINOR_VER is too old and is not supported"
-    elif [[ $KUBE_MINOR_VER -le 13 ]]; then
+      croak 3 "$KUBE_MINOR_VER is too old and is not supported"
+    elif [[ $KUBE_MINOR_VER -eq 12 ]]; then
+      squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
+      export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha2"
+      kubeadm_cfg_kind=MasterConfiguration
+      croak 3 "$KUBE_MINOR_VER is too old and is not supported"
+    elif [[ $KUBE_MINOR_VER -eq 13 ]]; then
       squawk 75 kubeadm_apiVersion="kubeadm.k8s.io/v1alpha3"
       export kubeadm_apiVersion="kubeadm.k8s.io/v1alpha3"
       kubeadm_cfg_kind=ClusterConfiguration
