@@ -573,9 +573,9 @@ do_istio () {
       read LETSENCRYPT_EMAIL
     fi
     if [ -z $LOAD_BALANCER_IP ]; then
-      $LOAD_BALANCER_IP_SET=""
+      LOAD_BALANCER_IP_SET=""
     else
-      $LOAD_BALANCER_IP_SET="--set gateways.istio-ilbgateway.loadBalancerIP=$LOAD_BALANCER_IP"
+      LOAD_BALANCER_IP_SET="--set gateways.istio-ilbgateway.loadBalancerIP=$LOAD_BALANCER_IP"
     fi
     cd $KUBASH_DIR/submodules/istio/install/kubernetes/helm
     helm install \
