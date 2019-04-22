@@ -574,6 +574,7 @@ do_istio () {
     fi
     cd $KUBASH_DIR/submodules/istio/install/kubernetes/helm
     helm install \
+      --name=istio-init \
       --namespace=istio-system \
       --set gateways.istio-ingressgateway.sds.enabled=true \
       --set global.k8sIngress.enabled=true \
@@ -583,12 +584,13 @@ do_istio () {
       --set certmanager.email=$LETSENCRYPT_EMAIL \
       istio-init
     ISTIO_CRD_COUNT=0
-    while [ ISTIO_CRD_COUNT < 58 ]
+    while [ ISTIO_CRD_COUNT -lt 58 ]
     do
       ISTIO_CRD_COUNT=$(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l)
       echo "ISTIO_CRD_COUNT=$ISTIO_CRD_COUNT"
     done
     helm install \
+      --name=istio \
       --namespace=istio-system \
       --set gateways.istio-ingressgateway.sds.enabled=true \
       --set global.k8sIngress.enabled=true \
