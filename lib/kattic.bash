@@ -572,14 +572,17 @@ do_istio () {
       echo "Type the email that you want to use for lets encrypt, followed by [ENTER]:"
       read LETSENCRYPT_EMAIL
     fi
+    if [ -z $LOAD_BALANCER_IP ]; then
+      $LOAD_BALANCER_IP_SET=""
+    else
+      $LOAD_BALANCER_IP_SET="--set gateways.istio-ilbgateway.loadBalancerIP=$LOAD_BALANCER_IP"
+    fi
     cd $KUBASH_DIR/submodules/istio/install/kubernetes/helm
     helm install \
       --name=istio-init \
       --namespace=istio-system \
       --set gateways.istio-ingressgateway.sds.enabled=true \
       --set global.k8sIngress.enabled=true \
-      --set global.k8sIngress.enableHttps=true \
-      --set global.k8sIngress.gatewayName=ingressgateway \
       --set certmanager.enabled=true \
       --set certmanager.email=$LETSENCRYPT_EMAIL \
       istio-init
@@ -595,6 +598,7 @@ do_istio () {
       --name=istio \
       --namespace=istio-system \
       --set gateways.istio-ingressgateway.sds.enabled=true \
+      $LOAD_BALANCER_IP_SET \
       --set global.k8sIngress.enabled=true \
       --set global.k8sIngress.enableHttps=true \
       --set global.k8sIngress.gatewayName=ingressgateway \
