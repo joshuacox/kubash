@@ -583,11 +583,13 @@ do_istio () {
       --set certmanager.enabled=true \
       --set certmanager.email=$LETSENCRYPT_EMAIL \
       istio-init
+    sleep 11
     ISTIO_CRD_COUNT=0
     while [[ $ISTIO_CRD_COUNT -lt 58 ]]
     do
       ISTIO_CRD_COUNT=$(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l)
       echo "ISTIO_CRD_COUNT=$ISTIO_CRD_COUNT"
+      sleep 1
     done
     helm install \
       --name=istio \
