@@ -578,6 +578,7 @@ do_istio () {
       LOAD_BALANCER_IP_SET="--set gateways.istio-ilbgateway.loadBalancerIP=$LOAD_BALANCER_IP"
     fi
     cd $KUBASH_DIR/submodules/istio/install/kubernetes/helm
+    KUBECONFIG=$KUBECONFIG \
     helm install \
       --name=istio-init \
       --namespace=istio-system \
@@ -594,6 +595,7 @@ do_istio () {
       echo "ISTIO_CRD_COUNT=$ISTIO_CRD_COUNT"
       sleep 1
     done
+    KUBECONFIG=$KUBECONFIG \
     helm install \
       --name=istio \
       --namespace=istio-system \
@@ -605,6 +607,8 @@ do_istio () {
       --set certmanager.enabled=true \
       --set certmanager.email=$LETSENCRYPT_EMAIL \
       istio
+    KUBECONFIG=$KUBECONFIG \
+    kubectl label namespace default istio-injection=enabled
 }
 
 do_efk () {
