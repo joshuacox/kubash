@@ -588,13 +588,17 @@ do_istio () {
       --set certmanager.enabled=true \
       --set certmanager.email=$LETSENCRYPT_EMAIL \
       istio-init
-    sleep 11
+    sleep 1
     ISTIO_CRD_COUNT=0
+    countzero=0
     while [[ $ISTIO_CRD_COUNT -lt 58 ]]
     do
       ISTIO_CRD_COUNT=$(kubectl get crds | grep 'istio.io\|certmanager.k8s.io' | wc -l)
-      echo "ISTIO_CRD_COUNT=$ISTIO_CRD_COUNT"
+      if [[ $countzero > 15 ]]; then
+        echo "ISTIO_CRD_COUNT=$ISTIO_CRD_COUNT"
+      fi
       sleep 1
+      ((++countzero))
     done
     KUBECONFIG=$KUBECONFIG \
     helm install \
@@ -609,7 +613,7 @@ do_istio () {
       --set certmanager.email=$LETSENCRYPT_EMAIL \
       istio
     KUBECONFIG=$KUBECONFIG \
-    kubectl label namespace default istio-injection=enabled
+    kubectl label namespace default --overwrite istio-injection=enabled
 }
 
 do_efk () {
