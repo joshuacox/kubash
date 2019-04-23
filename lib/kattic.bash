@@ -576,7 +576,7 @@ do_istio () {
       LOAD_BALANCER_IP_SET=""
     else
       #LOAD_BALANCER_IP_SET="--set gateways.istio-ilbgateway.loadBalancerIP=$LOAD_BALANCER_IP"
-      LOAD_BALANCER_IP_SET="--set gateways.loadBalancerIP=$LOAD_BALANCER_IP"
+      LOAD_BALANCER_IP_SET="--set gateways.istio-ingressgateway.loadBalancerIP=$LOAD_BALANCER_IP"
     fi
     cd $KUBASH_DIR/submodules/istio/install/kubernetes/helm
     KUBECONFIG=$KUBECONFIG \
