@@ -1,10 +1,14 @@
 # Reactionetes Makefile
+
+# define various versions
+$(eval ISTIO_VERSION := 1.1.4)
+$(eval PACKER_VERSION:=1.4.0)
+$(eval ONESSL_VERSION := 0.10.0)
+
 # Install location
 $(eval KUBASH_DIR := $(HOME)/.kubash)
 $(eval KUBASH_BIN := $(KUBASH_DIR)/bin)
 $(eval GOPATH := $(HOME)/.go)
-$(eval ISTIO_VERSION := 1.1.4)
-$(eval PACKER_VERSION:=1.4.0)
 
 # Namespaces
 $(eval KUBASH_NAMESPACE := kubash)
@@ -389,7 +393,6 @@ $(KUBASH_BIN)/ct:
 onessl: $(KUBASH_BIN)/onessl
 
 $(KUBASH_BIN)/onessl:
-	$(eval ONESSL_VERSION := 0.9.0)
 	$(eval TMP := $(shell mktemp -d --suffix=ONESSLTMP))
 	curl -fsSL -o $(TMP)/onessl https://github.com/kubepack/onessl/releases/download/${ONESSL_VERSION}/onessl-linux-amd64
 	chmod +x $(TMP)/onessl
