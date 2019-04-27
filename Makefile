@@ -3,6 +3,7 @@
 $(eval KUBASH_DIR := $(HOME)/.kubash)
 $(eval KUBASH_BIN := $(KUBASH_DIR)/bin)
 $(eval GOPATH := $(HOME)/.go)
+$(eval ISTIO_VERSION := 1.1.4)
 
 # Namespaces
 $(eval KUBASH_NAMESPACE := kubash)
@@ -73,6 +74,18 @@ $(KUBASH_BIN)/helm:
 	sudo -E bash -l $(TMP)/helmget
 	rm $(TMP)/helmget
 	rmdir $(TMP)
+
+istioctl: $(KUBASH_BIN)
+	@scripts/kubashnstaller istioctl
+
+$(KUBASH_BIN)/istioctl:
+	@echo 'Installing istioctl'
+	$(eval TMP := $(shell mktemp -d --suffix=istioctlTMP))
+	cd $(TMP) && \
+	curl -sL https://git.io/getLatestIstio | ISTIO_VERSION=${ISTIO_VERSION} sh -
+	install -m755 ${TMP}/istio-${ISTIO_VERSION}/bin/istioctl $(KUBASH_BIN)/
+	rm -Rf $(TMP)
+
 
 kubectl: $(KUBASH_BIN)
 	@scripts/kubashnstaller kubectl
