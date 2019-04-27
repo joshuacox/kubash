@@ -4,6 +4,7 @@ $(eval KUBASH_DIR := $(HOME)/.kubash)
 $(eval KUBASH_BIN := $(KUBASH_DIR)/bin)
 $(eval GOPATH := $(HOME)/.go)
 $(eval ISTIO_VERSION := 1.1.4)
+$(eval PACKER_VERSION:=1.4.0)
 
 # Namespaces
 $(eval KUBASH_NAMESPACE := kubash)
@@ -159,7 +160,6 @@ packer: $(KUBASH_BIN) $(KUBASH_BIN)/packer
 $(KUBASH_BIN)/packer: SHELL:=/bin/bash
 $(KUBASH_BIN)/packer:
 	@echo 'Installing packer'
-	$(eval PACKER_VERSION:=1.1.3)
 	$(eval TMP := $(shell mktemp -d --suffix=GOTMP))
 	cd $(TMP) \
 	&& wget -c \
