@@ -102,6 +102,8 @@ main () {
     sudo apt-get install -y jq git build-essential golang unzip curl wget parallel ansible rlwrap python-pip
   elif type "yum" &> /dev/null; then
     sudo yum install -y jq git build-essential golang unzip curl wget parallel ansible rlwrap python-pip
+  elif type "pacman" &> /dev/null; then
+    sudo pacman -S --noconfirm jq git base-devel go unzip curl wget parallel ansible rlwrap python-pip
   fi
   check_cmd git
   check_cmd ssh
