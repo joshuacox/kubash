@@ -109,7 +109,7 @@ main () {
     fi
   elif [[ "$NAME" = 'Arch Linux' ]]; then
     if type "powerpill" &> /dev/null; then
-      ARCH_PKG_GET='jq git make go unzip curl wget parallel ansible rlwrap python-pip'
+      ARCH_PKG_GET='jq git make go unzip curl wget parallel ansible rlwrap python-pip openbsd-netcat'
       sudo pacman -Sy
       sudo powerpill -S $ARCH_PKG_GET
     elif type "pacman" &> /dev/null; then
