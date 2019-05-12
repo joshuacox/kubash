@@ -101,15 +101,15 @@ main () {
 
   if [[ "$NAME" = 'Debian' || $NAME = 'Ubuntu'   ]]; then
     if type "apt-get" &> /dev/null; then
-      sudo apt-get install jq git build-essential golang unzip curl wget parallel ansible rlwrap
+      sudo apt-get install jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync
     fi
   elif [[ "$NAME" = 'CentOS Linux' ]]; then
     if type "yum" &> /dev/null; then
-      sudo yum install jq git build-essential golang unzip curl wget parallel ansible rlwrap
+      sudo yum install jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync
     fi
   elif [[ "$NAME" = 'Arch Linux' ]]; then
     if type "powerpill" &> /dev/null; then
-      ARCH_PKG_GET='jq git make go unzip curl wget parallel ansible rlwrap python-pip openbsd-netcat'
+      ARCH_PKG_GET='jq git make go unzip curl wget parallel ansible rlwrap python-pip openbsd-netcat rsync'
       sudo pacman -Sy
       sudo powerpill -S $ARCH_PKG_GET
     elif type "pacman" &> /dev/null; then
