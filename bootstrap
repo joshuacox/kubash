@@ -156,7 +156,7 @@ main () {
   make kubectl
   check_install crictl
   check_install onessl
-  pip install --user --upgrade install netaddr
+  pip install --user --upgrade netaddr
   $KUBASH_BIN/kubash dotfiles
   echo 'logout and log back in, or source your RC files'
 }
