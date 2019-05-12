@@ -97,13 +97,24 @@ flight_checks () {
 }
 
 main () {
+  . /etc/os-release
 
-  if type "apt-get" &> /dev/null; then
-    sudo apt-get install -y jq git build-essential golang unzip curl wget parallel ansible rlwrap python-pip
-  elif type "yum" &> /dev/null; then
-    sudo yum install -y jq git build-essential golang unzip curl wget parallel ansible rlwrap python-pip
-  elif type "pacman" &> /dev/null; then
-    sudo pacman -S --noconfirm jq git base-devel go unzip curl wget parallel ansible rlwrap python-pip
+  if [[ "$NAME" = 'Debian' || $NAME = 'Ubuntu'   ]]; then
+    if type "apt-get" &> /dev/null; then
+      sudo apt-get install jq git build-essential golang unzip curl wget parallel ansible rlwrap
+    fi
+  elif [[ "$NAME" = 'CentOS Linux' ]]; then
+    if type "yum" &> /dev/null; then
+      sudo yum install jq git build-essential golang unzip curl wget parallel ansible rlwrap
+    fi
+  elif [[ "$NAME" = 'Arch Linux' ]]; then
+    if type "powerpill" &> /dev/null; then
+      ARCH_PKG_GET='jq git make go unzip curl wget parallel ansible rlwrap python-pip'
+      sudo pacman -Sy
+      sudo powerpill -S $ARCH_PKG_GET
+    elif type "pacman" &> /dev/null; then
+      sudo pacman -Sy $ARCH_PKG_GET
+    fi
   fi
   check_cmd git
   check_cmd ssh
@@ -143,13 +154,9 @@ main () {
   make coreos_key
   make ct
   make kubectl
-  make kubedb
-  make kompose
-  make istioctl
   check_install crictl
   check_install onessl
-  pip install --user --upgrade netaddr
-  pip install --user --upgrade jinja2-cli
+  pip install --user --upgrade install netaddr
   $KUBASH_BIN/kubash dotfiles
   echo 'logout and log back in, or source your RC files'
 }
