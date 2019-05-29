@@ -99,7 +99,7 @@ flight_checks () {
 main () {
   . /etc/os-release
 
-  if [[ "$NAME" = 'Debian' || $NAME = 'Ubuntu'   ]]; then
+  if [[ "$NAME" = 'Debian GNU/Linux' || $NAME = 'Ubuntu'   ]]; then
     if type "apt-get" &> /dev/null; then
       sudo apt-get install jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap python-pip
     fi
