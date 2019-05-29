@@ -100,8 +100,9 @@ main () {
   . /etc/os-release
 
   if [[ "$NAME" = 'Debian GNU/Linux' || $NAME = 'Ubuntu'   ]]; then
+    DEB_PKG_GET='jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap python-pip virtinst qemu-kvm libvirt-clients libvirt-daemon-system'
     if type "apt-get" &> /dev/null; then
-      sudo apt-get install jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap python-pip
+      sudo apt-get install $DEB_PKG_GET
     fi
   elif [[ "$NAME" = 'CentOS Linux' ]]; then
     if type "yum" &> /dev/null; then
