@@ -412,7 +412,7 @@ cfssl:
 
 jinja2:
 	#pip install --user jinja2 jinja2-cli
-	pip install --user jinja2 jinja2
+	pip install --user jinja2-cli
 
 anaconda: $(KUBASH_BIN)/Anaconda.sh
 	bash $(KUBASH_BIN)/Anaconda.sh
