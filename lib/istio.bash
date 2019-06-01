@@ -47,6 +47,7 @@ do_istio () {
       --set certmanager.email=$LETSENCRYPT_EMAIL \
       --set global.k8sIngress.enabled=true \
       --set global.k8sIngress.enableHttps=true \
+      --set gateways.istio-ingressgateway.nodeSelector="ingress=true" \
       --set gateways.istio-ingressgateway.sds.enabled=true \
       --set global.k8sIngress.gatewayName=ingressgateway \
       --set "kiali.dashboard.grafanaURL=http://grafana:3000" \
