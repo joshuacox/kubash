@@ -131,6 +131,7 @@ qemu-provisioner () {
   --print-xml
   " >&3 2>&3
   else
+    # not coreOS
     virshcmd2run="$PSEUDO virt-install --connect qemu:///system \
   --import \
     --autostart \
@@ -162,10 +163,25 @@ qemu-provisioner () {
       rsync -az $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerBasePath/
 
       $PSEUDO virsh define $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
+      if [[ $K8S_storageType == 'raw' ]]; then
+	$PSEUDO qemu-img create -f raw $K8S_storagePath $K8S_storageSize -o preallocation=full
+        $PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath --target vdb --persistent --config --live
+      elif [[ $K8S_storageType == 'qcow2' ]]; then
+	$PSEUDO qemu-img create -f qcow2 $K8S_storagePath $K8S_storageSize -o preallocation=full
+        $PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath --target vdb --persistent --config --live
+      fi
       $PSEUDO virsh start $K8S_node
     else
+      # not coreOS
       squawk 5 "$PSEUDO $virshcmd2run"
       $PSEUDO $virshcmd2run
+      if [[ $K8S_storageType == 'raw' ]]; then
+	$PSEUDO qemu-img create -f raw $K8S_storagePath $K8S_storageSize -o preallocation=full
+        $PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath --target vdb --persistent --config --live
+      elif [[ $K8S_storageType == 'qcow2' ]]; then
+	$PSEUDO qemu-img create -f qcow2 $K8S_storagePath $K8S_storageSize -o preallocation=full
+        $PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath --target vdb --persistent --config --live
+      fi
     fi
   else
     squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $qemucmd2run"
@@ -183,16 +199,49 @@ qemu-provisioner () {
       squawk 9 "rsync $KUBASH_RSYNC_OPTS 'ssh -p$K8S_provisionerPort' $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:~/"
       rsync $KUBASH_RSYNC_OPTS "ssh -p$K8S_provisionerPort" $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerUser@$K8S_provisionerHost:$K8S_provisionerBasePath/
 
+
       virshcmd2run="$PSEUDO virsh define $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml"
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+
+      if [[ $K8S_storageType == 'raw' ]]; then
+	virshcmd2run="$PSEUDO qemu-img create -f raw $K8S_storagePath $K8S_storageSize -o preallocation=full"
+        squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+        ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+        virshcmd2run="$PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath --target vdb --persistent --config --live"
+        squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+        ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+      elif [[ $K8S_storageType == 'qcow2' ]]; then
+	virshcmd2run="$PSEUDO qemu-img create -f qcow2 $K8S_storagePath $K8S_storageSize -o preallocation=full"
+        squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+        ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+        virshcmd2run="$PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath --target vdb --persistent --config --live"
+        squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+        ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+      fi
 
       virshcmd2run="$PSEUDO virsh start $K8S_node"
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
     else
+      # not coreOS
       squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
       ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+      if [[ $K8S_storageType == 'raw' ]]; then
+	virshcmd2run="$PSEUDO qemu-img create -f raw $K8S_storagePath $K8S_storageSize -o preallocation=full"
+        squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+        ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+        virshcmd2run="$PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath --target vdb --persistent --config --live"
+        squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+        ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+      elif [[ $K8S_storageType == 'qcow2' ]]; then
+	virshcmd2run="$PSEUDO qemu-img create -f qcow2 $K8S_storagePath $K8S_storageSize -o preallocation=full"
+        squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+        ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+        virshcmd2run="$PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath --target vdb --persistent --config --live"
+        squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
+        ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
+      fi
     fi
   fi
 }
