@@ -235,14 +235,15 @@ qemu-provisioner () {
       if [[ $K8S_storageType == 'raw' ]]; then
 	set +e
         ssh -q -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "test -f $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.raw"
-	set -e
 	if [[ $? -eq 0 ]]; then
 	  squawk 33 "File already exists using it"
 	else
+	  squawk 33 "File does not already exist. Creating it"
   	  virshcmd2run="$PSEUDO qemu-img create -f raw $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.raw $K8S_storageSize -o preallocation=full"
           squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
           ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
 	fi
+	set -e
         virshcmd2run="$PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.raw --target vdb --persistent --config --live"
         squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
         ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
@@ -252,14 +253,15 @@ qemu-provisioner () {
         ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
 	set +e
         ssh -q -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "test -f $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.qcow2"
-	set -e
 	if [[ $? -eq 0 ]]; then
 	  squawk 33 "File already exists using it"
 	else
+	  squawk 33 "File does not already exist. Creating it"
   	  virshcmd2run="$PSEUDO qemu-img create -f qcow2 $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.qcow2 $K8S_storageSize -o preallocation=full"
           squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
           ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
 	fi
+	set -e
         virshcmd2run="$PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.qcow2 --target vdb --persistent --config --live"
         squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
         ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
@@ -290,14 +292,15 @@ qemu-provisioner () {
       elif [[ $K8S_storageType == 'qcow2' ]]; then
 	set +e
         ssh -q -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "test -f $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.qcow2"
-	set -e
 	if [[ $? -eq 0 ]]; then
 	  squawk 33 "File already exists using it"
 	else
+	  squawk 33 "File does not already exist. Creating it"
   	  virshcmd2run="$PSEUDO qemu-img create -f qcow2 $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.qcow2 $K8S_storageSize -o preallocation=full"
           squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
           ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
 	fi
+	set -e
         virshcmd2run="$PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.qcow2 --target vdb --persistent --config --live"
         squawk 5 "ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost $virshcmd2run"
         ssh -n -p $K8S_provisionerPort $K8S_provisionerUser@$K8S_provisionerHost "$virshcmd2run"
