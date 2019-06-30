@@ -123,7 +123,7 @@ qemu-provisioner () {
     --noautoconsole \
     --accelerate \
     --hvm \
-    --os-variant=virtio26 \
+    --os-variant=auto \
     --disk path=$qemunodeimg,format=qcow2,bus=virtio \
     --network=$K8S_network1,mac=$K8S_mac1,model=virtio \
     $SECOND_NIC \
@@ -142,7 +142,7 @@ qemu-provisioner () {
     --noautoconsole \
     --accelerate \
     --hvm \
-    --os-variant=virtio26 \
+    --os-variant=auto \
     --disk path=$qemunodeimg,format=qcow2,bus=virtio \
     --network=$K8S_network1,mac=$K8S_mac1,model=virtio \
     $SECOND_NIC \
