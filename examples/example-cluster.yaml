@@ -1,6 +1,5 @@
 ---
-  csv_version: '3.0.0'
-  kubernetes_version: 'v1.9.6'
+  csv_version: '4.0.0'
   hosts:
     my-master1:
       hostname: master01
@@ -12,7 +11,7 @@
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: kubeadm
+      os: ubuntu1.14.3
       virt: qemu
       sshPort: 22
       network1:
@@ -29,7 +28,7 @@
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: kubeadm
+      os: ubuntu1.14.3
       virt: qemu
       sshPort: 22
       network1:
@@ -46,7 +45,7 @@
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: kubeadm
+      os: ubuntu1.14.3
       virt: qemu
       sshPort: 22
       network1:
@@ -63,7 +62,7 @@
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: kubeadm
+      os: ubuntu1.14.3
       virt: qemu
       sshPort: 22
       network1:
@@ -80,7 +79,7 @@
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: kubeadm
+      os: ubuntu1.14.3
       virt: qemu
       sshPort: 22
       network1:
@@ -97,7 +96,7 @@
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: kubeadm
+      os: ubuntu1.14.3
       virt: qemu
       sshPort: 22
       network1:
@@ -121,11 +120,11 @@
       Memory: 2222
       sshPort: 22
       provisioner:
-        Host: '10.0.23.12'
+        Host: localhost
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
-      os: kubeadm
+      os: ubuntu1.14.3
       virt: qemu
       network1:
         network: bridge=br1
