@@ -127,7 +127,7 @@
       os: ubuntu1.14.3
       virt: qemu
       network1:
-        network: bridge=br1
+        network: bridge=br0
         mac: '52:54:00:e2:8a:19'
         ip: '10.0.0.33'
         broadcast: '10.0.0.255'
