@@ -13,12 +13,15 @@ coreos_build  () {
   command2run="cd $KVM_builderTMP; wget -c https://$CHANNEL.release.core-os.net/amd64-usr/current/coreos_production_qemu_image.img.bz2{,.sig}"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
   command2run="cd $KVM_builderTMP;gpg --verify coreos_production_qemu_image.img.bz2.sig"
+  set +e
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
+  set -e
   command2run="cd $KVM_builderTMP;rm coreos_production_qemu_image.img.bz2.sig"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
   command2run="cd $KVM_builderTMP;bunzip2 coreos_production_qemu_image.img.bz2"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 
+  #TARGET_FILE="$KVM_builderTMP/coreos_production_qemu_image.img"
   TARGET_FILE="$KVM_builderTMP/coreos_production_qemu_image.img"
   DESTINATION_FILE="$KVM_builderBasePath/$target_os-$KVM_BASE_IMG"
   command2run="$MV_CMD $TARGET_FILE $DESTINATION_FILE"
