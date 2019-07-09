@@ -146,6 +146,8 @@ refresh_network_addresses () {
         fi
       elif [[ "$K8S_networkDiscovery" == "arp" ]]; then
         countzero=0
+        squawk 22 "$PSEUDO ip -s -s neigh flush all"
+	$PSEUDO ip -s -s neigh flush all
         this_node_ip=$($PSEUDO arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
         while [[ -z "$this_node_ip" ]]; do
         squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"
@@ -176,6 +178,7 @@ refresh_network_addresses () {
           sleep 3
         fi
         squawk 19 "checking ssh $this_node_ip $countzero"
+        squawk 33 "ssh -o 'UserKnownHostsFile /dev/null' -o 'StrictHostKeyChecking no' -n -q $this_K8S_user@$this_node_ip exit"
         ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -n -q $this_K8S_user@$this_node_ip exit
         this_ssh_status=$?
         ((++countzero))

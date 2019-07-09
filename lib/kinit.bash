@@ -2592,8 +2592,10 @@ openshift_initialize () {
 }
 
 do_coreos_initialization () {
-  CNI_VERSION="v0.6.0"
-  RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+  CNI_VERSION="v0.7.5"
+  CRICTL_VERSION="v1.12.0"
+  #RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+  RELEASE=$KUBE_VERSION
   CORETMP=$KUBASH_DIR/tmp
   cd $CORETMP
 

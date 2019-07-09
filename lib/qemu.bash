@@ -191,10 +191,6 @@ qemu-provisioner () {
       fi
       sudo chown root. $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
       sudo chown root. $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.ign
-      ls -lh $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
-      ls -lh $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node
-      ls -lh $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME
-      ls -lh $KUBASH_CLUSTERS_DIR
       $PSEUDO virsh start $K8S_node
     else
       # not coreOS

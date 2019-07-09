@@ -153,13 +153,14 @@ main () {
   make jinja2
   make yaml2json
   check_install ct
+  #make ct
   check_install helm
   check_install oc
   # These need to exist in .kubash/bin/
   make cfssl
   make packer
   make coreos_key
-  make ct
+  make cni
   make kubectl
   check_install crictl
   check_install onessl
