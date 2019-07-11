@@ -111,6 +111,8 @@ refresh_network_addresses () {
   rm $KUBASH_HOSTS_CSV
   touch $KUBASH_HOSTS_CSV
   set_csv_columns
+  squawk 22 "$PSEUDO ip -s -s neigh flush all"
+  $PSEUDO ip -s -s neigh flush all
   while IFS="," read -r $csv_columns
   do
       net_type=$(echo $K8S_network1|cut -f1 -d=)
@@ -125,7 +127,7 @@ refresh_network_addresses () {
           while [[ -z "$this_node_ip" ]]; do
             squawk 7 "checking for IP address"
             squawk 8 "$PSEUDO virsh domifaddr $K8S_node --full"
-            this_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|head -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
+            this_node_ip=$($PSEUDO virsh domifaddr $K8S_node --full|grep ipv4|tail -n1|awk '{print $4}'|cut -f1 -d/ 2>/dev/null)
             if [[ "$countzero" -gt 2 ]]; then
               sleep 2
               fi
@@ -146,8 +148,6 @@ refresh_network_addresses () {
         fi
       elif [[ "$K8S_networkDiscovery" == "arp" ]]; then
         countzero=0
-        squawk 22 "$PSEUDO ip -s -s neigh flush all"
-	$PSEUDO ip -s -s neigh flush all
         this_node_ip=$($PSEUDO arp -n|grep $K8S_mac1|awk '{print $1}'|tail -n 1)
         while [[ -z "$this_node_ip" ]]; do
         squawk 2 "sudo nmap -p 22 $BROADCAST_TO_NETWORK"

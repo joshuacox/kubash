@@ -61,6 +61,9 @@ qemu-provisioner () {
 
   # Create VM for node
   qemunodeimg="$K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node.qcow2"
+  if [[ "$K8S_os" == "coreos" ]]; then
+    KVM_BASE_IMG=kubash.img
+  fi
   qemucmd2run="$PSEUDO qemu-img create -f qcow2 -b $K8S_provisionerBasePath/$KUBASH_CLUSTER_NAME-k8s-$KVM_BASE_IMG $qemunodeimg"
 
   if [[ "$K8S_os" == "coreos" ]]; then
@@ -168,6 +171,9 @@ qemu-provisioner () {
       rsync -az $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME $K8S_provisionerBasePath/
 
       $PSEUDO virsh define $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
+      sudo chown root. $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
+      sudo chown root. $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.ign
+      $PSEUDO virsh start $K8S_node
       if [[ $K8S_storageType == 'raw' ]]; then
 	if [[ -f $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.raw ]]; then
 	  squawk 33 "File already exists using it"
@@ -189,9 +195,6 @@ qemu-provisioner () {
 	fi
         $PSEUDO virsh attach-disk --domain $K8S_node $K8S_storagePath/$KUBASH_CLUSTER_NAME-k8s-$K8S_node-vdb.qcow2 --target vdb --persistent --config --live
       fi
-      sudo chown root. $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/domain.xml
-      sudo chown root. $KUBASH_CLUSTERS_DIR/$KUBASH_CLUSTER_NAME/$K8S_node/user_data.ign
-      $PSEUDO virsh start $K8S_node
     else
       # not coreOS
       squawk 5 "$PSEUDO $virshcmd2run"

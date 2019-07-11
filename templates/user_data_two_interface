@@ -28,7 +28,7 @@ networkd:
   - name: 20-dhcp.network
     contents: |
       [Match]
-      name=en*
+      name=e*
 
       [Network]
       DHCP=yes
