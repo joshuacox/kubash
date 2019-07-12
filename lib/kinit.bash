@@ -918,25 +918,25 @@ Restart=always
 EOF"
     # unbreak indentation
 
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "$command2run"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
 
     # break indentation
-    #command2run='cat << EOF > /var/lib/kubelet/config.yaml
-  #kind: KubeletConfiguration
-  #apiVersion: kubelet.config.k8s.io/v1beta1
-  #address: 127.0.0.1
-  #staticpodpath: /etc/kubernetes/manifests
-  #EOF'
+    command2run='cat << EOF > /var/lib/kubelet/config.yaml
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+address: 127.0.0.1
+staticpodpath: /etc/kubernetes/manifests
+EOF'
     # unbreak indentation
-    #squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    #ssh ${INIT_USER}@${HOST} "$command2run"
+    #sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   #do_command_in_parallel_on_os 'coreos' "mkdir -p /opt/cni/bin"
   command2run="sed -i 's:/usr/bin:/opt/bin:g' /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf"
-  #do_command_in_parallel_on_os 'coreos' "$command2run"
-  do_command_in_parallel_on_role 'primary_etcd' "$command2run"
-  do_command_in_parallel_on_role 'etcd' "$command2run"
+  set +e
+  do_command_in_parallel_on_os 'coreos' "$command2run"
+  set -e
+  #do_command_in_parallel_on_role 'primary_etcd' "$command2run"
+  #do_command_in_parallel_on_role 'etcd' "$command2run"
 
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
@@ -1395,13 +1395,23 @@ ExecStart=/usr/bin/kubelet --address=127.0.0.1 --pod-manifest-path=/etc/kubernet
 Restart=always
 EOF"
     # unbreak indentation
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "$command2run"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
+    # break indentation
+    command2run='cat << EOF > /var/lib/kubelet/config.yaml
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+address: 127.0.0.1
+staticpodpath: /etc/kubernetes/manifests
+EOF'
+    # unbreak indentation
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   command2run="sed -i 's:/usr/bin:/opt/bin:g' /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf"
-  #do_command_in_parallel_on_os 'coreos' "$command2run"
-  do_command_in_parallel_on_role 'primary_etcd' "$command2run"
-  do_command_in_parallel_on_role 'etcd' "$command2run"
+  set +e
+  do_command_in_parallel_on_os 'coreos' "$command2run"
+  set -e
+  #do_command_in_parallel_on_role 'primary_etcd' "$command2run"
+  #do_command_in_parallel_on_role 'etcd' "$command2run"
 
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
@@ -1819,13 +1829,23 @@ ExecStart=/usr/bin/kubelet --address=127.0.0.1 --pod-manifest-path=/etc/kubernet
 Restart=always
 EOF"
     # unbreak indentation
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "$command2run"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
+    # break indentation
+    command2run='cat << EOF > /var/lib/kubelet/config.yaml
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+address: 127.0.0.1
+staticpodpath: /etc/kubernetes/manifests
+EOF'
+    # unbreak indentation
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   command2run="sed -i 's:/usr/bin:/opt/bin:g' /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf"
-  #do_command_in_parallel_on_os 'coreos' "$command2run"
-  do_command_in_parallel_on_role 'primary_etcd' "$command2run"
-  do_command_in_parallel_on_role 'etcd' "$command2run"
+  set +e
+  do_command_in_parallel_on_os 'coreos' "$command2run"
+  set -e
+  #do_command_in_parallel_on_role 'primary_etcd' "$command2run"
+  #do_command_in_parallel_on_role 'etcd' "$command2run"
 
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
