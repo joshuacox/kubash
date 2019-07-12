@@ -156,12 +156,13 @@ master_init_join () {
 }
 
 master_grab_kube_config () {
+  squawk 33 "master_grab_kube_config $@"
   my_master_name=$1
   my_master_ip=$2
   my_master_user=$3
   my_master_port=$4
+  squawk 3 " master_grab_kube_config my_master_name=$my_master_name my_master_ip=$my_master_ip my_master_user=$my_master_user my_master_port=$my_master_port"
   squawk 1 ' refresh-kube-config'
-  squawk 3 " master_grab_kube_config $my_master_name $my_master_ip $my_master_user $my_master_port"
   squawk 5 "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
   ssh -n -p $my_master_port $my_master_user@$my_master_ip "mkdir -p ~/.kube && sudo cp -av /etc/kubernetes/admin.conf ~/.kube/config && sudo chown -R $my_master_user. ~/.kube"
 
@@ -183,7 +184,8 @@ node_join () {
   my_node_port=$4
   squawk 1 " node_join $my_node_name $my_node_ip $my_node_user $my_node_port"
   if [[ "$DO_NODE_JOIN" == "true" ]] ; then
-    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a")
+    #result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "$PSEUDO hostname;$PSEUDO uname -a")
+    result=$(ssh -n -p $my_node_port $my_node_user@$my_node_ip "hostname; uname -a")
     squawk 3 "hostname and uname is $result"
     squawk 3 "Kubeadmn join"
     run_join=$(cat $KUBASH_CLUSTER_DIR/join.sh)
@@ -1110,40 +1112,41 @@ EOF
   squawk 5 "distribute the pki and configs to etcd hosts"
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/${HOST}
-    squawk 55 "tar zcf - pki | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
-    tar zcf - pki | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
-    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
-    tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    squawk 55 "tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
     cd $PREV_PWD
   done
 
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
-    squawk 55 "ssh ${INIT_USER}@${HOST} sudo chown -R root:root /etc/kubernetes/pki"
-    ssh ${INIT_USER}@${HOST} "sudo chown -R root:root /etc/kubernetes/pki"
-    squawk 55 "ssh ${INIT_USER}@${HOST} kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
-    ssh ${INIT_USER}@${HOST} "kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
+    PORT=${ETCDPORTS[$i]}
+    command2run="chown -R root:root /etc/kubernetes/pki"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
+    command2run="kubeadm alpha phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     command2run='ls -alh /root'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "$command2run"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
     command2run='ls -Ralh /etc/kubernetes/pki'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "$command2run"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
 
   command2run="kubeadm config --kubernetes-version $KUBERNETES_VERSION images pull"
-  squawk 55 "$command2run"
   for i in "${!MASTERHOSTS[@]}"; do
-    ssh ${INIT_USER}@${MASTERHOSTS[$i]} "bash -l -c '$command2run'"
+    HOST=${MASTERHOSTS[$i]}
+    PORT=${MASTERPORTS[$i]}
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   squawk 33 "sleep 33 - give etcd a chance to settle"
-  #sleep 33
-  sleep 11
+  sleep 33
 
   command2run="docker run --rm  \
     --net host \
@@ -1155,10 +1158,17 @@ EOF
 
   squawk 55 'To test etcd run this commmand'
   squawk 55 "$command2run"
-  #squawk 55 "ssh -p ${ETCDPORTS[0]} ${K8S_User}@${ETCDHOSTS[0]} $command2run"
-  #ssh -p ${ETCDPORTS[0]} ${K8S_User}@${ETCDHOSTS[0]} "$command2run"
-  squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
-  sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
+  this_counter=0
+  while [[ "$this_counter" -lt "15" ]]; do
+    sleep 3
+    squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
+    sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
+    if [[ "$?" == "0" ]]; then
+      squawk 1 "cluster is healthy"
+      this_counter=100
+    fi
+    ((++this_counter))
+  done
   grab_pki_ext_etcd_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
   #grab_kube_pki_stacked_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
 
@@ -1544,46 +1554,48 @@ EOF
     HOST=${ETCDHOSTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST}" | tar pzxvf -
+    squawk 55 "ssh -p $PORT ${INIT_USER}@${ETCDHOSTS[0]} mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
+    ssh -p $PORT ${INIT_USER}@${ETCDHOSTS[0]} "mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST}" | tar pzxvf -
     cd $PREV_PWD
   done
   squawk 5 "distribute the pki and configs to etcd hosts"
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/${HOST}
-    squawk 55 "tar zcf - pki | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
-    tar zcf - pki | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
-    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
-    tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    squawk 55 "tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
     cd $PREV_PWD
   done
 
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
-    squawk 55 "ssh ${INIT_USER}@${HOST} sudo chown -R root:root /etc/kubernetes/pki"
-    ssh ${INIT_USER}@${HOST} "$PSEUDO chown -R root:root /etc/kubernetes/pki"
-    squawk 55 "ssh ${INIT_USER}@${HOST} kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
-    ssh ${INIT_USER}@${HOST} "bash -l -c 'kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml'"
+    PORT=${ETCDPORTS[$i]}
+    command2run="chown -R root:root /etc/kubernetes/pki"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
+    command2run="kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     command2run='ls -alh /root'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "bash -l -c '$command2run'"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
     command2run='ls -Ralh /etc/kubernetes/pki'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "bash -l -c '$command2run'"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
 
   command2run="kubeadm config --kubernetes-version $KUBERNETES_VERSION images pull"
-  squawk 55 "$command2run"
   for i in "${!MASTERHOSTS[@]}"; do
-    ssh ${INIT_USER}@${MASTERHOSTS[$i]} "bash -l -c '$command2run'"
+    HOST=${MASTERHOSTS[$i]}
+    PORT=${MASTERPORTS[$i]}
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   squawk 33 "sleep 33 - give etcd a chance to settle"
-  sleep 11
+  sleep 33
 
   command2run="docker run --rm  \
     --net host \
@@ -1595,8 +1607,17 @@ EOF
 
   squawk 55 'To test etcd run this commmand'
   squawk 55 "$command2run"
-  squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
-  sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
+  this_counter=0
+  while [[ "$this_counter" -lt "15" ]]; do
+    sleep 3
+    squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
+    sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
+    if [[ "$?" == "0" ]]; then
+      squawk 1 "cluster is healthy"
+      this_counter=100
+    fi
+    ((++this_counter))
+  done
   grab_pki_ext_etcd_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
 
   for i in "${!MASTERHOSTS[@]}"; do
@@ -1926,75 +1947,71 @@ EOF
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
     command2run="kubeadm init phase certs etcd-server --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
+    sudo_command ${ETCDPORTS[0]} ${INIT_USER} ${ETCDHOSTS[0]} "$command2run"
     command2run="kubeadm init phase certs etcd-peer --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
+    sudo_command ${ETCDPORTS[0]} ${INIT_USER} ${ETCDHOSTS[0]} "$command2run"
     command2run="kubeadm init phase certs etcd-healthcheck-client --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
+    sudo_command ${ETCDPORTS[0]} ${INIT_USER} ${ETCDHOSTS[0]} "$command2run"
     command2run="kubeadm init phase certs apiserver-etcd-client --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
+    sudo_command ${ETCDPORTS[0]} ${INIT_USER} ${ETCDHOSTS[0]} "$command2run"
     command2run="rsync -a /etc/kubernetes/pki /tmp/${HOST}/"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
+    sudo_command ${ETCDPORTS[0]} ${INIT_USER} ${ETCDHOSTS[0]} "$command2run"
     squawk 5 "cleanup non-reusable certificates"
     command2run="find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
+    sudo_command ${ETCDPORTS[0]} ${INIT_USER} ${ETCDHOSTS[0]} "$command2run"
     squawk 5 "clean up certs that should not be copied off this host"
     command2run="find /tmp/${HOST} -name ca.key -type f -delete"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
+    sudo_command ${ETCDPORTS[0]} ${INIT_USER} ${ETCDHOSTS[0]} "$command2run"
   done
 
   squawk 5 "gather the pki and configs"
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
-    ssh ${INIT_USER}@${ETCDHOSTS[0]} "mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST}" | tar pzxvf -
+    squawk 55 "ssh -p $PORT ${INIT_USER}@${ETCDHOSTS[0]} mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
+    ssh -p $PORT ${INIT_USER}@${ETCDHOSTS[0]} "mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST}" | tar pzxvf -
     cd $PREV_PWD
   done
   squawk 5 "distribute the pki and configs to etcd hosts"
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/${HOST}
-    squawk 55 "tar zcf - pki | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
-    tar zcf - pki | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
-    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
-    tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    squawk 55 "tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
+    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
     cd $PREV_PWD
   done
 
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
-    squawk 55 "ssh ${INIT_USER}@${HOST} sudo chown -R root:root /etc/kubernetes/pki"
-    ssh ${INIT_USER}@${HOST} "sudo chown -R root:root /etc/kubernetes/pki"
-    squawk 55 "ssh ${INIT_USER}@${HOST} kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
-    ssh ${INIT_USER}@${HOST} "bash -l -c 'kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml'"
+    PORT=${ETCDPORTS[$i]}
+    command2run="chown -R root:root /etc/kubernetes/pki"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
+    command2run="kubeadm init phase etcd local --config=/etc/kubernetes/kubeadmcfg.yaml"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     command2run='ls -alh /root'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "$command2run"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
     command2run='ls -Ralh /etc/kubernetes/pki'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
-    ssh ${INIT_USER}@${HOST} "$command2run"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
 
   command2run="kubeadm config --kubernetes-version $KUBERNETES_VERSION images pull"
-  squawk 55 "$command2run"
   for i in "${!MASTERHOSTS[@]}"; do
-    ssh ${INIT_USER}@${MASTERHOSTS[$i]} "bash -l -c '$command2run'"
+    HOST=${MASTERHOSTS[$i]}
+    PORT=${MASTERPORTS[$i]}
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   squawk 33 "sleep 33 - give etcd a chance to settle"
-  sleep 11
+  sleep 33
 
   command2run="docker run --rm  \
     --net host \
@@ -2006,8 +2023,17 @@ EOF
 
   squawk 55 'To test etcd run this commmand'
   squawk 55 "$command2run"
-  squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
-  sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
+  this_counter=0
+  while [[ "$this_counter" -lt "15" ]]; do
+    sleep 3
+    squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
+    sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
+    if [[ "$?" == "0" ]]; then
+      squawk 1 "cluster is healthy"
+      this_counter=100
+    fi
+    ((++this_counter))
+  done
   grab_pki_ext_etcd_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
 
   for i in "${!MASTERHOSTS[@]}"; do
