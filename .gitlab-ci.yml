@@ -30,7 +30,7 @@ fulltest:
   tags:
     - fulltest
   only:
-    - fulltest@gitlab.com/kubash/kubash
+    - fulltest
   script:
     - echo 'fulltest executed!'
 
