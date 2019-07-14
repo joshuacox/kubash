@@ -33,6 +33,7 @@ fulltest:
   only:
     - fulltest
   script:
+    - git checkout fulltest
     - echo 'fulltest executed!'
 
 deploy_job:
