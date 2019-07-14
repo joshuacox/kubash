@@ -728,7 +728,7 @@ EOF'
   # create the archive
   command2run="tar -czf /tmp/etcd-pki.tar.gz -T etcd-pki-files.txt"
   sudo_command ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER} ${grab_pki_ext_etcdHOST} "$command2run"
-  squawk 55 "scp -P ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER}@${grab_pki_ext_etcdHOST}/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz"
+  squawk 53 "scp -P ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER}@${grab_pki_ext_etcdHOST}/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz"
   scp -P ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER}@${grab_pki_ext_etcdHOST}:/tmp/etcd-pki.tar.gz ${KUBASH_CLUSTER_DIR}/etcd-pki.tar.gz
   command2run="rm /tmp/etcd-pki.tar.gz"
   sudo_command ${grab_pki_ext_etcdPORT} ${grab_pki_ext_etcdUSER} ${grab_pki_ext_etcdHOST} "$command2run"
@@ -905,8 +905,9 @@ etcd_kubernetes_12_ext_etcd_method () {
 
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
-    # Create temp directories to store files that will end up on other hosts.
-    squawk 55 "mkdir -p $etcd_test_tmp/${HOST}/"
+    PORT=${ETCDPORTS[$i]}
+    sqawk 20 " Create temp directories to store files that will end up on other hosts."
+    squawk 32 "mkdir -p $etcd_test_tmp/${HOST}/"
     mkdir -p $etcd_test_tmp/${HOST}/
 
     # break indentation
@@ -940,7 +941,9 @@ EOF'
 
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
-    squawk 55 "mkdir -p $etcd_test_tmp/${HOST}/"
+    PORT=${ETCDPORTS[$i]}
+    sqawk 21 " Create temp directories to store files that will end up on other hosts. Master version"
+    squawk 33 "mkdir -p $etcd_test_tmp/${HOST}/"
     mkdir -p $etcd_test_tmp/${HOST}/
     # break indentation
     #command2run='cat << EOF > /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf
@@ -994,10 +997,10 @@ EOF
      >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
   fi
     command2run='systemctl daemon-reload'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${HOST} $command2run"
     ssh ${INIT_USER}@${HOST} "$command2run"
     command2run='systemctl restart kubelet'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${HOST} $command2run"
     ssh ${INIT_USER}@${HOST} "$command2run"
   done
   for i in "${!MASTERHOSTS[@]}"; do
@@ -1040,15 +1043,15 @@ networking:
   podSubnet: $my_KUBE_CIDR
 EOF
     command2run='systemctl daemon-reload'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${HOST} $command2run"
     ssh ${INIT_USER}@${HOST} "$command2run"
     #command2run='systemctl restart kubelet'
-    #squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
+    #squawk 53 "ssh ${INIT_USER}@${HOST} $command2run"
     #ssh ${INIT_USER}@${HOST} "$command2run"
   done
 
   command2run='kubeadm alpha phase certs etcd-ca'
-  squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+  squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
   ssh ${INIT_USER}@${ETCDHOSTS[0]} "$command2run"
 
   squawk 5 "copy pki directory to host 0"
@@ -1065,7 +1068,7 @@ EOF
     HOST=${ETCDHOSTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/
-    squawk 55 "tar zcf - ${HOST} | ssh ${INIT_USER}@${ETCDHOSTS[0]} cd /tmp; tar pzxvf -"
+    squawk 53 "tar zcf - ${HOST} | ssh ${INIT_USER}@${ETCDHOSTS[0]} cd /tmp; tar pzxvf -"
     tar zcf - ${HOST} | ssh ${INIT_USER}@${ETCDHOSTS[0]} "cd /tmp; tar pzxvf -"
     cd $PREV_PWD
   done
@@ -1073,27 +1076,27 @@ EOF
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
     command2run="kubeadm alpha phase certs etcd-server --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "$command2run"
     command2run="kubeadm alpha phase certs etcd-peer --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "$command2run"
     command2run="kubeadm alpha phase certs etcd-healthcheck-client --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "$command2run"
     command2run="kubeadm alpha phase certs apiserver-etcd-client --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "$command2run"
     command2run="rsync -a /etc/kubernetes/pki /tmp/${HOST}/"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "$command2run"
     squawk 5 "cleanup non-reusable certificates"
     command2run="find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "$command2run"
     squawk 5 "clean up certs that should not be copied off this host"
     command2run="find /tmp/${HOST} -name ca.key -type f -delete"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "$command2run"
     #if [[ $i -eq 0 ]]; then
       #grab_pki_ext_etcd_method $K8S_user ${ETCDHOSTS[0]} ${ETCDPORTS[0]}
@@ -1105,7 +1108,7 @@ EOF
     HOST=${ETCDHOSTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST}" | tar pzxvf -
     cd $PREV_PWD
   done
@@ -1115,9 +1118,9 @@ EOF
     PORT=${ETCDPORTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/${HOST}
-    squawk 55 "tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    squawk 53 "tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
     tar zcf - pki | ssh -p $PORT ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
-    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    squawk 53 "tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
     tar zcf - kubeadmcfg.yaml | ssh -p $PORT ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
     cd $PREV_PWD
   done
@@ -1156,12 +1159,12 @@ EOF
     --ca-file /etc/kubernetes/pki/etcd/ca.crt \
     --endpoints https://${ETCDHOSTS[0]}:2379 cluster-health"
 
-  squawk 55 'To test etcd run this commmand'
-  squawk 55 "$command2run"
+  squawk 53 'To test etcd run this commmand'
+  squawk 53 "$command2run"
   this_counter=0
   while [[ "$this_counter" -lt "15" ]]; do
     sleep 3
-    squawk 55 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
+    squawk 53 "sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} $command2run"
     sudo_command ${ETCDPORTS[0]} $K8S_user ${ETCDHOSTS[0]} "$command2run"
     if [[ "$?" == "0" ]]; then
       squawk 1 "cluster is healthy"
@@ -1174,7 +1177,7 @@ EOF
 
   # distribute the pki and configs
   #for i in "${!MASTERHOSTS[@]}"; do
-    #squawk 55 "cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/"
+    #squawk 53 "cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/"
     #cp -a $etcd_test_tmp/${ETCDHOSTS[0]}/pki $etcd_test_tmp/${MASTERHOSTS[$i]}/
   #done
   for i in "${!MASTERHOSTS[@]}"; do
@@ -1182,9 +1185,9 @@ EOF
     PREV_PWD=$(pwd)
     push_pki_ext_etcd_method  $K8S_user ${MASTERHOSTS[$i]} ${MASTERPORTS[$i]}
     cd $etcd_test_tmp/${HOST}
-    #squawk 55 "tar zcf - pki | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    #squawk 53 "tar zcf - pki | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
     #tar zcf - pki | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
-    squawk 55 "tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
+    squawk 53 "tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} cd /etc/kubernetes; tar pzxvf -"
     tar zcf - kubeadmcfg.yaml | ssh ${INIT_USER}@${HOST} "cd /etc/kubernetes; tar pzxvf -"
     cd $PREV_PWD
   done
@@ -1246,16 +1249,16 @@ EOF
         squawk 120 "rsync $KUBASH_RSYNC_OPTS ssh -p ${MASTERPORTS[$i]} $KUBASH_DIR/w8s/generic.w8 $INIT_USER@$HOST:/tmp/"
         rsync $KUBASH_RSYNC_OPTS "ssh -p ${MASTERPORTS[$i]}" $KUBASH_DIR/w8s/generic.w8 $INIT_USER@$HOST:/tmp/
         command2run='mv /tmp/generic.w8 /root/'
-        squawk 155 "$command2run"
+        squawk 153 "$command2run"
         sudo_command ${MASTERPORTS[$i]} ${INIT_USER} ${MASTERHOSTS[$i]} "$command2run"
         command2run='/root/generic.w8 kube-controller kube-system'
-        squawk 155 "$command2run"
+        squawk 153 "$command2run"
         sudo_command ${MASTERPORTS[$i]} ${INIT_USER} ${MASTERHOSTS[$i]} "$command2run"
         command2run='/root/generic.w8 kube-scheduler kube-system'
-        squawk 155 "$command2run"
+        squawk 153 "$command2run"
         sudo_command ${MASTERPORTS[$i]} ${INIT_USER} ${MASTERHOSTS[$i]} "$command2run"
         command2run='/root/generic.w8 kube-apiserver kube-system'
-        squawk 155 "$command2run"
+        squawk 153 "$command2run"
         sudo_command ${MASTERPORTS[$i]} ${INIT_USER} ${MASTERHOSTS[$i]} "$command2run"
         sleep 11
         squawk 5 "do_net before other masters"
@@ -1383,8 +1386,9 @@ etcd_kubernetes_13_ext_etcd_method () {
 
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     # Create temp directories to store files that will end up on other hosts.
-    squawk 55 "mkdir -p $etcd_test_tmp/${HOST}/"
+    squawk 50 "mkdir -p $etcd_test_tmp/${HOST}/"
     mkdir -p $etcd_test_tmp/${HOST}/
 
     # break indentation
@@ -1415,7 +1419,7 @@ EOF'
 
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
-    squawk 55 "mkdir -p $etcd_test_tmp/${HOST}/"
+    squawk 51 "mkdir -p $etcd_test_tmp/${HOST}/"
     mkdir -p $etcd_test_tmp/${HOST}/
   done
 
@@ -1459,10 +1463,10 @@ EOF
      >> $etcd_test_tmp/${HOST}/kubeadmcfg.yaml
   fi
     command2run='systemctl daemon-reload'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${HOST} $command2run"
     ssh ${INIT_USER}@${HOST} "$command2run"
     command2run='systemctl restart kubelet'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${HOST} $command2run"
     ssh ${INIT_USER}@${HOST} "$command2run"
   done
   for i in "${!MASTERHOSTS[@]}"; do
@@ -1505,12 +1509,12 @@ networking:
   podSubnet: $my_KUBE_CIDR
 EOF
     command2run='systemctl daemon-reload'
-    squawk 55 "ssh ${INIT_USER}@${HOST} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${HOST} $command2run"
     ssh ${INIT_USER}@${HOST} "bash -l -c '$command2run'"
   done
 
   command2run='kubeadm init phase certs etcd-ca'
-  squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+  squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
   ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
 
   squawk 5 "copy pki directory to host 0"
@@ -1527,7 +1531,7 @@ EOF
     HOST=${ETCDHOSTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/
-    squawk 55 "tar zcf - ${HOST} | ssh ${INIT_USER}@${ETCDHOSTS[0]} cd /tmp; tar pzxvf -"
+    squawk 53 "tar zcf - ${HOST} | ssh ${INIT_USER}@${ETCDHOSTS[0]} cd /tmp; tar pzxvf -"
     tar zcf - ${HOST} | ssh ${INIT_USER}@${ETCDHOSTS[0]} "cd /tmp; tar pzxvf -"
     cd $PREV_PWD
   done
@@ -1535,27 +1539,27 @@ EOF
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
     command2run="kubeadm init phase certs etcd-server --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
     command2run="kubeadm init phase certs etcd-peer --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
     command2run="kubeadm init phase certs etcd-healthcheck-client --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
     command2run="kubeadm init phase certs apiserver-etcd-client --config=/tmp/${HOST}/kubeadmcfg.yaml"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
     command2run="rsync -a /etc/kubernetes/pki /tmp/${HOST}/"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
     squawk 5 "cleanup non-reusable certificates"
     command2run="find /etc/kubernetes/pki -not -name ca.crt -not -name ca.key -type f -delete"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
     squawk 5 "clean up certs that should not be copied off this host"
     command2run="find /tmp/${HOST} -name ca.key -type f -delete"
-    squawk 55 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
+    squawk 53 "ssh ${INIT_USER}@${ETCDHOSTS[0]} $command2run"
     ssh ${INIT_USER}@${ETCDHOSTS[0]} "bash -l -c '$command2run'"
   done
 
@@ -1564,7 +1568,7 @@ EOF
     HOST=${ETCDHOSTS[$i]}
     PREV_PWD=$(pwd)
     cd $etcd_test_tmp/
-    squawk 55 "ssh -p $PORT ${INIT_USER}@${ETCDHOSTS[0]} mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
+    squawk 53 "ssh -p $PORT ${INIT_USER}@${ETCDHOSTS[0]} mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST} | tar pzxvf -"
     ssh -p $PORT ${INIT_USER}@${ETCDHOSTS[0]} "mkdir -p /etc/kubernetes && cd /tmp;tar zcf - ${HOST}" | tar pzxvf -
     cd $PREV_PWD
   done
@@ -1817,8 +1821,9 @@ etcd_kubernetes_13_ext_etcd_method () {
 
   for i in "${!ETCDHOSTS[@]}"; do
     HOST=${ETCDHOSTS[$i]}
+    PORT=${ETCDPORTS[$i]}
     # Create temp directories to store files that will end up on other hosts.
-    squawk 55 "mkdir -p $etcd_test_tmp/${HOST}/"
+    squawk 66 "mkdir -p $etcd_test_tmp/${HOST}/"
     mkdir -p $etcd_test_tmp/${HOST}/
 
     # break indentation
@@ -1849,7 +1854,7 @@ EOF'
 
   for i in "${!MASTERHOSTS[@]}"; do
     HOST=${MASTERHOSTS[$i]}
-    squawk 55 "mkdir -p $etcd_test_tmp/${HOST}/"
+    squawk 67 "mkdir -p $etcd_test_tmp/${HOST}/"
     mkdir -p $etcd_test_tmp/${HOST}/
   done
 

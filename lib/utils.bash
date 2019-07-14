@@ -383,8 +383,8 @@ sudo_command () {
   sudo_command_host=$3
   command2run=$4
   if [[ "$sudo_command_host" == "localhost" ]]; then
-    squawk 105 "sudo bash -l -c '$command2run'"
-    sudo bash -l -c "$command2run"
+    squawk 105 "$PSEUDO bash -l -c '$command2run'"
+    $PSEUDO bash -l -c "$command2run"
   else
     squawk 105 "ssh -n -p $sudo_command_port $sudo_command_user@$sudo_command_host \"$PSEUDO bash -l -c '$command2run'\""
     ssh -n -p $sudo_command_port $sudo_command_user@$sudo_command_host "$PSEUDO bash -l -c '$command2run'"
