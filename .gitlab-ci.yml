@@ -33,7 +33,7 @@ fulltest:
   only:
     - fulltest
   script:
-    - echo 'fulltest executed!'
+    - echo 'fulltest'
 
 deploy_job:
   stage: deploy
