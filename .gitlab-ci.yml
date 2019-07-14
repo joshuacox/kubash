@@ -32,7 +32,7 @@ fulltest:
   only:
     - fulltest@gitlab.com/kubash/kubash
   script:
-    - echo 'fulltest'
+    - echo 'fulltest executed!'
 
 deploy_job:
   stage: deploy
