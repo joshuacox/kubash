@@ -11,3 +11,9 @@ rspec:
 rubocop:
   script:
     - echo 'rubocop'
+
+fulltest:
+  only:
+    - fulltest@gitlab.com/kubash/kubash
+  script:
+    - echo 'fulltest'
