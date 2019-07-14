@@ -921,6 +921,9 @@ EOF"
 
     sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
 
+    squawk 32 "mkdir -p /var/lib/kubelet/"
+    command2run='mkdir -p /var/lib/kubelet'
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
     # break indentation
     command2run='cat << EOF > /var/lib/kubelet/config.yaml
 kind: KubeletConfiguration
@@ -929,7 +932,7 @@ address: 127.0.0.1
 staticpodpath: /etc/kubernetes/manifests
 EOF'
     # unbreak indentation
-    #sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
   done
   #do_command_in_parallel_on_os 'coreos' "mkdir -p /opt/cni/bin"
   command2run="sed -i 's:/usr/bin:/opt/bin:g' /etc/systemd/system/kubelet.service.d/20-etcd-service-manager.conf"
@@ -1400,6 +1403,10 @@ Restart=always
 EOF"
     # unbreak indentation
     sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
+
+    squawk 50 "mkdir -p /var/lib/kubelet/"
+    command2run='mkdir -p /var/lib/kubelet'
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
     # break indentation
     command2run='cat << EOF > /var/lib/kubelet/config.yaml
 kind: KubeletConfiguration
@@ -1834,6 +1841,10 @@ ExecStart=/usr/bin/kubelet --address=127.0.0.1 --pod-manifest-path=/etc/kubernet
 Restart=always
 EOF"
     # unbreak indentation
+    sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
+
+    squawk 66 "mkdir -p /var/lib/kubelet/"
+    command2run='mkdir -p /var/lib/kubelet'
     sudo_command ${PORT} ${INIT_USER} ${HOST} "$command2run"
     # break indentation
     command2run='cat << EOF > /var/lib/kubelet/config.yaml

@@ -7,6 +7,9 @@ TMP=$(mktemp -d)
 : ${DOCKER_COMPOSE_PKG:='1.8.0'}
 : ${KUBEPKG_VERSION:="1.9.3"}
 : ${ETCD_VERSION:="3.2.17"}
+#: ${DOCKER_CGROUP_DRIVER:='systemd'}
+: ${DOCKER_CGROUP_DRIVER:='cgroupfs'}
+
 
 cat <<EOF > $TMP/inventory
 localhost ansible_connection=local
@@ -136,7 +139,7 @@ install_kubernetes_docker () {
   # Setup daemon.
   cat > /etc/docker/daemon.json <<EOF
 {
-  "exec-opts": ["native.cgroupdriver=systemd"],
+  "exec-opts": ["native.cgroupdriver=$DOCKER_CGROUP_DRIVER"],
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "100m"

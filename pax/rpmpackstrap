@@ -12,6 +12,8 @@ TMP=$(mktemp -d)
 : ${KUBEADM_PKG:="kubeadm-$KUBEPKG_VERSION"}
 : ${KUBECTL_PKG:="kubectl-$KUBEPKG_VERSION"}
 : ${ETCD_PKG="etcd-$ETCD_VERSION"}
+#: ${DOCKER_CGROUP_DRIVER:='systemd'}
+: ${DOCKER_CGROUP_DRIVER:='cgroupfs'}
 
 cd $TMP
 cat <<EOF > $TMP/inventory
@@ -118,7 +120,7 @@ install_spec_docker () {
   #yum install docker-ce
   yum install -y $DOCKER_PKG_NAME $KUBECTL_PKG $KUBEADM_PKG $KUBELET_PKG $ETCD_PKG
   #yum install -y kubelet kubeadm kubectl
-  echo 'Environment="KUBELET_CGROUP_ARGS=--cgroup-driver=cgroupfs"' \
+  echo "Environment='KUBELET_CGROUP_ARGS=--cgroup-driver=$DOCKER_CGROUP_DRIVER'" \
     >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
   #######
   install_docker_compose
@@ -151,7 +153,7 @@ install_kubernetes_docker () {
   # Setup daemon.
   cat > /etc/docker/daemon.json <<EOF
 {
-  "exec-opts": ["native.cgroupdriver=systemd"],
+  "exec-opts": ["native.cgroupdriver=$DOCKER_CGROUP_DRIVER"],
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "100m"
