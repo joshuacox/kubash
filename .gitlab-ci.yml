@@ -25,7 +25,7 @@ fulltest:
   only:
     - fulltest
   script:
-    - echo 'fulltest'
+    - echo 'fulltest1'
 
 deploy_job:
   stage: deploy
