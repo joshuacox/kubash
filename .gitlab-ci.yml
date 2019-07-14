@@ -3,14 +3,6 @@ stages:
   - test 
   - deploy 
 
-
-image: "ruby:2.5"
-
-before_script:
-  - ruby -v
-  - which ruby
-  - pwd 
-
 build_job:
   stage: build
   script:
