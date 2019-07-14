@@ -1,19 +1,40 @@
+stages:
+  - build
+  - test 
+  - deploy 
+
+build_job:
+  stage: build
+  script:
+    - echo 'build'
+
 image: "ruby:2.5"
 
 before_script:
+  stage: test
   - ruby -v
   - which ruby
 
 rspec:
+  stage: test
   script:
     - echo 'rspec'
 
 rubocop:
+  stage: test
   script:
     - echo 'rubocop'
 
 fulltest:
+  stage: test
+  tags:
+    - fulltest
   only:
     - fulltest@gitlab.com/kubash/kubash
   script:
     - echo 'fulltest'
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo 'deploy'
