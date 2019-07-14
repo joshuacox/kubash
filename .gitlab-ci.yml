@@ -3,17 +3,17 @@ stages:
   - test 
   - deploy 
 
-build_job:
-  stage: build
-  script:
-    - echo 'build'
 
 image: "ruby:2.5"
 
 before_script:
-  stage: test
   - ruby -v
   - which ruby
+
+build_job:
+  stage: build
+  script:
+    - echo 'build'
 
 rspec:
   stage: test
