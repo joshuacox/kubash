@@ -1,6 +1,6 @@
 #!/bin/bash -l
-ls -alh ./header
-. ./header
+ls -alh .ci/header
+. .ci/header
 echo builder.sh
 whoami
 set -eux
