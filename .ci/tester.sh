@@ -10,7 +10,7 @@ which kubash
 which packer
 
 main () {
-  kubash -n coreos1 yaml2cluster ~/coreos1/coreos1.yaml
+  kubash -n coreos1 yaml2cluster ~/.kubash/examples/coreos1-stacked.yaml
   kubash -n coreos1 provision --verbosity=100
   kubash -n coreos1 init --verbosity=100
   cp ~/.kubash/clusters/coreos1/config ~/.kube/config
