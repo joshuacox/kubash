@@ -41,7 +41,7 @@ packer_build () {
   squawk 2 "TMPDIR=$KVM_builderTMP packer build -only=$build_virt $debug_flag $target_build.json"
   packer_build_cmd="packer build -only=$build_virt $debug_flag $target_build.json"
   command2run="cd $KUBASH_DIR/pax/$target_os; PACKER_LOG=$PACKER_LOG TMPDIR=$KVM_builderTMP $packer_build_cmd"
-  do_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
+  sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 
   TARGET_FILE=$KVM_builderDir/packer-$target_build-$build_virt/$target_build
   DESTINATION_FILE=$KVM_builderBasePath/$target_os-$KVM_BASE_IMG
