@@ -9,6 +9,7 @@ build_job:
   script:
     - whoami
     - echo 'build'
+    - bash -l .ci/ex.sh
     - curl -sL git.io/kubash > /tmp/kubash
     - chmod +x /tmp/kubash
     - yes y | /tmp/kubash
@@ -26,6 +27,7 @@ fulltest-build:
   script:
     - whoami
     - echo 'fulltest1build'
+    - bash -l .ci/ex.sh
     - curl -sL git.io/kubash > /tmp/kubash
     - chmod +x /tmp/kubash
     - yes y | /tmp/kubash
