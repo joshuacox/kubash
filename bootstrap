@@ -154,6 +154,7 @@ main () {
   check_cmd npm
   make jinja2
   make yaml2json
+  make ct
   check_install ct
   #make ct
   check_install helm
