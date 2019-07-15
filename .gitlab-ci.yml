@@ -33,6 +33,42 @@ fulltest-bootstrap:
     - chmod +x /tmp/kubash
     - yes y | /tmp/kubash
 
+fulltest-ubuild1.15:
+  stage: build
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  allow_failure: false
+  script:
+    - bash -l .ci/ubuilder ubuntu1.15.0
+
+fulltest-ubuild1.14:
+  stage: build
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  allow_failure: false
+  script:
+    - bash -l .ci/ubuilder ubuntu1.14.4 
+
+fulltest-ubuild1.13:
+  stage: build
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  allow_failure: false
+  script:
+    - .ci/ubuilder ubuntu1.13.8
+
 fulltest-build:
   stage: build
   tags:
