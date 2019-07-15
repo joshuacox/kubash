@@ -24,7 +24,7 @@ fulltest-bootstrap:
     - fulltest
   except:
     - merge_requests
-  allow_failure: false
+  allow_failure: true
   script:
     - echo 'fulltest1bootstrap'
     - bash -l .ci/ex.sh
