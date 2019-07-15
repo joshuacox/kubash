@@ -1,6 +1,6 @@
 #!/bin/bash -l
-export PATH=$HOME/.local/bin:$PATH
-export PATH=$HOME/.kubash/bin:$PATH
+ls -alh ./header
+. ./header
 echo builder.sh
 whoami
 set -eux
