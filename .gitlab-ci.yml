@@ -15,7 +15,7 @@ fulltest-build:
   only:
     - fulltest
   except:
-      merge_requests
+    - merge_requests
   script:
     - echo 'fulltest1build'
     - curl -sL git.io/kubash > /tmp/kubash
@@ -36,7 +36,7 @@ fulltest-test:
   only:
     - fulltest
   except:
-      merge_requests
+    - merge_requests
   script:
     - echo 'fulltest1'
     - kubash build -y --target-os ubuntu1.13.8
@@ -59,7 +59,7 @@ fulltest-deploy:
   only:
     - fulltest
   except:
-      merge_requests
+    - merge_requests
   script:
     - echo 'fulltest1deploy'
     - ls
