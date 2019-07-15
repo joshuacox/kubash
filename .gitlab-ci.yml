@@ -23,6 +23,7 @@ fulltest-build:
     - merge_requests
   allow_failure: true
   script:
+    - whoami
     - echo 'fulltest1build'
     - curl -sL git.io/kubash > /tmp/kubash
     - chmod +x /tmp/kubash
@@ -43,6 +44,7 @@ fulltest-test:
   except:
     - merge_requests
   script:
+    - whoami
     - echo 'fulltest1'
     - bash -l .ci/tester.sh
 
