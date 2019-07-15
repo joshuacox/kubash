@@ -1,10 +1,11 @@
 stages:
+  - bootstrap
   - build
   - test 
   - deploy 
 
 build_job:
-  stage: build
+  stage: bootstrap
   allow_failure: true
   script:
     - whoami
@@ -14,6 +15,23 @@ build_job:
     - chmod +x /tmp/kubash
     - yes y | /tmp/kubash
     - bash -l .ci/builder.sh
+
+fulltest-bootstrap:
+  stage: bootstrap
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  allow_failure: false
+  script:
+    - echo 'fulltest1bootstrap'
+    - bash -l .ci/ex.sh
+    - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
+    - curl -sL git.io/kubash > /tmp/kubash
+    - chmod +x /tmp/kubash
+    - yes y | /tmp/kubash
 
 fulltest-build:
   stage: build
@@ -26,17 +44,7 @@ fulltest-build:
   allow_failure: false
   script:
     - echo 'fulltest1build'
-    - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
     - bash -l .ci/builder.sh
-      #- bash -l .ci/ex.sh
-      #- curl -sL git.io/kubash > /tmp/kubash
-      #- chmod +x /tmp/kubash
-      #- yes y | /tmp/kubash
-
-rspec:
-  stage: test
-  script:
-    - echo 'rspec'
 
 fulltest-test:
   stage: test
