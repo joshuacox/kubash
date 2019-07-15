@@ -20,6 +20,8 @@ fulltest-build:
     - echo 'fulltest1build'
     - curl -sL git.io/kubash > /tmp/kubash
     - chmod +x /tmp/kubash
+    - printenv
+    - which kubash
       #- yes y | /tmp/kubash
 
 rspec:
