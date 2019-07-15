@@ -7,11 +7,12 @@ build_job:
   stage: build
   allow_failure: true
   script:
+    - whoami
     - echo 'build'
     - curl -sL git.io/kubash > /tmp/kubash
     - chmod +x /tmp/kubash
-    - bash -l .ci/builder.sh
     - yes y | /tmp/kubash
+    - bash -l .ci/builder.sh
 
 fulltest-build:
   stage: build
@@ -27,8 +28,8 @@ fulltest-build:
     - echo 'fulltest1build'
     - curl -sL git.io/kubash > /tmp/kubash
     - chmod +x /tmp/kubash
-    - bash -l .ci/builder.sh
     - yes y | /tmp/kubash
+    - bash -l .ci/builder.sh
 
 rspec:
   stage: test
