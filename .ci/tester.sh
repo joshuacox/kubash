@@ -7,6 +7,7 @@ set -eux
 . ~/.bashrc
 printenv
 which kubash
+which packer
 
 main () {
   kubash build -y --target-os ubuntu1.13.8
