@@ -27,11 +27,11 @@ fulltest-build:
   script:
     - echo 'fulltest1build'
     - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
+    - bash -l .ci/builder.sh
       #- bash -l .ci/ex.sh
       #- curl -sL git.io/kubash > /tmp/kubash
       #- chmod +x /tmp/kubash
       #- yes y | /tmp/kubash
-      # - bash -l .ci/builder.sh
 
 rspec:
   stage: test
