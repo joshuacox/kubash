@@ -38,6 +38,7 @@ packer_build () {
     debug_flag=''
     PACKER_LOG=0
   fi
+  rsync $KUBASH_RSYNC_OPTS "ssh -p $KVM_builderPort" $KUBASH_BIN/packer $KVM_builderUser@$KVM_builderHost:/usr/local/bin/packer
   squawk 2 "TMPDIR=$KVM_builderTMP packer build -only=$build_virt $debug_flag $target_build.json"
   packer_build_cmd="packer build -only=$build_virt $debug_flag $target_build.json"
   command2run="cd $KUBASH_DIR/pax/$target_os; PACKER_LOG=$PACKER_LOG TMPDIR=$KVM_builderTMP $packer_build_cmd"
