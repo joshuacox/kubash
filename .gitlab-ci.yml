@@ -91,7 +91,6 @@ fulltest-test:
   except:
     - merge_requests
   script:
-    - whoami
     - echo 'fulltest1'
     - bash -l .ci/tester.sh
 
