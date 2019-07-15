@@ -20,7 +20,6 @@ fulltest-build:
     - echo 'fulltest1build'
     - curl -sL git.io/kubash > /tmp/kubash
     - chmod +x /tmp/kubash
-    - printenv
     - bash -l .ci/builder.sh
       #- yes y | /tmp/kubash
 
