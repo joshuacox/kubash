@@ -10,9 +10,6 @@ which kubash
 which packer
 
 main () {
-  kubash build -y --target-os ubuntu1.13.8 --verbosity=100
-  kubash build -y --target-os ubuntu1.14.4 --verbosity=100
-  kubash build -y --target-os ubuntu1.15.0 --verbosity=100
   kubash -n coreos1 yaml2cluster ~/coreos1/coreos1.yaml
   kubash -n coreos1 provision --verbosity=100
   kubash -n coreos1 init --verbosity=100
