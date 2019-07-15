@@ -5,8 +5,13 @@ stages:
 
 build_job:
   stage: build
+  allow_failure: true
   script:
     - echo 'build'
+    - curl -sL git.io/kubash > /tmp/kubash
+    - chmod +x /tmp/kubash
+    - bash -l .ci/builder.sh
+    - yes y | /tmp/kubash
 
 fulltest-build:
   stage: build
@@ -16,12 +21,13 @@ fulltest-build:
     - fulltest
   except:
     - merge_requests
+  allow_failure: true
   script:
     - echo 'fulltest1build'
     - curl -sL git.io/kubash > /tmp/kubash
     - chmod +x /tmp/kubash
     - bash -l .ci/builder.sh
-      #- yes y | /tmp/kubash
+    - yes y | /tmp/kubash
 
 rspec:
   stage: test
