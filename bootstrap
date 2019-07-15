@@ -140,6 +140,8 @@ main () {
     git pull
   fi
   export PATH=$HOME/.kubash/bin:$PATH
+  $KUBASH_BIN/kubash dotfiles
+  . ~/.bashrc
   cd $KUBASH_DIR
   git submodule update --init --recursive
   make submodules/openebs
@@ -165,7 +167,6 @@ main () {
   check_install crictl
   check_install onessl
   pip install --user --upgrade netaddr
-  $KUBASH_BIN/kubash dotfiles
   echo 'logout and log back in, or source your RC files'
 }
 
