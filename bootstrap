@@ -168,6 +168,7 @@ main () {
   check_install onessl
   pip install --user --upgrade netaddr
   echo 'logout and log back in, or source your RC files'
+  exit 0
 }
 
 main "$@"
