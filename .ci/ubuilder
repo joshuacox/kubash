@@ -1,0 +1,12 @@
+#!/bin/bash -l
+. .ci/header
+. ~/.bashrc
+echo ubuilder $@
+whoami
+set -eux
+
+main () {
+  kubash build -y --target-os $1 --verbosity=100
+}
+
+time main $@
