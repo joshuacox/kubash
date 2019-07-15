@@ -16,7 +16,9 @@ fulltest-build:
     - fulltest
   script:
     - echo 'fulltest1build'
-    - yes y | curl -L git.io/kubash|bash
+    - curl -sL git.io/kubash > /tmp/kubash
+    - chmod +x /tmp/kubash
+    - yes y | /tmp/kubash
 
 rspec:
   stage: test
