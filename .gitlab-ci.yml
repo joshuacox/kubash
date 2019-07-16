@@ -33,7 +33,7 @@ fulltest-bootstrap:
     - chmod +x /tmp/kubash
     - yes y | /tmp/kubash
 
-fulltest-ubuild1.15:
+fulltest-ubuild1.15.0:
   stage: build
   tags:
     - fulltest
@@ -45,19 +45,23 @@ fulltest-ubuild1.15:
   script:
     - .ci/ubuilder ubuntu1.15.0
 
-fulltest-ubuild1.14:
+fulltest-ubuild1.14.4:
   stage: build
   tags:
     - fulltest
   only:
-    - fulltest22
+    - fulltest
   except:
     - merge_requests
   allow_failure: false
   script:
+    - echo 'debug' 
+    - . ~/.bashrc
+    - printenv
+    - echo 'build ubuntu1.14.4' 
     - .ci/ubuilder ubuntu1.14.4
 
-fulltest-ubuild1.13:
+fulltest-ubuild1.13.8:
   stage: build
   tags:
     - fulltest
@@ -94,7 +98,7 @@ fulltest-test:
     - echo 'fulltest1'
       #    - bash -l .ci/tester.sh
 
-stacked-ubuntu1.14:
+stacked-ubuntu1.14.4:
   stage: test
   tags:
     - fulltest
@@ -103,6 +107,10 @@ stacked-ubuntu1.14:
   except:
     - merge_requests
   script:
+    - echo 'debug' 
+    - . ~/.bashrc
+    - printenv
+    - echo 'commence stacked-ubuntu-v1.14.4' 
     - scripts/tester stacked ubuntu1.14.4 v1.14.4
 
 extetcd-ubuntu1.14:
@@ -114,6 +122,10 @@ extetcd-ubuntu1.14:
   except:
     - merge_requests
   script:
+    - echo 'debug' 
+    - . ~/.bashrc
+    - printenv
+    - echo 'commence extetcd-ubuntu-v1.14.4' 
     - scripts/tester extetcd ubuntu1.14.4 v1.14.4
 
 stacked-coreos:
@@ -125,6 +137,10 @@ stacked-coreos:
   except:
     - merge_requests
   script:
+    - echo 'debug' 
+    - . ~/.bashrc
+    - printenv
+    - echo 'commence stacked-coreos' 
     - scripts/tester stacked coreos v1.14.4
 
 extetcd-coreos:
@@ -136,6 +152,10 @@ extetcd-coreos:
   except:
     - merge_requests
   script:
+    - echo 'debug' 
+    - . ~/.bashrc
+    - printenv
+    - echo 'commence extetcd-coreos' 
     - scripts/tester extetcd coreos v1.14.4
 
 

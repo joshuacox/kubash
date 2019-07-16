@@ -3,7 +3,15 @@
 . ~/.bashrc
 echo ubuilder $@
 whoami
+printenv|grep KEYS
 set -eux
+
+if [[ -z $KEYS_TO_ADD ]]; then
+  if [[ -z $KEYS_URL ]]; then
+    echo 'KEYS are not set! You will not be able to login to this machine, bailing out now!'
+    exit 1
+  fi
+fi
 
 main () {
   kubash build -y --target-os $1 --verbosity=100
