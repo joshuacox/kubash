@@ -110,12 +110,14 @@ main () {
     DEB_PKG_GET='jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap python-pip virtinst qemu-kvm libvirt-clients libvirt-daemon-system net-tools dnsutils'
     if type "apt-get" &> /dev/null; then
       check_cmd apt-get
+      $PSEUDO apt-get update
       $PSEUDO apt-get install $DEB_PKG_GET
     fi
   elif [[ "$NAME" = 'CentOS Linux' ]]; then
     if type "yum" &> /dev/null; then
       YUM_PKG_GET='jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap net-tools'
       check_cmd yum
+      $PSEUDO yum update
       $PSEUDO yum install $YUM_PKG_GET
     fi
   elif [[ "$NAME" = 'Arch Linux' ]]; then
