@@ -11,6 +11,7 @@ fi
 TMP=$(mktemp -d)
 this_test=$1
 this_os_ver=$2
+. $HOME/.kubash/.ci/header
 
 printenv
 
