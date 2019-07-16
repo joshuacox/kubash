@@ -5,8 +5,9 @@ stages:
   - deploy 
 
 build_job:
+  image: ubuntu:bionic
   stage: bootstrap
-  allow_failure: true
+  allow_failure: false
   script:
     - whoami
     - echo 'build'
@@ -85,6 +86,7 @@ fulltest-build:
     - .ci/builder.sh
 
 fulltest-test:
+  image: ubuntu:bionic
   stage: test
   tags:
     - fulltest
@@ -188,6 +190,7 @@ extetcd-coreos:
 
 
 fulltest-deploy:
+  image: ubuntu:bionic
   stage: deploy
   tags:
     - fulltest
@@ -200,6 +203,7 @@ fulltest-deploy:
     - pwd
 
 deploy_job:
+  image: ubuntu:bionic
   stage: deploy
   script:
     - echo 'deploy'
