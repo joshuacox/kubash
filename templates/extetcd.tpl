@@ -15,7 +15,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:11'
         ip: dhcp
     extetcd-master2:
@@ -32,7 +32,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:12'
         ip: dhcp
     extetcd-master3:
@@ -49,7 +49,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:13'
         ip: dhcp
     extetcd-etcd1:
@@ -66,7 +66,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:14'
         ip: dhcp
     extetcd-etcd2:
@@ -83,7 +83,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:15'
         ip: dhcp
     extetcd-etcd3:
@@ -100,7 +100,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:16'
         ip: dhcp
     extetcd-node1:
@@ -117,7 +117,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:17'
         ip: dhcp
     extetcd-node2:
@@ -134,7 +134,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:18'
         ip: dhcp
     extetcd-node3:
@@ -151,7 +151,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:19'
         ip: dhcp
     extetcd-ingress1:
@@ -168,7 +168,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:20'
         ip: dhcp
     extetcd-storage1:
@@ -185,7 +185,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9f:21'
         ip: dhcp
       iscsi:

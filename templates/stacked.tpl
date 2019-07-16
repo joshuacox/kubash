@@ -15,7 +15,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9e:11'
         ip: dhcp
     stacked-master2:
@@ -32,7 +32,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9e:12'
         ip: dhcp
     stacked-master3:
@@ -49,7 +49,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9e:13'
         ip: dhcp
     stacked-node1:
@@ -66,7 +66,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9e:17'
         ip: dhcp
     stacked-node2:
@@ -83,7 +83,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9e:18'
         ip: dhcp
     stacked-node3:
@@ -100,7 +100,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9e:19'
         ip: dhcp
     stacked-ingress1:
@@ -117,7 +117,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9e:20'
         ip: dhcp
     stacked-storage1:
@@ -134,7 +134,7 @@
       virt: qemu
       sshPort: 22
       network1:
-        network: bridge=br1
+        network: network=default
         mac: '52:54:00:e2:9e:21'
         ip: dhcp
   ca:
