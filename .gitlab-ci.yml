@@ -149,7 +149,6 @@ fulltest-deploy:
     - merge_requests
   script:
     - echo 'fulltest1deploy'
-    - ls
     - pwd
 
 deploy_job:
