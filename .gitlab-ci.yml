@@ -11,9 +11,7 @@ build_job:
     - whoami
     - echo 'build'
     - bash -l .ci/ex.sh
-    - curl -sL git.io/kubash > /tmp/kubash
-    - chmod +x /tmp/kubash
-    - yes y | /tmp/kubash
+    - yes y |  bootstrap
     - bash -l .ci/builder.sh
 
 fulltest-bootstrap:
@@ -28,10 +26,10 @@ fulltest-bootstrap:
   script:
     - echo 'fulltest1bootstrap'
     - bash -l .ci/ex.sh
+    - yes y |  bootstrap
     - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
-    - curl -sL git.io/kubash > /tmp/kubash
-    - chmod +x /tmp/kubash
-    - yes y | /tmp/kubash
+      #- curl -sL git.io/kubash > /tmp/kubash
+      #- chmod +x /tmp/kubash
 
 fulltest-ubuild1.15.0:
   stage: build
@@ -66,7 +64,7 @@ fulltest-ubuild1.13.8:
   tags:
     - fulltest
   only:
-    - fulltest22
+    - fulltest
   except:
     - merge_requests
   allow_failure: false
@@ -113,7 +111,7 @@ stacked-ubuntu1.14.4:
     - echo 'commence stacked-ubuntu-v1.14.4' 
     - scripts/tester stacked ubuntu1.14.4 v1.14.4
 
-extetcd-ubuntu1.14:
+extetcd-ubuntu1.14.4:
   stage: test
   tags:
     - fulltest
@@ -127,6 +125,36 @@ extetcd-ubuntu1.14:
     - printenv
     - echo 'commence extetcd-ubuntu-v1.14.4' 
     - scripts/tester extetcd ubuntu1.14.4 v1.14.4
+
+stacked-ubuntu1.13.8:
+  stage: test
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  script:
+    - echo 'debug' 
+    - . ~/.bashrc
+    - printenv
+    - echo 'commence stacked-ubuntu-v1.13.8' 
+    - scripts/tester stacked ubuntu1.13.8 v1.13.8
+
+extetcd-ubuntu1.13.8:
+  stage: test
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  script:
+    - echo 'debug' 
+    - . ~/.bashrc
+    - printenv
+    - echo 'commence extetcd-ubuntu-v1.13.8' 
+    - scripts/tester extetcd ubuntu1.13.8 v1.13.8
 
 stacked-coreos:
   stage: test
