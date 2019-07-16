@@ -7,13 +7,13 @@ stages:
 build_job:
   image: ubuntu:bionic
   stage: bootstrap
-  allow_failure: false
+  allow_failure: true
   script:
     - whoami
     - echo 'build'
     - bash -l .ci/ex.sh
     - yes y | ./bootstrap
-    - bash -l .ci/builder.sh
+      #    - bash -l .ci/builder.sh
 
 fulltest-bootstrap:
   stage: bootstrap
