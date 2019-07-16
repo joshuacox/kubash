@@ -103,7 +103,7 @@ stacked-ubuntu1.14:
   except:
     - merge_requests
   script:
-    - scripts/tester stacked ubuntu1.14.4
+    - scripts/tester stacked ubuntu1.14.4 v1.14.4
 
 extetcd-ubuntu1.14:
   stage: test
@@ -114,7 +114,7 @@ extetcd-ubuntu1.14:
   except:
     - merge_requests
   script:
-    - scripts/tester extetcd ubuntu1.14.4
+    - scripts/tester extetcd ubuntu1.14.4 v1.14.4
 
 stacked-coreos:
   stage: test
@@ -125,7 +125,7 @@ stacked-coreos:
   except:
     - merge_requests
   script:
-    - scripts/tester stacked coreos
+    - scripts/tester stacked coreos v1.14.4
 
 extetcd-coreos:
   stage: test
@@ -136,7 +136,7 @@ extetcd-coreos:
   except:
     - merge_requests
   script:
-    - scripts/tester extetcd coreos
+    - scripts/tester extetcd coreos v1.14.4
 
 
 fulltest-deploy:
