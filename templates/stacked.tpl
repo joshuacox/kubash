@@ -7,7 +7,7 @@
       cpuCount: 4
       Memory: 2800
       provisioner:
-        Host: '10.0.23.12'
+        Host: 'localhost'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
@@ -24,7 +24,7 @@
       cpuCount: 4
       Memory: 2500
       provisioner:
-        Host: '10.0.23.12'
+        Host: 'localhost'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
@@ -41,7 +41,7 @@
       cpuCount: 4
       Memory: 2500
       provisioner:
-        Host: '10.0.23.12'
+        Host: 'localhost'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
@@ -58,7 +58,7 @@
       cpuCount: 4
       Memory: 4096
       provisioner:
-        Host: '10.0.23.12'
+        Host: 'localhost'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
@@ -75,7 +75,7 @@
       cpuCount: 3
       Memory: 2222
       provisioner:
-        Host: '10.0.23.12'
+        Host: 'localhost'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
@@ -92,7 +92,7 @@
       cpuCount: 2
       Memory: 2222
       provisioner:
-        Host: '10.0.23.12'
+        Host: 'localhost'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
@@ -109,7 +109,7 @@
       cpuCount: 2
       Memory: 2222
       provisioner:
-        Host: '10.0.23.12'
+        Host: 'localhost'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'
@@ -126,7 +126,7 @@
       cpuCount: 2
       Memory: 2222
       provisioner:
-        Host: '10.0.23.12'
+        Host: 'localhost'
         User: root
         Port: 22
         BasePath: '/var/lib/libvirt/images'

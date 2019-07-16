@@ -43,7 +43,7 @@ fulltest-ubuild1.15:
     - merge_requests
   allow_failure: false
   script:
-    - bash -l .ci/ubuilder ubuntu1.15.0
+    - .ci/ubuilder ubuntu1.15.0
 
 fulltest-ubuild1.14:
   stage: build
@@ -55,7 +55,7 @@ fulltest-ubuild1.14:
     - merge_requests
   allow_failure: false
   script:
-    - bash -l .ci/ubuilder ubuntu1.14.4 
+    - .ci/ubuilder ubuntu1.14.4
 
 fulltest-ubuild1.13:
   stage: build
@@ -80,7 +80,7 @@ fulltest-build:
   allow_failure: false
   script:
     - echo 'fulltest1build'
-    - bash -l .ci/builder.sh
+    - .ci/builder.sh
 
 fulltest-test:
   stage: test
@@ -92,7 +92,52 @@ fulltest-test:
     - merge_requests
   script:
     - echo 'fulltest1'
-    - bash -l .ci/tester.sh
+      #    - bash -l .ci/tester.sh
+
+stacked-ubuntu1.14:
+  stage: test
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  script:
+    - scripts/tester stacked ubuntu1.14.4
+
+extetcd-ubuntu1.14:
+  stage: test
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  script:
+    - scripts/tester extetcd ubuntu1.14.4
+
+stacked-coreos:
+  stage: test
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  script:
+    - scripts/tester stacked coreos
+
+extetcd-coreos:
+  stage: test
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  script:
+    - scripts/tester extetcd coreos
+
 
 fulltest-deploy:
   stage: deploy
