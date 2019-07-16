@@ -2,9 +2,9 @@
 pwd
 ls -alh .ci/header
 . .ci/header
+. ~/.bashrc
 echo ex.sh
 whoami
 set -eux
-. ~/.bashrc
 printenv
 #which kubash
