@@ -157,7 +157,9 @@ main () {
   . ~/.bashrc
   cd $KUBASH_DIR
   git submodule update --init --recursive
+  echo 'install openebs'
   make submodules/openebs
+  echo 'install nvm'
   make nvm
   export NVM_DIR="$HOME/.nvm"
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -167,6 +169,7 @@ main () {
   check_cmd npm
   make jinja2
   make yaml2json
+  echo 'install ct'
   make ct
   check_install ct
   #make ct
