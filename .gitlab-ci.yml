@@ -38,7 +38,7 @@ fulltest-ubuild1.15:
   tags:
     - fulltest
   only:
-    - fulltest
+    - fulltest22
   except:
     - merge_requests
   allow_failure: false
@@ -50,7 +50,7 @@ fulltest-ubuild1.14:
   tags:
     - fulltest
   only:
-    - fulltest
+    - fulltest22
   except:
     - merge_requests
   allow_failure: false
@@ -62,7 +62,7 @@ fulltest-ubuild1.13:
   tags:
     - fulltest
   only:
-    - fulltest
+    - fulltest22
   except:
     - merge_requests
   allow_failure: false
@@ -74,7 +74,7 @@ fulltest-build:
   tags:
     - fulltest
   only:
-    - fulltest
+    - fulltest22
   except:
     - merge_requests
   allow_failure: false
