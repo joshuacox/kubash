@@ -11,7 +11,7 @@ build_job:
     - whoami
     - echo 'build'
     - bash -l .ci/ex.sh
-    - yes y |  bootstrap
+    - yes y | ./bootstrap
     - bash -l .ci/builder.sh
 
 fulltest-bootstrap:
@@ -26,7 +26,7 @@ fulltest-bootstrap:
   script:
     - echo 'fulltest1bootstrap'
     - bash -l .ci/ex.sh
-    - yes y |  bootstrap
+    - yes y | ./bootstrap
     - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
       #- curl -sL git.io/kubash > /tmp/kubash
       #- chmod +x /tmp/kubash
