@@ -7,4 +7,4 @@ whoami
 set -eux
 . ~/.bashrc
 printenv
-which kubash
+#which kubash
