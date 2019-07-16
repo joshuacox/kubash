@@ -1,5 +1,6 @@
 ---
   csv_version: '4.0.0'
+  kubernetes_version: '$REPLACEME_KUBE_VER'
   hosts:
     stacked-master1:
       hostname: stackedmaster1

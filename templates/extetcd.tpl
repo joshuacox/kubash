@@ -1,5 +1,6 @@
 ---
-  csv_version: '2.0.0'
+  csv_version: '4.0.0'
+  kubernetes_version: '$REPLACEME_KUBE_VER'
   hosts:
     extetcd-master1:
       hostname: extetcdmaster1
@@ -188,10 +189,6 @@
         network: network=default
         mac: '52:54:00:e2:9f:21'
         ip: dhcp
-      iscsi:
-        target: 10.0.23.30
-        chap_username: chap_user
-        chap_password: chap_password
   ca:
     cert:
       CERT_COMMON_NAME: etcd
