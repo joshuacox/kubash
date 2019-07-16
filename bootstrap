@@ -99,7 +99,8 @@ flight_checks () {
 main () {
   . /etc/os-release
 
-  if [[ $USER == 'root' ]]; then
+  WHOAMI=$(whoami)
+  if [ "$WHOAMI" = "root" ]; then
     PSEUDO=' '
   else
     check_cmd sudo
