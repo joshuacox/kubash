@@ -7,7 +7,7 @@ stages:
 build_job:
   image: ubuntu:bionic
   stage: bootstrap
-  allow_failure: true
+  allow_failure: false
   variables:
   before_script:
     - export PATH="/root/.local/bin:/root/.kubash/bin:$PATH"
@@ -29,7 +29,7 @@ fulltest-bootstrap:
     - fulltest
   except:
     - merge_requests
-  allow_failure: true
+  allow_failure: false
   script:
     - echo 'fulltest1bootstrap'
     - bash -l .ci/ex.sh
