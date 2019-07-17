@@ -32,8 +32,6 @@ bootstrap_centos7:
   allow_failure: false
   only:
     - fulltest
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
     - printenv
@@ -52,8 +50,6 @@ bootstrap_arch:
   allow_failure: false
   only:
     - fulltest
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
     - printenv
