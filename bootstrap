@@ -109,10 +109,10 @@ main () {
 
   WHOAMI=$(whoami)
   if [ "$WHOAMI" = "root" ]; then
-    PSEUDO=' '
+    PSEUDO=''
   else
     check_cmd sudo
-    PSEUDO=sudo
+    PSEUDO='sudo'
   fi
   if [[ "$NAME" = 'Debian GNU/Linux' || $NAME = 'Ubuntu'   ]]; then
     DEB_PKG_GET='jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap python-pip virtinst qemu-kvm libvirt-clients libvirt-daemon-system net-tools dnsutils'
@@ -133,10 +133,13 @@ main () {
     check_cmd pacman
     ARCH_PKG_GET='awk nettle gettext jq git make go unzip curl wget parallel ansible rlwrap python-pip openbsd-netcat rsync nmap net-tools openssh'
     if type "powerpill" &> /dev/null; then
+      echo "$PSEUDO pacman -Sy"
       $PSEUDO pacman -Sy
       check_cmd powerpill
+      echo "$PSEUDO powerpill -S $YES_ARCH $ARCH_PKG_GET"
       $PSEUDO powerpill -S $YES_ARCH $ARCH_PKG_GET
     elif type "pacman" &> /dev/null; then
+      echo "$PSEUDO pacman -Sy $YES_ARCH $ARCH_PKG_GET"
       $PSEUDO pacman -Sy $YES_ARCH $ARCH_PKG_GET
     fi
   fi
