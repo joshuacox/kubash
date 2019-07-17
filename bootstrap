@@ -126,6 +126,7 @@ main () {
       YUM_PKG_GET='jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap net-tools'
       check_cmd yum
       $PSEUDO yum $YES update
+      $PSEUDO yum install $YES epel-release
       $PSEUDO yum install $YES $YUM_PKG_GET
     fi
   elif [[ "$NAME" = 'Arch Linux' ]]; then
