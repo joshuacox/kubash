@@ -62,6 +62,7 @@ bootstrap_arch:
     - echo 'build'
     - cat ./xyne.pac >> /etc/pacman.conf
     - pacman -Sy
+    - pacman -Su --noconfirm
     - pacman -S --noconfirm sudo powerpill bauerbill
     - bash -l .ci/ex.sh
     - cat ./bootstrap
