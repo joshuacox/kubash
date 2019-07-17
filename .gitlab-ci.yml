@@ -23,6 +23,7 @@ bootstrap_ubuntu:
     - echo $PATH
     - echo 'build'
     - bash -l .ci/ex.sh
+    - cat ./bootstrap
     - ./bootstrap -y
 
 bootstrap_centos7:
@@ -42,6 +43,7 @@ bootstrap_centos7:
     - echo $PATH
     - echo 'build'
     - bash -l .ci/ex.sh
+    - cat ./bootstrap
     - ./bootstrap -y
 
 bootstrap_arch:
@@ -61,6 +63,7 @@ bootstrap_arch:
     - echo $PATH
     - echo 'build'
     - bash -l .ci/ex.sh
+    - cat ./bootstrap
     - ./bootstrap -y
 
 fulltest-bootstrap:
@@ -80,6 +83,7 @@ fulltest-bootstrap:
     - echo 'fulltest1bootstrap'
     - printenv
     - bash -l .ci/ex.sh
+    - cat ./bootstrap
     - ./bootstrap -y
     - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
       #- curl -sL git.io/kubash > /tmp/kubash
