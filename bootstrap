@@ -149,6 +149,8 @@ main () {
   if [ ! -d $KUBASH_DIR ]; then
     git clone https://github.com/kubash/kubash.git $KUBASH_DIR
   else
+    echo "KUBASH_DIR=$KUBASH_DIR"
+    echo 'attempting to pull in the kubash directory'
     cd $KUBASH_DIR
     git pull
   fi
@@ -156,10 +158,11 @@ main () {
   $KUBASH_BIN/kubash dotfiles
   . ~/.bashrc
   cd $KUBASH_DIR
+  echo 'Updating submodules in the kubash directory'
   git submodule update --init --recursive
-  echo 'install openebs'
+  echo 'ensure openebs is installed'
   make submodules/openebs
-  echo 'install nvm'
+  echo 'ensure nvm is installed'
   make nvm
   export NVM_DIR="$HOME/.nvm"
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
@@ -167,11 +170,11 @@ main () {
   nvm install --lts
   nvm alias default
   check_cmd npm
-  echo 'install jinja2'
+  echo 'ensure jinja2 is installed'
   make jinja2-cli
   check_install jinja2
   make yaml2json
-  echo 'install ct'
+  echo 'ensure ct is installed'
   make ct
   check_install ct
   #make ct
