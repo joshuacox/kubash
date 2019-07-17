@@ -172,7 +172,7 @@ main () {
   . ~/.bashrc
   cd $KUBASH_DIR
   if [[ "$CI_BUILD_REF_SLUG" == "fulltest" ]]; then
-	  git remote add thisgitlab https://gitlab.com/kubash/kubash.git
+	  git remote add -f thisgitlab https://gitlab.com/kubash/kubash.git
 	  git fetch --all
 	  git checkout fulltest
   fi
