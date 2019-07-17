@@ -17,7 +17,7 @@ build_job:
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
     - printenv
-    - THIS_CWD=$(pwd) cp -av $THIS_CWD /root/.kubash 
+    - cp -av $PWD /root/.kubash 
       # - apt-get update; apt-get install -y git
       # - THIS_CWD=$(pwd) cd /root && git clone --recursive https://github.com/kubash/kubash.git .kubash && cd /root/.kubash && git checkout --track fulltest && cd $THIS_PWD
   script:
@@ -28,7 +28,7 @@ build_job:
     - echo $PATH
     - echo 'build'
     - bash -l .ci/ex.sh
-    - yes y | ./bootstrap
+    - ./bootstrap -y
       #    - bash -l .ci/builder.sh
 
 fulltest-bootstrap:
@@ -48,7 +48,7 @@ fulltest-bootstrap:
     - echo 'fulltest1bootstrap'
     - printenv
     - bash -l .ci/ex.sh
-    - yes y | ./bootstrap
+    - ./bootstrap -y
     - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
       #- curl -sL git.io/kubash > /tmp/kubash
       #- chmod +x /tmp/kubash

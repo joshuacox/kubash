@@ -2,6 +2,14 @@
 : ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${GOPATH:=$HOME/.go}
+if [[ "$1" == '-y' ]]; then
+  echo YES
+  YES='-y'
+  YES_ARCH='--noconfirm'
+else
+  YES=' '
+  YES_ARCH=' '
+fi
 set -e
 
 squawk () {
@@ -111,14 +119,14 @@ main () {
     if type "apt-get" &> /dev/null; then
       check_cmd apt-get
       $PSEUDO apt-get update
-      $PSEUDO apt-get install $DEB_PKG_GET
+      $PSEUDO apt-get $YES install $DEB_PKG_GET
     fi
   elif [[ "$NAME" = 'CentOS Linux' ]]; then
     if type "yum" &> /dev/null; then
       YUM_PKG_GET='jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap net-tools'
       check_cmd yum
       $PSEUDO yum update
-      $PSEUDO yum install $YUM_PKG_GET
+      $PSEUDO yum install $YES $YUM_PKG_GET
     fi
   elif [[ "$NAME" = 'Arch Linux' ]]; then
     check_cmd pacman
@@ -126,9 +134,9 @@ main () {
     if type "powerpill" &> /dev/null; then
       $PSEUDO pacman -Sy
       check_cmd powerpill
-      $PSEUDO powerpill -S $ARCH_PKG_GET
+      $PSEUDO powerpill -S $YES_ARCH $ARCH_PKG_GET
     elif type "pacman" &> /dev/null; then
-      $PSEUDO pacman -Sy $ARCH_PKG_GET
+      $PSEUDO pacman -Sy $YES_ARCH $ARCH_PKG_GET
     fi
   fi
   check_cmd git
