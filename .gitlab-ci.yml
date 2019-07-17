@@ -16,11 +16,13 @@ build_job:
     GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
+    - printenv
     - THIS_CWD=$(pwd) cp -av $THIS_CWD /root/.kubash 
       # - apt-get update; apt-get install -y git
       # - THIS_CWD=$(pwd) cd /root && git clone --recursive https://github.com/kubash/kubash.git .kubash && cd /root/.kubash && git checkout --track fulltest && cd $THIS_PWD
   script:
     - whoami
+    - printenv
     - mkdir -p /root/.kubash/bin 
     - mkdir -p /root/.local/bin 
     - echo $PATH
@@ -44,6 +46,7 @@ fulltest-bootstrap:
     - export PATH="/home/gitlab-runner/.nvm/versions/node/v10.16.0/bin:/home/gitlab-runner/.local/bin:/home/gitlab-runner/.kubash/bin:$PATH"
   script:
     - echo 'fulltest1bootstrap'
+    - printenv
     - bash -l .ci/ex.sh
     - yes y | ./bootstrap
     - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
