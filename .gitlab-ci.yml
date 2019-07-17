@@ -32,6 +32,8 @@ fulltest-bootstrap:
   except:
     - merge_requests
   allow_failure: false
+  before_script:
+    - export PATH="/home/gitlab-runner/.local/bin:/home/gitlab-runner/.kubash/bin:$PATH"
   script:
     - echo 'fulltest1bootstrap'
     - bash -l .ci/ex.sh
