@@ -149,10 +149,13 @@ main () {
   if [ ! -d $KUBASH_DIR ]; then
     git clone https://github.com/kubash/kubash.git $KUBASH_DIR
   else
-    echo "KUBASH_DIR=$KUBASH_DIR"
+    echo "KUBASH_DIR=$KUBASH_DIR found"
     echo 'attempting to pull in the kubash directory'
+    cd $KUBASH_DIR
     pwd
+    git branch
     git pull
+    git log -n1|cat
   fi
   export PATH=$HOME/.kubash/bin:$PATH
   $KUBASH_BIN/kubash dotfiles
