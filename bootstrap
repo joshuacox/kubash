@@ -167,7 +167,9 @@ main () {
   nvm install --lts
   nvm alias default
   check_cmd npm
-  make jinja2
+  echo 'install jinja2'
+  make jinja2-cli
+  check_install jinja2
   make yaml2json
   echo 'install ct'
   make ct

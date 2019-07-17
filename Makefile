@@ -55,7 +55,7 @@ all: $(KUBASH_BIN)/kush $(KUBASH_BIN)/kzsh $(KUBASH_BIN)/kudash reqs anaconda nv
 
 reqs: linuxreqs
 
-linuxreqs: kubectl helm minikube jinja2 submodules/openebs yaml2json ct
+linuxreqs: kubectl helm minikube jinja2-cli submodules/openebs yaml2json ct
 
 helm: $(KUBASH_BIN)
 	@scripts/kubashnstaller helm
@@ -418,8 +418,7 @@ cfssl:
 	sudo curl -s -o $(KUBASH_BIN)/cfssljson https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
 	sudo chmod +x $(KUBASH_BIN)/cfssl*
 
-jinja2:
-	#pip install --user jinja2 jinja2-cli
+jinja2-cli:
 	pip install --user jinja2-cli
 
 anaconda: $(KUBASH_BIN)/Anaconda.sh
