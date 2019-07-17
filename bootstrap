@@ -173,10 +173,10 @@ main () {
   cd $KUBASH_DIR
   if [[ "$CI_BUILD_REF_SLUG" == "fulltest" ]]; then
 	  THISGITLAB_EXISTS=$(git remote|grep thisgitlab|wc -l)
-	  if [[ $THISGITLAB_EXISTS ]]; then
-	    echo 'no need to add remote'
-	  else
+	  if [[ "$THISGITLAB_EXISTS" == "0" ]]; then
 	    git remote add -f thisgitlab https://gitlab.com/kubash/kubash.git
+	  else
+	    echo 'no need to add remote'
 	  fi
 	  git fetch --all
 	  git checkout fulltest
