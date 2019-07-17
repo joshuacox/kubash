@@ -8,8 +8,13 @@ build_job:
   image: ubuntu:bionic
   stage: bootstrap
   allow_failure: true
+  variables:
+    - PATH=/root/.local/bin:/root/.kubash/bin:$PATH
   script:
     - whoami
+    - mkdir -p /root/.kubash/bin 
+    - mkdir -p /root/.local/bin 
+    - echo $PATH
     - echo 'build'
     - bash -l .ci/ex.sh
     - yes y | ./bootstrap
