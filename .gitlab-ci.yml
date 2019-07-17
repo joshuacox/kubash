@@ -16,8 +16,8 @@ build_job:
     GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
-    - apt-get update; apt-get install -y git
-    - THIS_CWD=$(pwd) cp -a $THIS_CWD /root/.kubash 
+    - THIS_CWD=$(pwd) cp -av $THIS_CWD /root/.kubash 
+      # - apt-get update; apt-get install -y git
       # - THIS_CWD=$(pwd) cd /root && git clone --recursive https://github.com/kubash/kubash.git .kubash && cd /root/.kubash && git checkout --track fulltest && cd $THIS_PWD
   script:
     - whoami
