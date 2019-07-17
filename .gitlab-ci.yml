@@ -13,6 +13,7 @@ build_job:
   variables:
   before_script:
     - export PATH="/root/.local/bin:/root/.kubash/bin:$PATH"
+    - apt-get update; apt-get install -y git
     - THIS_CWD=$(pwd) cd /root; git clone --recursive https://github.com/kubash/kubash.git .kubash; cd $THIS_PWD
   script:
     - whoami
