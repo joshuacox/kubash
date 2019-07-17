@@ -9,7 +9,8 @@ build_job:
   stage: bootstrap
   allow_failure: true
   variables:
-    PATH:  "/root/.local/bin:/root/.kubash/bin:$PATH"
+  before_script:
+    - export PATH="/root/.local/bin:/root/.kubash/bin:$PATH"
   script:
     - whoami
     - mkdir -p /root/.kubash/bin 
