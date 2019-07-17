@@ -1,4 +1,6 @@
 default:
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   image: ubuntu:bionic
 
 stages:
