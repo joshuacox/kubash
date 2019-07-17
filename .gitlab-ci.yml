@@ -7,7 +7,7 @@ stages:
   - test 
   - deploy 
 
-build_job:
+bootstrap_ubuntu:
   stage: bootstrap
   allow_failure: false
   only:
@@ -17,11 +17,6 @@ build_job:
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
     - printenv
-      #- cp -av $PWD /root/.kubash 
-      #- cd /root/.kubash && git checkout --track fulltest
-      #- cd /root/.kubash && git checkout --track $CI_COMMIT_REF_NAME
-      # - apt-get update; apt-get install -y git
-      # - THIS_CWD=$(pwd) cd /root && git clone --recursive https://github.com/kubash/kubash.git .kubash && cd /root/.kubash && git checkout --track fulltest && cd $THIS_PWD
   script:
     - whoami
     - printenv
@@ -29,9 +24,44 @@ build_job:
     - echo 'build'
     - bash -l .ci/ex.sh
     - ./bootstrap -y
-      #    - bash -l .ci/builder.sh
-      #- mkdir -p /root/.kubash/bin 
-      #- mkdir -p /root/.local/bin 
+
+bootstrap_centos7:
+  image: centos:7
+  stage: bootstrap
+  allow_failure: false
+  only:
+    - fulltest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
+    - printenv
+  script:
+    - whoami
+    - printenv
+    - echo $PATH
+    - echo 'build'
+    - bash -l .ci/ex.sh
+    - ./bootstrap -y
+
+bootstrap_arch:
+  image: archlinux/base
+  stage: bootstrap
+  allow_failure: false
+  only:
+    - fulltest
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
+    - printenv
+  script:
+    - whoami
+    - printenv
+    - echo $PATH
+    - echo 'build'
+    - bash -l .ci/ex.sh
+    - ./bootstrap -y
 
 fulltest-bootstrap:
   stage: bootstrap

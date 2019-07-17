@@ -188,7 +188,7 @@ main () {
   make yaml2json
   echo 'ensure ct is installed'
   make ct
-  check_install ct
+  #check_install ct
   #make ct
   check_install helm
   check_install oc
