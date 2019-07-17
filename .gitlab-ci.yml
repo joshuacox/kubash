@@ -25,13 +25,13 @@ build_job:
   script:
     - whoami
     - printenv
-    - mkdir -p /root/.kubash/bin 
-    - mkdir -p /root/.local/bin 
     - echo $PATH
     - echo 'build'
     - bash -l .ci/ex.sh
     - ./bootstrap -y
       #    - bash -l .ci/builder.sh
+      #- mkdir -p /root/.kubash/bin 
+      #- mkdir -p /root/.local/bin 
 
 fulltest-bootstrap:
   stage: bootstrap

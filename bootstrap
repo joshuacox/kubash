@@ -161,6 +161,7 @@ main () {
     echo 'attempting to pull in the kubash directory'
     cd $KUBASH_DIR
     pwd
+    ls -alh
     git branch
     git pull
     git log -n1|cat
