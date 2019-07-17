@@ -167,9 +167,12 @@ main () {
     git log -n1|cat
   fi
   export PATH=$HOME/.kubash/bin:$PATH
-  $KUBASH_BIN/kubash dotfiles
+  $KUBASH_BIN/scripts/dotfiles
   . ~/.bashrc
   cd $KUBASH_DIR
+  if [[ "$CI_BUILD_REF_SLUG" == "fulltest" ]]; then
+	  git checkout --track fulltest
+  fi
   echo 'Updating submodules in the kubash directory'
   git submodule update --init --recursive
   echo 'ensure openebs is installed'
@@ -187,7 +190,7 @@ main () {
   check_install jinja2
   make yaml2json
   #echo 'ensure ct is installed'
-  #make ct
+  make ct
   #check_install ct
   #make ct
   check_install helm
