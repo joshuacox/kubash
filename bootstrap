@@ -135,6 +135,7 @@ main () {
     if type "powerpill" &> /dev/null; then
       echo "$PSEUDO pacman -Sy"
       $PSEUDO pacman -Sy
+      $PSEUDO pacman -Su $YES_ARCH
       check_cmd powerpill
       echo "$PSEUDO powerpill -S $YES_ARCH $ARCH_PKG_GET"
       $PSEUDO powerpill -S $YES_ARCH $ARCH_PKG_GET
