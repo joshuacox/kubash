@@ -122,8 +122,8 @@ main () {
       $PSEUDO apt-get $YES install $DEB_PKG_GET
     fi
   elif [[ "$NAME" = 'CentOS Linux' ]]; then
+    YUM_PKG_GET='jq git build-essential python-pip golang unzip curl wget parallel ansible rlwrap rsync nmap net-tools'
     if type "yum" &> /dev/null; then
-      YUM_PKG_GET='jq git build-essential python-pip golang unzip curl wget parallel ansible rlwrap rsync nmap net-tools'
       check_cmd yum
       $PSEUDO yum $YES update
       $PSEUDO yum install $YES epel-release
@@ -131,7 +131,7 @@ main () {
     fi
   elif [[ "$NAME" = 'Arch Linux' ]]; then
     check_cmd pacman
-    ARCH_PKG_GET='gettext jq git make go unzip curl wget parallel ansible rlwrap python-pip openbsd-netcat rsync nmap net-tools openssh'
+    ARCH_PKG_GET='awk gettext jq git make go unzip curl wget parallel ansible rlwrap python-pip openbsd-netcat rsync nmap net-tools openssh'
     if type "powerpill" &> /dev/null; then
       $PSEUDO pacman -Sy
       check_cmd powerpill
