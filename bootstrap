@@ -174,7 +174,7 @@ main () {
   if [[ "$CI_BUILD_REF_SLUG" == "fulltest" ]]; then
 	  git remote add thisgitlab https://gitlab.com/kubash/kubash.git
 	  git fetch --all
-	  git checkout --track fulltest
+	  git checkout fulltest
   fi
   echo 'Updating submodules in the kubash directory'
   git submodule update --init --recursive
