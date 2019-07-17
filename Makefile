@@ -78,7 +78,7 @@ $(KUBASH_BIN)/helm:
 	$(eval TMP := $(shell mktemp -d --suffix=HELMTMP))
 	curl -sLo $(TMP)/helmget --silent https://raw.githubusercontent.com/helm/helm/master/scripts/get
 	HELM_INSTALL_DIR=$(HELM_INSTALL_DIR) \
-	sudo $(TMP)/helmget
+	sudo bash $(TMP)/helmget
 	rm $(TMP)/helmget
 	rmdir $(TMP)
 
