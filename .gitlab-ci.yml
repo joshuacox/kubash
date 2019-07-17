@@ -42,7 +42,7 @@ bootstrap_centos7:
     - echo $PATH
     - echo 'build'
     - bash -l .ci/ex.sh
-    - yum update; yum install -y sudo
+    - yum -y update; yum install -y sudo
     - cat ./bootstrap
     - ./bootstrap -y
 
@@ -60,7 +60,7 @@ bootstrap_arch:
     - printenv
     - echo $PATH
     - echo 'build'
-    - pacman -Su; pacman -S --noconfirm sudo
+    - pacman -Sy; pacman -S --noconfirm sudo
     - bash -l .ci/ex.sh
     - cat ./bootstrap
     - ./bootstrap -y
