@@ -151,7 +151,7 @@ main () {
   else
     echo "KUBASH_DIR=$KUBASH_DIR"
     echo 'attempting to pull in the kubash directory'
-    cd $KUBASH_DIR
+    pwd
     git pull
   fi
   export PATH=$HOME/.kubash/bin:$PATH
