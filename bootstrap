@@ -123,7 +123,7 @@ main () {
     fi
   elif [[ "$NAME" = 'CentOS Linux' ]]; then
     if type "yum" &> /dev/null; then
-      YUM_PKG_GET='jq git build-essential golang unzip curl wget parallel ansible rlwrap rsync nmap net-tools'
+      YUM_PKG_GET='jq git build-essential python-pip golang unzip curl wget parallel ansible rlwrap rsync nmap net-tools'
       check_cmd yum
       $PSEUDO yum $YES update
       $PSEUDO yum install $YES epel-release
