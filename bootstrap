@@ -186,8 +186,8 @@ main () {
   make jinja2-cli
   check_install jinja2
   make yaml2json
-  echo 'ensure ct is installed'
-  make ct
+  #echo 'ensure ct is installed'
+  #make ct
   #check_install ct
   #make ct
   check_install helm
