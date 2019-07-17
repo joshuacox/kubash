@@ -167,7 +167,7 @@ main () {
     git log -n1|cat
   fi
   export PATH=$HOME/.kubash/bin:$PATH
-  $KUBASH_BIN/scripts/dotfiles
+  $KUBASH_DIR/scripts/dotfiles
   . ~/.bashrc
   cd $KUBASH_DIR
   if [[ "$CI_BUILD_REF_SLUG" == "fulltest" ]]; then
