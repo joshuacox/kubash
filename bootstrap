@@ -130,7 +130,7 @@ main () {
     fi
   elif [[ "$NAME" = 'Arch Linux' ]]; then
     check_cmd pacman
-    ARCH_PKG_GET='jq git make go unzip curl wget parallel ansible rlwrap python-pip openbsd-netcat rsync nmap net-tools openssh'
+    ARCH_PKG_GET='gettext jq git make go unzip curl wget parallel ansible rlwrap python-pip openbsd-netcat rsync nmap net-tools openssh'
     if type "powerpill" &> /dev/null; then
       $PSEUDO pacman -Sy
       check_cmd powerpill
