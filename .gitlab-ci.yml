@@ -18,6 +18,7 @@ build_job:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
     - printenv
     - cp -av $PWD /root/.kubash 
+    - cd /root/.kubash && git checkout --track $CI_COMMIT_REF_NAME
       # - apt-get update; apt-get install -y git
       # - THIS_CWD=$(pwd) cd /root && git clone --recursive https://github.com/kubash/kubash.git .kubash && cd /root/.kubash && git checkout --track fulltest && cd $THIS_PWD
   script:
