@@ -14,7 +14,7 @@ bootstrap_stretch:
   only:
     - fulltest
   variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+    DEBIAN_FRONTEND: noninteractive
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
   script:
@@ -29,7 +29,7 @@ bootstrap_buster:
   only:
     - fulltest
   variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+    DEBIAN_FRONTEND: noninteractive
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
   script:
@@ -45,6 +45,7 @@ bootstrap_bionic:
     - fulltest
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
+    DEBIAN_FRONTEND: noninteractive
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
   script:
@@ -58,7 +59,7 @@ bootstrap_xenial:
   only:
     - fulltest
   variables:
-    GIT_SUBMODULE_STRATEGY: recursive
+    DEBIAN_FRONTEND: noninteractive
   before_script:
     - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
   script:
