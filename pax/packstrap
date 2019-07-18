@@ -215,6 +215,12 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   kubeadm init
   yes y|kubeadm reset
   rm -Rf /etc/kubernetes/*
+elif [ "$KUBEADM_INSTALL" = "spec" ]; then
+  install_spec_docker
+  #kubeadm config images pull
+  kubeadm init
+  yes y|kubeadm reset
+  rm -Rf /etc/kubernetes/*
 else
   echo 'Sticking to defaults'
   # install_default_docker

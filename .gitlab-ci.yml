@@ -351,8 +351,3 @@ fulltest-deploy:
   script:
     - echo 'fulltest1deploy'
     - pwd
-
-deploy_job:
-  stage: deploy
-  script:
-    - echo 'deploy'
