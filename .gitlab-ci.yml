@@ -54,7 +54,7 @@ bootstrap_bionic:
 
 bootstrap_xenial:
   stage: bootstrap
-  allow_failure: false
+  allow_failure: true
   only:
     - fulltest
   variables:
