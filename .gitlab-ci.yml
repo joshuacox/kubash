@@ -118,7 +118,7 @@ fulltest-ubuild1.15.1:
   tags:
     - fulltest
   only:
-    - fulltest22
+    - fulltest
   except:
     - merge_requests
   allow_failure: true
@@ -130,10 +130,10 @@ fulltest-ubuild1.15.0:
   tags:
     - fulltest
   only:
-    - fulltest22
+    - fulltest
   except:
     - merge_requests
-  allow_failure: false
+  allow_failure: true
   script:
     - .ci/ubuilder ubuntu1.15.0
 
@@ -170,10 +170,10 @@ fulltest-build:
   tags:
     - fulltest
   only:
-    - fulltest22
+    - fulltest
   except:
     - merge_requests
-  allow_failure: false
+  allow_failure: true
   script:
     - echo 'fulltest1build'
     - .ci/builder.sh
