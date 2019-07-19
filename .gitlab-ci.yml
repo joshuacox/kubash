@@ -124,7 +124,7 @@ fulltest-xenial1.15.1:
     - merge_requests
   allow_failure: true
   script:
-    - .ci/ubuilder ubuntu1.15.1
+    - .ci/ubuilder xenial1.15.1
 
 fulltest-xenial1.14.4:
   stage: build
@@ -139,8 +139,8 @@ fulltest-xenial1.14.4:
     - echo 'debug' 
     - . ~/.bashrc
     - printenv
-    - echo 'build ubuntu1.14.4' 
-    - .ci/ubuilder ubuntu1.14.4
+    - echo 'build xenial1.14.4' 
+    - .ci/ubuilder xenial1.14.4
 
 fulltest-xenial1.13.8:
   stage: build
@@ -152,7 +152,7 @@ fulltest-xenial1.13.8:
     - merge_requests
   allow_failure: false
   script:
-    - .ci/ubuilder ubuntu1.13.8
+    - .ci/ubuilder xenial1.13.8
 
 fulltest-beaver1.14.4:
   stage: build
@@ -258,8 +258,8 @@ stacked-xenial1.14.4:
     - merge_requests
   script:
     - . ~/.bashrc
-    - echo 'commence stacked-ubuntu-v1.14.4' 
-    - scripts/tester stacked ubuntu1.14.4 v1.14.4
+    - echo 'commence stacked-xenial-v1.14.4' 
+    - scripts/tester stacked xenial1.14.4 v1.14.4
 
 stacked-xenial1.15.0:
   stage: test
@@ -274,8 +274,8 @@ stacked-xenial1.15.0:
     - echo 'experimental pending' 
     - . ~/.bashrc
     - printenv
-    - echo 'commence stacked-ubuntu-v1.15.0' 
-    - scripts/tester stacked ubuntu1.15.0 v1.15.0
+    - echo 'commence stacked-xenial-v1.15.0' 
+    - scripts/tester stacked xenial1.15.0 v1.15.0
 
 extetcd-xenial1.14.4:
   stage: test
@@ -289,8 +289,8 @@ extetcd-xenial1.14.4:
     - echo 'debug' 
     - . ~/.bashrc
     - printenv
-    - echo 'commence extetcd-ubuntu-v1.14.4' 
-    - scripts/tester extetcd ubuntu1.14.4 v1.14.4
+    - echo 'commence extetcd-xenial-v1.14.4' 
+    - scripts/tester extetcd xenial1.14.4 v1.14.4
 
 stacked-xenial1.13.8:
   stage: test
@@ -304,8 +304,8 @@ stacked-xenial1.13.8:
     - echo 'debug' 
     - . ~/.bashrc
     - printenv
-    - echo 'commence stacked-ubuntu-v1.13.8' 
-    - scripts/tester stacked ubuntu1.13.8 v1.13.8
+    - echo 'commence stacked-xenial-v1.13.8' 
+    - scripts/tester stacked xenial1.13.8 v1.13.8
 
 extetcd-xenial1.13.8:
   stage: test
@@ -319,8 +319,8 @@ extetcd-xenial1.13.8:
     - echo 'debug' 
     - . ~/.bashrc
     - printenv
-    - echo 'commence extetcd-ubuntu-v1.13.8' 
-    - scripts/tester extetcd ubuntu1.13.8 v1.13.8
+    - echo 'commence extetcd-xenial-v1.13.8' 
+    - scripts/tester extetcd xenial1.13.8 v1.13.8
 
 stacked-coreos:
   stage: test
