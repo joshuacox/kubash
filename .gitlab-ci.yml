@@ -114,7 +114,7 @@ fulltest-bootstrap:
     - ./bootstrap -y
     - cd $HOME/.kubash && git pull && echo '/home/packer_cache/' > .packer_cache_path && cd pax && ./update_packer_cache 
 
-fulltest-ubuild1.15.1:
+fulltest-xenial1.15.1:
   stage: build
   tags:
     - fulltest
@@ -126,19 +126,7 @@ fulltest-ubuild1.15.1:
   script:
     - .ci/ubuilder ubuntu1.15.1
 
-fulltest-ubuild1.15.0:
-  stage: build
-  tags:
-    - fulltest
-  only:
-    - fulltest
-  except:
-    - merge_requests
-  allow_failure: true
-  script:
-    - .ci/ubuilder ubuntu1.15.0
-
-fulltest-ubuild1.14.4:
+fulltest-xenial1.14.4:
   stage: build
   tags:
     - fulltest
@@ -154,7 +142,7 @@ fulltest-ubuild1.14.4:
     - echo 'build ubuntu1.14.4' 
     - .ci/ubuilder ubuntu1.14.4
 
-fulltest-ubuild1.13.8:
+fulltest-xenial1.13.8:
   stage: build
   tags:
     - fulltest
@@ -165,6 +153,42 @@ fulltest-ubuild1.13.8:
   allow_failure: false
   script:
     - .ci/ubuilder ubuntu1.13.8
+
+fulltest-beaver1.14.4:
+  stage: build
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  allow_failure: false
+  script:
+    - .ci/ubuilder beaver1.14.4
+
+fulltest-centos71.14.4:
+  stage: build
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  allow_failure: true
+  script:
+    - .ci/ubuilder centos71.14.4
+
+fulltest-stretch1.14.4:
+  stage: build
+  tags:
+    - fulltest
+  only:
+    - fulltest
+  except:
+    - merge_requests
+  allow_failure: true
+  script:
+    - .ci/ubuilder stretch1.14.4
 
 fulltest-build:
   stage: build
