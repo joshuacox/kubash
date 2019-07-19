@@ -17,6 +17,8 @@ main () {
   date -I > $THIS_CLUSTER_NAME.log
   kubectl get nodes >> coreos1.log
   kubectl get pods --all-namespaces >> coreos1.log
+  cd ~/.kubash
+  bats .ci/.tests.bats
   cleanup
 }
 

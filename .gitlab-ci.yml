@@ -362,7 +362,7 @@ fulltest-test:
     - merge_requests
   script:
     - echo 'fulltest1'
-      #    - bash -l .ci/tester.sh
+    - bash -l .ci/tester.sh
 
 fulltest-deploy:
   stage: deploy
