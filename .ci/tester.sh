@@ -4,8 +4,8 @@
 echo builder.sh
 
 cleanup () {
-  rm -Rf ~/.kubash/clusters/coreos1
   kubash -n coreos1 decommission -y 
+  rm -Rf ~/.kubash/clusters/coreos1
 }
 
 main () {
