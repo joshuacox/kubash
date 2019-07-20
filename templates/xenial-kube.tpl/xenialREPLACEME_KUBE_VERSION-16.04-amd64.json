@@ -356,7 +356,7 @@
     "name": "xenialREPLACEME_KUBE_VERSION-16.04",
     "no_proxy": "{{env `no_proxy`}}",
     "preseed_path": "preseed.cfg",
-    "template": "ubuntuREPLACEME_KUBE_VERSION-16.04-amd64",
+    "template": "xenialREPLACEME_KUBE_VERSION-16.04-amd64",
     "version": "TIMESTAMP"
   }
 }
