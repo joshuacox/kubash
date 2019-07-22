@@ -207,8 +207,8 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
 else
   # Defaults to nothing barebones
   echo 'barebone'
-  #install_default_docker
-  install_kubernetes_docker
+  install_default_docker
+  #install_kubernetes_docker
 fi
 
 export GOPATH=$HOME/.go
