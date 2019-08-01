@@ -172,6 +172,31 @@ EOF
   systemctl restart docker
 }
 
+install_kube_tools () {
+  cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+  
+  # Set SELinux in permissive mode (effectively disabling it)
+  setenforce 0
+  sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+  
+  yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+  
+  systemctl enable --now kubelet
+
+  kubeadm config images pull
+  kubeadm init
+  yes y|kubeadm reset
+  rm -Rf /etc/kubernetes/*
+}
+
 install_docker_compose () {
   sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
   sudo chmod +x /usr/local/bin/docker-compose
@@ -199,7 +224,7 @@ elif [ "$KUBEADM_INSTALL" = "kubeadm2ha" ]; then
 elif [ "$KUBEADM_INSTALL" = "kubeadm" ]; then
   #install_spec_docker
   install_kubernetes_docker
-  #systemctl restart docker
+  install_kube_tools
   #kubeadm config images pull
   #kubeadm init
   #yes y|kubeadm reset
