@@ -1,4 +1,5 @@
 #!/bin/bash
+set -eux
 if [ $# -ne 1 ]; then
   # Print usage
   echo 'Error! wrong number of arguments'

@@ -6,6 +6,7 @@ if [ $# -ne 1 ]; then
   echo "$0 kube_version"
   exit 1
 fi
+set -eux
 KUBE_VERSION=$1
 cp -av templates/ubuntu-kube.tpl pax/ubuntu${KUBE_VERSION}
 cd pax/ubuntu${KUBE_VERSION}

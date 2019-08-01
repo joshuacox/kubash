@@ -7,6 +7,7 @@ packer_create_pax_dir () {
     squawk 5 "$target_os directory exists leaving untouched"
   else
     cd $KUBASH_DIR
+    export KUBASH_DIR=$KUBASH_DIR
     ./scripts/$pax_target_os $target_version
   fi
 }

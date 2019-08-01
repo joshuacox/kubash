@@ -169,6 +169,7 @@ EOF
   
   # Restart Docker
   systemctl daemon-reload
+  systemctl enable --now docker
   systemctl restart docker
 }
 

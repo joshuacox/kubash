@@ -6,6 +6,7 @@ if [ $# -ne 1 ]; then
   echo "$0 kube_version"
   exit 1
 fi
+set -eux
 THIS_OS=xenial
 KUBE_VERSION=$1
 cp -av templates/${THIS_OS}-kube.tpl pax/${THIS_OS}${KUBE_VERSION}
