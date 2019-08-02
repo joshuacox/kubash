@@ -2,6 +2,7 @@
 : ${KUBASH_DIR:=$HOME/.kubash}
 : ${KUBASH_BIN:=$KUBASH_DIR/bin}
 : ${GOPATH:=$HOME/.go}
+PIP_INSTALL_PKGS="netaddr ceph-deploy"
 if [[ "$1" == '-y' ]]; then
   echo YES
   YES='-y'
@@ -220,7 +221,7 @@ main () {
   make kubectl
   check_install crictl
   check_install onessl
-  pip install --user --upgrade netaddr
+  pip install --user --upgrade $PIP_INSTALL_PKGS
   echo 'logout and log back in, or source your RC files'
 }
 
