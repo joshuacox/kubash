@@ -101,7 +101,7 @@ install_default_docker () {
   systemctl enable kubelet && systemctl start kubelet
 
   pip install --upgrade pip
-  pip install --upgrade jinja2-cli jinja2
+  pip install --upgrade jinja2-cli jinja2 ceph-deploy
   pip install --upgrade 'docker<3.0'
 
   #edit /etc/sysconfig/docker file and add --insecure-registry 172.30.0.0/16 to the OPTIONS parameter.
