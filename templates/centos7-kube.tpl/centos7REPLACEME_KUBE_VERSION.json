@@ -163,6 +163,7 @@
   "post-processors": [
     {
       "output": "../builds/{{user `box_basename`}}.{{.Provider}}.box",
+      "except": ["qemu"],
       "type": "vagrant"
     }
   ],
@@ -247,7 +248,7 @@
     "mirror_directory": "7.6.1810/isos/x86_64",
     "name": "kubash-centos-7.5",
     "no_proxy": "{{env `no_proxy`}}",
-    "template": "centos-7.6-x86_64",
+    "template": "centos7REPLACEME_KUBE_VERSION-amd64",
     "version": "TIMESTAMP"
   }
 }
