@@ -1,0 +1,9 @@
+#!/bin/bash
+THIS_BRANCH=$(git branch --show-current)
+THIS_STATUS=$(git status -s)
+git checkout fulltest
+git merge $THIS_BRANCH
+git push
+git checkout $THIS_BRANCH
+git branch --show-current
+git status
