@@ -7,25 +7,10 @@ stages:
   - test 
   - deploy 
 
-bootstrap_stretch:
-  stage: bootstrap
-  image: debian:stretch
-  allow_failure: false
-  only:
-    - fulltest
-  variables:
-    DEBIAN_FRONTEND: noninteractive
-  before_script:
-    - export PATH="/root/.nvm/versions/node/v10.16.0/bin:/root/.local/bin:/root/.kubash/bin:$PATH"
-  script:
-    - apt-get update -qq; apt-get install -yqq sudo
-    - cat ./bootstrap
-    - ./bootstrap -y
-
 bootstrap_buster:
   stage: bootstrap
   image: debian:buster
-  allow_failure: true
+  allow_failure: false
   only:
     - fulltest
   variables:
@@ -178,7 +163,7 @@ fulltest-centos71.14.4:
   script:
     - .ci/ubuilder centos71.14.4
 
-fulltest-stretch1.14.4:
+fulltest-buster1.14.4:
   stage: build
   tags:
     - fulltest
@@ -188,7 +173,7 @@ fulltest-stretch1.14.4:
     - merge_requests
   allow_failure: true
   script:
-    - .ci/ubuilder stretch1.14.4
+    - .ci/ubuilder buster1.14.4
 
 fulltest-build:
   stage: build
@@ -203,7 +188,7 @@ fulltest-build:
     - echo 'fulltest1build'
     - .ci/builder.sh
 
-stacked-stretch1.14.4:
+stacked-buster1.14.4:
   stage: test
   tags:
     - fulltest
@@ -215,8 +200,8 @@ stacked-stretch1.14.4:
   script:
     - echo 'experimental pending' 
     - . ~/.bashrc
-    - echo 'commence stacked-stretch-v1.14.4' 
-    - scripts/tester stacked stretch1.14.4 v1.14.4
+    - echo 'commence stacked-buster-v1.14.4' 
+    - scripts/tester stacked buster1.14.4 v1.14.4
 
 stacked-bionic1.14.4:
   stage: test
