@@ -26,7 +26,7 @@ packer_build () {
     LN_CMD='ln -fs'
   fi
 
-  command2run="cd $KUBASH_DIR/pax;if [ ! -e "$KUBASH_DIR/pax/build" ]; then $LN_CMD $KVM_builderDir $KUBASH_DIR/pax/builds; fi"
+  command2run="cd $KUBASH_DIR/pax;if [ ! -e "$KUBASH_DIR/pax/build" ]; then $LN_CMD $KVM_builderDir $KUBASH_DIR/pax/builds || cp --reflink=auto $KVM_builderDir $KUBASH_DIR/pax/builds; fi"
   sudo_command $KVM_builderPort $KVM_builderUser $KVM_builderHost "$command2run"
 
   cd $KUBASH_DIR/pax/$target_os
