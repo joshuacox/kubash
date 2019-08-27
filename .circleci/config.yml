@@ -4,18 +4,35 @@ orbs:
   helm: banzaicloud/helm@0.0.5
 
 jobs:
+  check:
+    docker:
+      - image: circleci/golang:1.12
+        environment:
+          GOFLAG: -mod=readonly
+      - image: vault:1.1.0
+        environment:
+          SKIP_SETCAP: true
+          VAULT_DEV_ROOT_TOKEN_ID: 227e1cce-6bf7-30bb-2d2a-acc854318caf
 
-  full-test:
+    resource_class: small
+
+    steps:
+      - checkout
+      - run:
+          name: Check dependency licenses
+          command: bash bootstrap
+
+  acceptance-test:
     machine:
       image: circleci/classic:201808-01
       docker_layer_caching: true
 
     environment:
       GO_VERSION: "1.12.3"
-      K8S_VERSION: v1.15.3
+      K8S_VERSION: v1.14.0
       VAULT_VERSION: "1.1.0"
       KUBECONFIG: /home/circleci/.kube/config
-      MINIKUBE_VERSION: v1.3.1
+      MINIKUBE_VERSION: v1.0.0
       MINIKUBE_WANTUPDATENOTIFICATION: false
       MINIKUBE_WANTREPORTERRORPROMPT: false
       MINIKUBE_HOME: /home/circleci
@@ -81,12 +98,14 @@ jobs:
             helm init
             helm repo add banzaicloud-stable https://kubernetes-charts.banzaicloud.com/
 
-
 workflows:
   version: 2
   ci:
     jobs:
-      - full-test:
+      - check
+      - acceptance-test:
+          requires:
+            - check
 
   helm-chart:
     jobs:
