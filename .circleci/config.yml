@@ -29,7 +29,7 @@ jobs:
 
     environment:
       GO_VERSION: "1.12.3"
-      K8S_VERSION: v1.15.2
+      K8S_VERSION: v1.15.3
       VAULT_VERSION: "1.1.0"
       KUBECONFIG: /home/circleci/.kube/config
       MINIKUBE_VERSION: v1.3.1
