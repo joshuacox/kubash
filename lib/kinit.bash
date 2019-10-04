@@ -2591,7 +2591,7 @@ process_hosts_csv () {
       get_major_minor_kube_version $K8S_user $K8S_ip1  $K8S_node $K8S_sshPort
     fi
   done <<< "$kubash_hosts_csv_slurped"
-  if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+  if [[ $KUBE_MAJOR_VER == 1 ]]; then
     squawk 101 'Major Version 1'
     squawk 53  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
     if [[ $KUBE_MINOR_VER -eq 12 ]]; then
@@ -2625,10 +2625,10 @@ process_hosts_csv () {
         etcd_kubernetes_ext_etcd_method
       fi
     fi
-  elif [[ $MAJOR_VER -eq 2 ]]; then
+  elif [[ $KUBE_MAJOR_VER == 2 ]]; then
       croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER is two and not supported at this time"
   else
-    croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported at this time..."
+    croak 3  "Kube Major version = $KUBE_MAJOR_VER is not 1. Kube Minor version = $KUBE_MINOR_VER. Which is not supported at this time."
   fi
   # spin up nodes
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
