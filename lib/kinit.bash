@@ -2614,7 +2614,7 @@ process_hosts_csv () {
       fi
     fi
   elif [[ $MAJOR_VER -eq 2 ]]; then
-      croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported at this time"
+      croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER is two and not supported at this time"
   else
     croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported at this time"
   fi
