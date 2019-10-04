@@ -222,7 +222,7 @@ finish_etcd () {
   this_name=$3
   this_port=$4
   get_major_minor_kube_version $this_user $this_host $this_name $this_port
-  if [[ $KUBE_MAJOR_VER -eq 1 ]]; then
+  if [[ $KUBE_MAJOR_VER == 1 ]]; then
     squawk 20 'Major Version 1'
     if [[ $KUBE_MINOR_VER -lt 12 ]]; then
       finish_etcd_direct_download $this_user $this_host $this_name $this_port
@@ -230,7 +230,7 @@ finish_etcd () {
       croak 3  'stubbed not working yet'
       #finish_etcd_kubelet_download $this_user $this_host $this_name $this_port
     fi
-  elif [[ $MAJOR_VER -eq 0 ]]; then
+  elif [[ $MAJOR_VER == 0 ]]; then
     croak 3 'Major Version 0 unsupported'
   else
     croak 3 'Major Version Unknown'
@@ -2594,25 +2594,25 @@ process_hosts_csv () {
   if [[ $KUBE_MAJOR_VER == 1 ]]; then
     squawk 101 'Major Version 1'
     squawk 53  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER supported"
-    if [[ $KUBE_MINOR_VER -eq 12 ]]; then
+    if [[ $KUBE_MINOR_VER == 12 ]]; then
       if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
         etcd_kubernetes_12_docs_stacked_method
       else
         etcd_kubernetes_12_ext_etcd_method
       fi
-    elif [[ $KUBE_MINOR_VER -eq 13 ]]; then
+    elif [[ $KUBE_MINOR_VER == 13 ]]; then
       if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
         etcd_kubernetes_13_docs_stacked_method
       else
         etcd_kubernetes_13_ext_etcd_method
       fi
-    elif [[ $KUBE_MINOR_VER -eq 14 ]]; then
+    elif [[ $KUBE_MINOR_VER == 14 ]]; then
       if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
         etcd_kubernetes_docs_stacked_method
       else
         etcd_kubernetes_ext_etcd_method
       fi
-    elif [[ $KUBE_MINOR_VER -eq 15 ]]; then
+    elif [[ $KUBE_MINOR_VER == 15 ]]; then
       if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
         etcd_kubernetes_docs_stacked_method
       else

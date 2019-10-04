@@ -195,12 +195,11 @@ get_major_minor_kube_version () {
   this_port=$4
   #command2run="kubeadm version 2>/dev/null |sed \'s/^.*Major:\"\([1234567890]*\)\", Minor:\"\([1234567890]*\)\", GitVersion:.*$/\1,\2/\'"
   command2run="kubeadm version 2>/dev/null"
-  TEST_KUBEADM_VER=$(sudo_command $this_port $this_user $this_host "$command2run" \
-    |grep -v -P '^#'\
-    |sed 's/^.*Major:\"\([1234567890]*\)\", Minor:\"\([1234567890]*\)\", GitVersion:.*$/\1,\2/' \
-  )
-  KUBE_MAJOR_VER=$(echo $TEST_KUBEADM_VER|cut -f1 -d,)
-  KUBE_MINOR_VER=$(echo $TEST_KUBEADM_VER|cut -f2 -d,)
+  TEST_KUBEADM_VER_STEP_1=$(sudo_command $this_port $this_user $this_host "$command2run")
+  TEST_KUBEADM_VER_STEP_2=$(echo $TEST_KUBEADM_VER_STEP_1 | grep -v -P '^#')
+  TEST_KUBEADM_VER=$(echo $TEST_KUBEADM_VER_STEP_2 | sed 's/^.*Major:\"\([1234567890]*\)\", Minor:\"\([1234567890]*\)\", GitVersion:.*$/\1,\2/' )
+  export KUBE_MAJOR_VER=$(echo $TEST_KUBEADM_VER|cut -f1 -d,)
+  export KUBE_MINOR_VER=$(echo $TEST_KUBEADM_VER|cut -f2 -d,)
   squawk 185 "kube major: $KUBE_MAJOR_VER kube minor: $KUBE_MINOR_VER"
 }
 
