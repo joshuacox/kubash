@@ -2606,6 +2606,18 @@ process_hosts_csv () {
       else
         etcd_kubernetes_13_ext_etcd_method
       fi
+    elif [[ $KUBE_MINOR_VER -eq 14 ]]; then
+      if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+        etcd_kubernetes_docs_stacked_method
+      else
+        etcd_kubernetes_ext_etcd_method
+      fi
+    elif [[ $KUBE_MINOR_VER -eq 15 ]]; then
+      if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
+        etcd_kubernetes_docs_stacked_method
+      else
+        etcd_kubernetes_ext_etcd_method
+      fi
     else
       if [[ "$MASTERS_AS_ETCD" == "true" ]]; then
         etcd_kubernetes_docs_stacked_method
@@ -2616,7 +2628,7 @@ process_hosts_csv () {
   elif [[ $MAJOR_VER -eq 2 ]]; then
       croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER is two and not supported at this time"
   else
-    croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported at this time"
+    croak 3  "$KUBE_MAJOR_VER.$KUBE_MINOR_VER not supported at this time..."
   fi
   # spin up nodes
   if [[ "$PARALLEL_JOBS" -gt "1" ]] ; then
