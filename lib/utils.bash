@@ -198,12 +198,12 @@ get_major_minor_kube_version () {
   squawk 101 "get_major_minor_kube_version set command"
   set +e
   command2run="kubeadm version 2>/dev/null"
-  squawk 101 "get_major_minor_kube_version step 1"
   TEST_KUBEADM_VER_STEP_1=$(sudo_command $this_port $this_user $this_host "$command2run")
-  squawk 101 "get_major_minor_kube_version step 2"
+  squawk 101 "get_major_minor_kube_version step 1 output=$TEST_KUBEADM_VER_STEP_1"
   TEST_KUBEADM_VER_STEP_2=$(echo $TEST_KUBEADM_VER_STEP_1 | grep -v -P '^#')
-  squawk 101 "get_major_minor_kube_version step 3"
+  squawk 101 "get_major_minor_kube_version step 2 output=$TEST_KUBEADM_VER_STEP_2"
   TEST_KUBEADM_VER=$(echo $TEST_KUBEADM_VER_STEP_2 | sed 's/^.*Major:\"\([1234567890]*\)\", Minor:\"\([1234567890]*\)\", GitVersion:.*$/\1,\2/' )
+  squawk 101 "get_major_minor_kube_version step 3 output=$TEST_KUBEADM_VER"
   squawk 101 "get_major_minor_kube_version exports"
   export KUBE_MAJOR_VER=$(echo $TEST_KUBEADM_VER|cut -f1 -d,)
   export KUBE_MINOR_VER=$(echo $TEST_KUBEADM_VER|cut -f2 -d,)
