@@ -34,6 +34,7 @@ do_istio () {
       sleep 1
       ((++countzero))
     done
+    helm repo add istio.io https://storage.googleapis.com/istio-release/releases/1.1.7/charts/
     KUBECONFIG=$KUBECONFIG \
     helm install \
       --name=istio \
